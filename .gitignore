@@ -1,0 +1,13 @@
+### Log ###
+logs/
+*.log
+
+### Maven ###
+target/
+.flattened-pom.xml
+pom.xml.versionsBackup
+
+### Eclipse ###
+.settings/
+.classpath
+.project
