@@ -17,7 +17,7 @@ extends AbstractPlugin {
 
     @Override
     public final String getOptionName() {
-        return "ITBSG-trace";
+        return "ITBSG-xjc-trace";
     }
 
     @Override
