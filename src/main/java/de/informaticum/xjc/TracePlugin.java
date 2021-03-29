@@ -7,6 +7,7 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.outline.PackageOutline;
+import de.informaticum.xjc.util.DeclarationAnalysis;
 import org.slf4j.Logger;
 import org.xml.sax.ErrorHandler;
 
@@ -40,6 +41,10 @@ extends AbstractPlugin {
     @Override
     protected final boolean runClass(final Outline outline, final Options options, final ErrorHandler errorHandler, final ClassOutline clazz) {
         LOG.info("Current Class is [{}].", clazz.getImplClass().fullName());
+        final var declaredFields = DeclarationAnalysis.declaredFieldsOf(clazz);
+        final var declaredMethods = DeclarationAnalysis.declaredGettersOf(clazz);
+        final var undeclaredFields = DeclarationAnalysis.undeclaredFieldsOf(clazz);
+        final var undeclaredMethods = DeclarationAnalysis.undeclaredGettersOf(clazz);
         return true;
     }
 
