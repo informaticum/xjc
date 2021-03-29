@@ -10,7 +10,7 @@ public class FooTest {
     public void testName()
     throws Exception {
         final var plugin = new BarPlugin();
-        System.out.println(plugin.getUsage());
+        // System.out.println(plugin.getUsage());
         assertThat(plugin.getUsage()
                    .toString()).isEqualTo(format("  -bar :  Some bar infomation.%n  -aaaaaa :  Some aaaaaa information. Default: aaaaaa%n  -bb     :  Some bb information. Default: bb%n"));
     }

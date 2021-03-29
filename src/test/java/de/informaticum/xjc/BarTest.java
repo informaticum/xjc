@@ -10,7 +10,7 @@ public class BarTest {
     public void testName()
     throws Exception {
         final var plugin = new FooPlugin();
-        System.out.println(plugin.getUsage());
+        // System.out.println(plugin.getUsage());
         assertThat(plugin.getUsage()).hasToString(format("  -foo :  Some foo infomation.%n  -a  :  Some a information. Default: a%n  -bb :  Some bb information. Default: bb%n"));
     }
 
