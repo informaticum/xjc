@@ -2,6 +2,7 @@ package de.informaticum.xjc;
 
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
+import static org.slf4j.LoggerFactory.getLogger;
 import java.util.LinkedHashMap;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JClass;
@@ -10,13 +11,12 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 
 public final class ReusePlugin
 extends AbstractPlugin {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ReusePlugin.class);
+    private static final Logger LOG = getLogger(ReusePlugin.class);
 
     private static final String REUSE_QNAMES = "-reuse-qnames";
 

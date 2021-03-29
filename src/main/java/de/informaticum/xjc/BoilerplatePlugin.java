@@ -10,6 +10,7 @@ import static com.sun.codemodel.JMod.PUBLIC;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static java.util.Optional.ofNullable;
+import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,13 +21,12 @@ import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 
 public final class BoilerplatePlugin
 extends AbstractPlugin {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BoilerplatePlugin.class);
+    private static final Logger LOG = getLogger(BoilerplatePlugin.class);
 
     private static final String GENERATE_HASHCODE = "-boilerplate-hashCode";
 
