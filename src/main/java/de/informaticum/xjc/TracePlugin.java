@@ -1,6 +1,5 @@
 package de.informaticum.xjc;
 
-import java.io.IOException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -27,29 +26,25 @@ extends AbstractPlugin {
     }
 
     @Override
-    protected final boolean runPackage(final Outline outline, final Options options, final ErrorHandler errorHandler, final PackageOutline pakkage)
-    throws IOException {
+    protected final boolean runPackage(final Outline outline, final Options options, final ErrorHandler errorHandler, final PackageOutline pakkage) {
         LOG.info("Current Package is [{}].", pakkage._package().name());
         return true;
     }
 
     @Override
-    protected final boolean runObjectFactory(final Outline outline, final Options options, final ErrorHandler errorHandler, final JDefinedClass factory)
-    throws IOException {
+    protected final boolean runObjectFactory(final Outline outline, final Options options, final ErrorHandler errorHandler, final JDefinedClass factory) {
         LOG.info("Current Object-Factory is [{}].", factory.fullName());
         return true;
     }
 
     @Override
-    protected final boolean runClass(final Outline outline, final Options options, final ErrorHandler errorHandler, final ClassOutline clazz)
-    throws IOException {
+    protected final boolean runClass(final Outline outline, final Options options, final ErrorHandler errorHandler, final ClassOutline clazz) {
         LOG.info("Current Class is [{}].", clazz.getImplClass().fullName());
         return true;
     }
 
     @Override
-    protected final boolean runEnum(final Outline outline, final Options options, final ErrorHandler errorHandler, final EnumOutline enumeration)
-    throws IOException {
+    protected final boolean runEnum(final Outline outline, final Options options, final ErrorHandler errorHandler, final EnumOutline enumeration) {
         LOG.info("Current Enum is [{}].", enumeration.getImplClass().fullName());
         return true;
     }

@@ -10,7 +10,6 @@ import static com.sun.codemodel.JMod.PUBLIC;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -76,8 +75,7 @@ extends AbstractPlugin {
     }
 
     @Override
-    protected final boolean runClass(final Outline outline, final Options options, final ErrorHandler errorHandler, final ClassOutline clazz)
-    throws IOException {
+    protected final boolean runClass(final Outline outline, final Options options, final ErrorHandler errorHandler, final ClassOutline clazz) {
         if (this.generateEquals) {
             if (clazz.getImplClass().getMethod("equals", argTypes(outline.getCodeModel().ref(Object.class))) != null) {
                 LOG.warn("Skip [#equals(Object)] method for [{}] because such method already exists.", clazz.getImplClass().fullName());

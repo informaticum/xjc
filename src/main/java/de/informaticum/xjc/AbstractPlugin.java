@@ -14,6 +14,7 @@ import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.outline.PackageOutline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 public abstract class AbstractPlugin
 extends Plugin {
@@ -62,29 +63,42 @@ extends Plugin {
                 result &= this.runEnum(outline, options, errorHandler, enumeration);
             }
             return result;
+        } catch (final RuntimeException any) {
+            final var failure = new SAXParseException(any.getMessage(), null, any);
+            try {
+                errorHandler.fatalError(failure);
+            } catch (final RuntimeException ignore) {}
+            throw any;
+        } catch (final SAXException any) {
+            throw any;
         } catch (final Exception any) {
-            outline.getErrorReceiver().error(any);
-            return false;
+            final var failure = new SAXParseException(any.getMessage(), null, any);
+            try {
+                errorHandler.fatalError(failure);
+                throw failure;
+            } catch (final RuntimeException ignore) {
+                throw new RuntimeException(any.getMessage(), any);
+            }
         }
     }
 
     protected boolean runPackage(final Outline outline, final Options options, final ErrorHandler errorHandler, final PackageOutline pakkage)
-    throws Exception {
+    throws SAXException, Exception {
         return true;
     }
 
     protected boolean runObjectFactory(final Outline outline, final Options options, final ErrorHandler errorHandler, final JDefinedClass objectFactory)
-    throws Exception {
+    throws SAXException, Exception {
         return true;
     }
 
     protected boolean runClass(final Outline outline, final Options options, final ErrorHandler errorHandler, final ClassOutline clazz)
-    throws Exception {
+    throws SAXException, Exception {
         return true;
     }
 
     protected boolean runEnum(final Outline outline, final Options options, final ErrorHandler errorHandler, final EnumOutline enumeration)
-    throws Exception {
+    throws SAXException, Exception {
         return true;
     }
 

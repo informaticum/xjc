@@ -2,7 +2,6 @@ package de.informaticum.xjc;
 
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JClass;
@@ -50,8 +49,7 @@ extends AbstractPlugin {
     }
 
     @Override
-    protected final boolean runObjectFactory(final Outline outline, final Options options, final ErrorHandler errorHandler, final JDefinedClass objectFactory)
-    throws IOException {
+    protected final boolean runObjectFactory(final Outline outline, final Options options, final ErrorHandler errorHandler, final JDefinedClass objectFactory) {
         if (this.reuseQNames) {
             final var $QName = outline.getCodeModel().ref(QName.class);
             LOG.info("Changing the access modifier of the [{}] fields of [{}].", $QName.name(), objectFactory.fullName());
