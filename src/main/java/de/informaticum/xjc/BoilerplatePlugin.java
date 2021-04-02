@@ -278,7 +278,9 @@ extends AbstractPlugin {
     }
 
     private void removeDefaultConstructorFactory(final JDefinedClass objectFactory, final ClassOutline clazz, final JMethod constructor) {
+        // 1/2: Identify
         final var $original = objectFactory.getMethod(guessFactoryName(clazz), NO_ARG);
+        // 2/2: Remove
         objectFactory.methods().remove($original);
     }
 
