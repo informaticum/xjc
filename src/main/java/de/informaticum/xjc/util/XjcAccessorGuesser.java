@@ -9,9 +9,11 @@ public enum XjcAccessorGuesser {
 
     static final String GET = "get";
 
-    static final String IS = "is";
+    public static final String GET = "get";
 
-    static final String SET = "set";
+    public static final String IS = "is";
+
+    public static final String SET = "set";
 
     /*
      * {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()}
