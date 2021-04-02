@@ -287,13 +287,14 @@ extends AbstractPlugin {
             LOG.trace(SKIP_OPTIONAL_GETTERS, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else {
             for (final var getter : generatedGettersOf(clazz).entrySet()) {
-                final var origin = getter.getValue();
-                if (this.isRequired(getter.getKey())) {
-                    LOG.debug(SKIP_OPTIONAL_GETTER, origin.name(), fullName(clazz), BECAUSE_ATTRIBUTE_IS_REQUIRED);
-                } else if (isOptionalMethod(origin)) {
-                    LOG.warn(SKIP_OPTIONAL_GETTER, origin.name(), fullName(clazz), BECAUSE_METHOD_EXISTS);
+                final var attribute = getter.getKey();
+                final var $blueprint = getter.getValue();
+                if (this.isRequired(attribute)) {
+                    LOG.debug(SKIP_OPTIONAL_GETTER, $blueprint.name(), fullName(clazz), BECAUSE_ATTRIBUTE_IS_REQUIRED);
+                } else if (isOptionalMethod($blueprint)) {
+                    LOG.warn(SKIP_OPTIONAL_GETTER, $blueprint.name(), fullName(clazz), BECAUSE_METHOD_EXISTS);
                 } else {
-                    LOG.info("Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type", fullName(clazz), origin.name());
+                    LOG.info("Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type", fullName(clazz), $blueprint.name());
                     this.generateOptionalGetters(clazz, getter);
                 }
             }
@@ -302,26 +303,26 @@ extends AbstractPlugin {
 
     private final void generateOptionalGetters(final ClassOutline clazz, final Entry<FieldOutline, JMethod> original) {
         final var attribute = original.getKey();
-        final var $getter = original.getValue();
-        final var getterType = $getter.type();
-        final var optionalType = accordingOptionalFor(getterType);
+        final var $blueprint = original.getValue();
+        final var blueprintType = $blueprint.type();
         // 1/3: Create
-        final var $optional = clazz.getImplClass().method($getter.mods().getValue(), optionalType, $getter.name());
+        final var getterType = accordingOptionalFor(blueprintType);
+        final var $getter = clazz.getImplClass().method($blueprint.mods().getValue(), getterType, $blueprint.name());
         // 2/3: JavaDocument
-        $optional.javadoc().addReturn().append(format(RETURN_OPTIONAL_VALUE, attribute.getPropertyInfo().getName(true)));
+        $getter.javadoc().addReturn().append(format(RETURN_OPTIONAL_VALUE, attribute.getPropertyInfo().getName(true)));
         // 3/3: Implement
-        final var $factory = optionalType.erasure();
-        final var $delegation = $this.invoke($getter);
-        if (getterType.isPrimitive()) {
-            $optional.body()._return($factory.staticInvoke("of").arg($delegation));
+        final var $factory = getterType.erasure();
+        final var $delegation = $this.invoke($blueprint);
+        if (blueprintType.isPrimitive()) {
+            $getter.body()._return($factory.staticInvoke("of").arg($delegation));
         } else {
-            final var $value = $optional.body().decl(FINAL, getterType, "value", $delegation);
-            $optional.body()._return(cond($value.eq($null), $factory.staticInvoke("empty"), $factory.staticInvoke("of").arg($value)));
+            final var $value = $getter.body().decl(FINAL, blueprintType, "value", $delegation);
+            $getter.body()._return(cond($value.eq($null), $factory.staticInvoke("empty"), $factory.staticInvoke("of").arg($value)));
         }
         // Subsequently (!) modify the original getter method
-        $getter.mods().setPrivate();
-        $getter.mods().setFinal(true);
-        $getter.name("_" + $getter.name());
+        $blueprint.mods().setPrivate();
+        $blueprint.mods().setFinal(true);
+        $blueprint.name("_" + $blueprint.name());
     }
 
     private void considerEquals(final ClassOutline clazz) {
