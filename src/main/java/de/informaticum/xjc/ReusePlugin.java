@@ -1,17 +1,15 @@
 package de.informaticum.xjc;
 
+import static de.informaticum.xjc.util.Printify.fullName;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.LinkedHashMap;
 import javax.xml.namespace.QName;
-import com.sun.codemodel.JClass;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.outline.Outline;
 import org.slf4j.Logger;
-import org.xml.sax.ErrorHandler;
 
 public final class ReusePlugin
 extends AbstractPlugin {
@@ -19,7 +17,7 @@ extends AbstractPlugin {
     private static final Logger LOG = getLogger(ReusePlugin.class);
 
     private static final String REUSE_QNAMES = "-reuse-qnames";
-
+    private static final String REUSE_QNAMES_DESC = "Modify QNames' accessibility to \"public\". Default: false";
     private boolean reuseQNames = false;
 
     @Override
@@ -34,7 +32,7 @@ extends AbstractPlugin {
 
     @Override
     public final LinkedHashMap<String, String> getPluginOptions() {
-        return new LinkedHashMap<>(ofEntries(entry(REUSE_QNAMES, "Modify QNames' accessibility to \"public\". Default: false")));
+        return new LinkedHashMap<>(ofEntries(entry(REUSE_QNAMES, REUSE_QNAMES_DESC)));
     }
 
     @Override
@@ -49,16 +47,16 @@ extends AbstractPlugin {
     }
 
     @Override
-    protected final boolean runObjectFactory(final Outline outline, final Options options, final ErrorHandler errorHandler, final JDefinedClass objectFactory) {
+    protected final boolean runObjectFactory(final JDefinedClass factory) {
         if (this.reuseQNames) {
-            final var $QName = outline.getCodeModel().ref(QName.class);
-            LOG.info("Changing the access modifier of the [{}] fields of [{}].", $QName.name(), objectFactory.fullName());
-            objectFactory.fields().values().stream().filter(f -> f.type() instanceof JClass && $QName.isAssignableFrom((JClass) f.type())).forEach(this::publicifyField);
+            final var $QName = this.modelOf(QName.class);
+            LOG.info("Changing the access modifier of the [{}] fields of [{}].", $QName.name(), fullName(factory));
+            factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach(ReusePlugin::publicifyField);
         }
         return true;
     }
 
-    private final void publicifyField(final JFieldVar field) {
+    private static final void publicifyField(final JFieldVar field) {
         LOG.debug("Changing the access modifier of field [{}] to [{}].", field.name(), "public");
         field.mods().setPublic();
     }

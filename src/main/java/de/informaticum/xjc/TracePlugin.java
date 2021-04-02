@@ -1,15 +1,12 @@
 package de.informaticum.xjc;
 
+import static de.informaticum.xjc.util.Printify.fullName;
 import static org.slf4j.LoggerFactory.getLogger;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
-import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.outline.PackageOutline;
-import de.informaticum.xjc.util.DeclarationAnalysis;
 import org.slf4j.Logger;
-import org.xml.sax.ErrorHandler;
 
 public final class TracePlugin
 extends AbstractPlugin {
@@ -27,30 +24,26 @@ extends AbstractPlugin {
     }
 
     @Override
-    protected final boolean runPackage(final Outline outline, final Options options, final ErrorHandler errorHandler, final PackageOutline pakkage) {
-        LOG.info("Current Package is [{}].", pakkage._package().name());
+    protected final boolean runPackage(final PackageOutline pakkage) {
+        LOG.trace("Current Package is [{}].", fullName(pakkage));
         return true;
     }
 
     @Override
-    protected final boolean runObjectFactory(final Outline outline, final Options options, final ErrorHandler errorHandler, final JDefinedClass factory) {
-        LOG.info("Current Object-Factory is [{}].", factory.fullName());
+    protected final boolean runObjectFactory(final JDefinedClass factory) {
+        LOG.trace("Current Object-Factory is [{}].", fullName(factory));
         return true;
     }
 
     @Override
-    protected final boolean runClass(final Outline outline, final Options options, final ErrorHandler errorHandler, final ClassOutline clazz) {
-        LOG.info("Current Class is [{}].", clazz.getImplClass().fullName());
-        final var declaredFields = DeclarationAnalysis.declaredFieldsOf(clazz);
-        final var declaredMethods = DeclarationAnalysis.declaredGettersOf(clazz);
-        final var undeclaredFields = DeclarationAnalysis.undeclaredFieldsOf(clazz);
-        final var undeclaredMethods = DeclarationAnalysis.undeclaredGettersOf(clazz);
+    protected final boolean runClass(final ClassOutline clazz) {
+        LOG.trace("Current Class is [{}].", fullName(clazz));
         return true;
     }
 
     @Override
-    protected final boolean runEnum(final Outline outline, final Options options, final ErrorHandler errorHandler, final EnumOutline enumeration) {
-        LOG.info("Current Enum is [{}].", enumeration.getImplClass().fullName());
+    protected final boolean runEnum(final EnumOutline enumeration) {
+        LOG.trace("Current Enum is [{}].", fullName(enumeration));
         return true;
     }
 
