@@ -138,7 +138,7 @@ extends AbstractPlugin {
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
         this.considerDefaultConstructor(clazz);
-        this.considerValueConstructor(clazz);
+        this.considerValuesConstructor(clazz);
         this.considerOptionalGetters(clazz);
         this.considerEquals(clazz);
         this.considerHashCode(clazz);
@@ -173,20 +173,20 @@ extends AbstractPlugin {
         }
     }
 
-    private void considerValueConstructor(final ClassOutline clazz) {
+    private void considerValuesConstructor(final ClassOutline clazz) {
         if (!this.generateValueConstructor) {
-            LOG.trace(SKIP_CONSTRUCTOR, "all-value", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+            LOG.trace(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else if (allValueConstructorArguments(clazz).length == 0 && this.generateDefaultConstructor) {
-            LOG.info(SKIP_CONSTRUCTOR, "all-value", fullName(clazz), BECAUSE_EFFECTIVELY_SIMILAR);
+            LOG.info(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_EFFECTIVELY_SIMILAR);
         } else if (getConstructor(clazz, allValueConstructorArguments(clazz)) != null) {
-            LOG.warn(SKIP_CONSTRUCTOR, "all-value", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
+            LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
         } else {
-            LOG.info("Generate all-value constructor for [{}]", fullName(clazz));
-            this.generateValueConstructor(clazz);
+            LOG.info("Generate all-values constructor for [{}]", fullName(clazz));
+            this.generateValuesConstructor(clazz);
         }
     }
 
-    private final void generateValueConstructor(final ClassOutline clazz) {
+    private final void generateValuesConstructor(final ClassOutline clazz) {
         // 1/3: Create
         final var $constructor = clazz.getImplClass().constructor(PUBLIC);
         // 2/3: JavaDocument
