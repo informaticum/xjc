@@ -9,12 +9,12 @@ import static com.sun.codemodel.JOp.cond;
 import static com.sun.codemodel.JOp.not;
 import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC;
 import static de.informaticum.xjc.JavaDoc.DEFAULT_FIELD_ASSIGNMENT;
-import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_MULTI_VALUE;
-import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_SINGLE_VALUE;
 import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_OPTIONAL;
-import static de.informaticum.xjc.JavaDoc.RETURN_OPTIONAL_VALUE;
 import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_PRIMITIVE;
 import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_REQUIRED;
+import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_MULTI_VALUE;
+import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_SINGLE_VALUE;
+import static de.informaticum.xjc.JavaDoc.RETURN_OPTIONAL_VALUE;
 import static de.informaticum.xjc.JavaDoc.THROWS_IAE_BY_NULL;
 import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
@@ -28,6 +28,7 @@ import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedFieldsOf;
 import static de.informaticum.xjc.util.Printify.fullName;
 import static de.informaticum.xjc.util.Printify.render;
+import static de.informaticum.xjc.util.XjcAccessorGuesser.guessFactoryName;
 import static java.lang.String.format;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
@@ -37,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
+import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.Options;
@@ -181,12 +183,26 @@ extends AbstractPlugin {
         } else if (getConstructor(clazz, allValueConstructorArguments(clazz)) != null) {
             LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
         } else {
-            LOG.info("Generate all-values constructor for [{}]", fullName(clazz));
-            this.generateValuesConstructor(clazz);
+            LOG.info("Generate all-values constructor for [{}].", fullName(clazz));
+            final var constructor = this.generateValuesConstructor(clazz);
+            if (clazz.getImplClass().isAbstract()) {
+                LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
+            } else if (clazz._package().objectFactory() == null) {
+                LOG.error("Skip adoption of all-values constructor for [{}] because there is no according package's ObjectFactory.", fullName(clazz));
+            } else if (clazz._package().objectFactory().getMethod(guessFactoryName(clazz), NO_ARG) == null) {
+                LOG.error("Skip adoption of all-values constructor for [{}] because according package's ObjectFactory does not contain a predefined factory method for this class.", fullName(clazz));
+            } else {
+                LOG.info("Adopt all-values constructor for [{}] in according package's ObjectFactory.", fullName(clazz));
+                this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, constructor);
+                if (!this.generateDefaultConstructor) {
+                    LOG.info("Remove default factory [{}] in according package's ObjectFactory because implicit default constructor no longer exists and has not been generated explicitly.", fullName(clazz));
+                    this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz, constructor);
+                }
+            }
         }
     }
 
-    private final void generateValuesConstructor(final ClassOutline clazz) {
+    private final JMethod generateValuesConstructor(final ClassOutline clazz) {
         // 1/3: Create
         final var $constructor = clazz.getImplClass().constructor(PUBLIC);
         // 2/3: JavaDocument
@@ -240,6 +256,30 @@ extends AbstractPlugin {
                 $constructor.body().assign($this.ref($parameter), cond($parameter.eq($null), $default.get(), $parameter));
             }
         }
+        return $constructor;
+    }
+
+    private void generateValuesConstructorFactory(final JDefinedClass objectFactory, final ClassOutline clazz, final JMethod $constructor) {
+        final var $blueprint = objectFactory.getMethod(guessFactoryName(clazz), NO_ARG);
+        // 1/3: Create
+        final var $factory = objectFactory.method($blueprint.mods().getValue(), $blueprint.type(), $blueprint.name());
+        // TODO: Re-throw declared exceptions of constructor
+        // 2/3: JavaDocument
+        $factory.javadoc().addAll($blueprint.javadoc());
+        // 3/3: Implement
+        final var $invocation = _new(clazz.getImplClass());
+        for (final var $param : $constructor.listParams()) {
+            // TODO: Generate JavaDoc similar to all-values constructor
+            $factory.javadoc().addParam($param).append("See all-values constructor of ").append(clazz.getImplClass());
+            $factory.param(FINAL, $param.type(), $param.name());
+            $invocation.arg($param);
+        }
+        $factory.body()._return($invocation);
+    }
+
+    private void removeDefaultConstructorFactory(final JDefinedClass objectFactory, final ClassOutline clazz, final JMethod constructor) {
+        final var $original = objectFactory.getMethod(guessFactoryName(clazz), NO_ARG);
+        objectFactory.methods().remove($original);
     }
 
     private void considerOptionalGetters(final ClassOutline clazz) {
