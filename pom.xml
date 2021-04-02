@@ -16,10 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Dependency Versions -->
-    <activation.version>1.2.0</activation.version>
     <version.apache-codegen>3.4.3</version.apache-codegen>
-    <version.apache-xjc>3.3.1</version.apache-xjc>
-    <jaxb.version>2.3.3</jaxb.version>
   </properties>
 
   <dependencyManagement>
@@ -46,12 +43,6 @@
       <version>1.7.30</version>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>codemodel</artifactId>
-      <version>${jaxb.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
       <scope>provided</scope>
@@ -64,12 +55,6 @@
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.activation</groupId>
-      <artifactId>javax.activation</artifactId>
-      <version>${activation.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
