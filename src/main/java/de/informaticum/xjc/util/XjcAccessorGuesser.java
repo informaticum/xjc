@@ -1,5 +1,6 @@
 package de.informaticum.xjc.util;
 
+import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -7,7 +8,7 @@ import com.sun.tools.xjc.outline.FieldOutline;
 public enum XjcAccessorGuesser {
     ;
 
-    static final String GET = "get";
+    public static final String CREATE = "create";
 
     public static final String GET = "get";
 
@@ -57,6 +58,14 @@ public enum XjcAccessorGuesser {
         final var prefix = SET;
         final var property = clazz.parent().getModel().getNameConverter().toPropertyName(field.name());
         return prefix + property;
+    }
+
+    public static final String guessFactoryName(final ClassOutline clazz) {
+        var suffix = clazz.getImplClass().name();
+        for (var parent = clazz.getImplClass().parentContainer(); parent instanceof JDefinedClass; parent = parent.parentContainer()) {
+            suffix = ((JDefinedClass) parent).name() + suffix;
+        }
+        return CREATE + suffix;
     }
 
 }
