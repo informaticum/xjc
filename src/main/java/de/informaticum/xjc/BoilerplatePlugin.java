@@ -190,7 +190,9 @@ extends AbstractPlugin {
         // 1/3: Create
         final var $constructor = clazz.getImplClass().constructor(PUBLIC);
         // 2/3: JavaDocument
+        // TODO: JavaDoc anpassen, wenn kein Parameter vorhanden
         $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC));
+        // TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten)
         $constructor.javadoc().addThrows(IllegalArgumentException.class).append(format(THROWS_IAE_BY_NULL));
         // 3/3: Implement
         final var $super = $constructor.body().invoke("super");
@@ -228,6 +230,7 @@ extends AbstractPlugin {
                 $constructor.body().assign($this.ref($parameter), $parameter);
             } else if (this.isRequired(attribute) && $default.isEmpty()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
+                $constructor._throws(IllegalArgumentException.class);
                 final var $condition = $constructor.body()._if($parameter.eq($null));
                 $condition._then()._throw(_new(this.modelOf(IllegalArgumentException.class)).arg(lit("Required field '" + $parameter.name() + "' cannot be assigned to null!")));
                 $condition._else().assign($this.ref($parameter), $parameter);
