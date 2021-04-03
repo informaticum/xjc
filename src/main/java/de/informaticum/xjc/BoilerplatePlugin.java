@@ -32,6 +32,7 @@ import static de.informaticum.xjc.util.XjcAccessorGuesser.guessFactoryName;
 import static java.lang.String.format;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -156,6 +157,7 @@ extends AbstractPlugin {
         } else {
             LOG.info("Generate default constructor for [{}]", fullName(clazz));
             this.generateDefaultConstructor(clazz);
+            assertThat(getConstructor(clazz, NO_ARG)).isNotNull();
         }
     }
 
@@ -185,6 +187,7 @@ extends AbstractPlugin {
         } else {
             LOG.info("Generate all-values constructor for [{}].", fullName(clazz));
             final var constructor = this.generateValuesConstructor(clazz);
+            assertThat(getConstructor(clazz, allValueConstructorArguments(clazz))).isNotNull();
             if (clazz.getImplClass().isAbstract()) {
                 LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
             } else if (clazz._package().objectFactory() == null) {
@@ -335,6 +338,7 @@ extends AbstractPlugin {
         } else {
             LOG.info("Generate [#equals(Object)] method for [{}]", fullName(clazz));
             this.generateEquals(clazz);
+            assertThat(getMethod(clazz, "equals", Object.class)).isNotNull();
         }
     }
 
@@ -371,6 +375,7 @@ extends AbstractPlugin {
         } else {
             LOG.info("Generate [#hashCode()] method for [{}]", fullName(clazz));
             this.addHashCode(clazz);
+            assertThat(getMethod(clazz, "hashCode", NO_ARG)).isNotNull();
         }
     }
 
@@ -398,6 +403,7 @@ extends AbstractPlugin {
         } else {
             LOG.info("Generate [#toString()] method for [{}]", fullName(clazz));
             this.addToString(clazz);
+            assertThat(getMethod(clazz, "toString", NO_ARG)).isNotNull();
         }
     }
 
