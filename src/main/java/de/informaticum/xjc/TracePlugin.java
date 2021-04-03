@@ -30,8 +30,8 @@ extends AbstractPlugin {
     }
 
     @Override
-    protected final boolean runObjectFactory(final JDefinedClass factory) {
-        LOG.trace("Current Object-Factory is [{}].", fullName(factory));
+    protected final boolean runObjectFactory(final JDefinedClass $factory) {
+        LOG.trace("Current Object-Factory is [{}].", fullName($factory));
         return true;
     }
 

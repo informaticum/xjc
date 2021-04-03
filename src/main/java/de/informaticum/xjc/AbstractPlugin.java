@@ -138,7 +138,7 @@ extends Plugin {
         return true;
     }
 
-    protected boolean runObjectFactory(final JDefinedClass objectFactory)
+    protected boolean runObjectFactory(final JDefinedClass $factory)
     throws SAXException, Exception {
         return true;
     }
