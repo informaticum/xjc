@@ -18,13 +18,14 @@ public enum OutlineAnalysis {
 
     private static final Logger LOG = LoggerFactory.getLogger(OutlineAnalysis.class);
 
-    public static final JFieldVar fieldFor(final FieldOutline declared) {
-        final var name = declared.getPropertyInfo().getName(false);
-        final var field = declared.parent().getImplClass().fields().get(name);
-        if (field == null) {
-            LOG.warn("There is no according field in class [{}] for declared property [{}].", declared.parent().getImplClass().fullName(), name);
+    public static final JFieldVar fieldFor(final FieldOutline field) {
+        final var name = field.getPropertyInfo().getName(false);
+        final var $clazz = field.parent().getImplClass();
+        final var $field = $clazz.fields().get(name);
+        if ($field == null) {
+            LOG.warn("There is no according field in class [{}] for declared property [{}].", $clazz.fullName(), name);
         }
-        return field;
+        return $field;
     }
 
     public static final JType[] typesOf(final FieldOutline... fields) {

@@ -18,14 +18,15 @@ public enum DefaultAnalysis {
     /*
      * see: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
      */
-    public static final Optional<JExpression> defaultValueFor(final FieldOutline fieldDeclaration) {
-        final var outline = fieldDeclaration.parent().parent();
-        if (fieldDeclaration.getPropertyInfo().defaultValue != null) {
-            final var $default = fieldDeclaration.getPropertyInfo().defaultValue.compute(outline);
+    public static final Optional<JExpression> defaultValueFor(final FieldOutline field) {
+        final var outline = field.parent().parent();
+        final var property = field.getPropertyInfo();
+        if (property.defaultValue != null) {
+            final var $default = property.defaultValue.compute(outline);
             if ($default != null) { return Optional.of($default); }
-            else { LOG.error("Lexical representation of the existing default value for [{}] is [null]!", fieldDeclaration.getPropertyInfo().getName(false)); }
+            else { LOG.error("Lexical representation of the existing default value for [{}] is [null]!", property.getName(false)); }
         }
-        final var raw = fieldDeclaration.getRawType();
+        final var raw = field.getRawType();
         final var codeModel = outline.getCodeModel();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugwiesen wird, ohne dass ein Default-Wert existiert
         if (raw.equals(codeModel.BOOLEAN)) return Optional.of(lit(false));
@@ -36,7 +37,7 @@ public enum DefaultAnalysis {
         if (raw.equals(codeModel.INT))     return Optional.of(lit(0));
         if (raw.equals(codeModel.LONG))    return Optional.of(lit(0L));
         if (raw.equals(codeModel.SHORT))   return Optional.of(lit(0));        
-        if (fieldDeclaration.getPropertyInfo().isCollection()) return Optional.of(_new(codeModel.ref(ArrayList.class).narrow(DIAMOND)));
+        if (property.isCollection()) return Optional.of(_new(codeModel.ref(ArrayList.class).narrow(DIAMOND)));
         return Optional.empty();
     }
 

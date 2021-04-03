@@ -186,7 +186,7 @@ extends AbstractPlugin {
             LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
         } else {
             LOG.info("Generate all-values constructor for [{}].", fullName(clazz));
-            final var constructor = this.generateValuesConstructor(clazz);
+            final var $constructor = this.generateValuesConstructor(clazz);
             assertThat(getConstructor(clazz, allValueConstructorArguments(clazz))).isNotNull();
             if (clazz.getImplClass().isAbstract()) {
                 LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
@@ -196,10 +196,10 @@ extends AbstractPlugin {
                 LOG.error("Skip adoption of all-values constructor for [{}] because according package's ObjectFactory does not contain a predefined factory method for this class.", fullName(clazz));
             } else {
                 LOG.info("Adopt all-values constructor for [{}] in according package's ObjectFactory.", fullName(clazz));
-                this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, constructor);
+                this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
                 if (!this.generateDefaultConstructor) {
                     LOG.info("Remove default factory [{}] in according package's ObjectFactory because implicit default constructor no longer exists and has not been generated explicitly.", fullName(clazz));
-                    this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz, constructor);
+                    this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
                 }
             }
         }
@@ -262,29 +262,29 @@ extends AbstractPlugin {
         return $constructor;
     }
 
-    private void generateValuesConstructorFactory(final JDefinedClass objectFactory, final ClassOutline clazz, final JMethod $constructor) {
-        final var $blueprint = objectFactory.getMethod(guessFactoryName(clazz), NO_ARG);
+    private void generateValuesConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
+        final var $blueprint = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
         // 1/3: Create
-        final var $factory = objectFactory.method($blueprint.mods().getValue(), $blueprint.type(), $blueprint.name());
+        final var $construction = $factory.method($blueprint.mods().getValue(), $blueprint.type(), $blueprint.name());
         // TODO: Re-throw declared exceptions of constructor
         // 2/3: JavaDocument
-        $factory.javadoc().addAll($blueprint.javadoc());
+        $construction.javadoc().addAll($blueprint.javadoc());
         // 3/3: Implement
-        final var $invocation = _new(clazz.getImplClass());
+        final var $instantiation = _new(clazz.getImplClass());
         for (final var $param : $constructor.listParams()) {
             // TODO: Generate JavaDoc similar to all-values constructor
-            $factory.javadoc().addParam($param).append("See all-values constructor of ").append(clazz.getImplClass());
-            $factory.param(FINAL, $param.type(), $param.name());
-            $invocation.arg($param);
+            $construction.javadoc().addParam($param).append("See all-values constructor of ").append(clazz.getImplClass());
+            $construction.param(FINAL, $param.type(), $param.name());
+            $instantiation.arg($param);
         }
-        $factory.body()._return($invocation);
+        $construction.body()._return($instantiation);
     }
 
-    private void removeDefaultConstructorFactory(final JDefinedClass objectFactory, final ClassOutline clazz, final JMethod constructor) {
+    private void removeDefaultConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
         // 1/2: Identify
-        final var $original = objectFactory.getMethod(guessFactoryName(clazz), NO_ARG);
+        final var $original = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
         // 2/2: Remove
-        objectFactory.methods().remove($original);
+        $factory.methods().remove($original);
     }
 
     private void considerOptionalGetters(final ClassOutline clazz) {
@@ -308,20 +308,21 @@ extends AbstractPlugin {
 
     private final void generateOptionalGetters(final ClassOutline clazz, final Entry<FieldOutline, JMethod> original) {
         final var attribute = original.getKey();
+        final var property = attribute.getPropertyInfo();
         final var $blueprint = original.getValue();
-        final var blueprintType = $blueprint.type();
+        final var type = $blueprint.type();
         // 1/3: Create
-        final var getterType = accordingOptionalFor(blueprintType);
+        final var getterType = accordingOptionalFor(type);
         final var $getter = clazz.getImplClass().method($blueprint.mods().getValue(), getterType, $blueprint.name());
         // 2/3: JavaDocument
-        $getter.javadoc().addReturn().append(format(RETURN_OPTIONAL_VALUE, attribute.getPropertyInfo().getName(true)));
+        $getter.javadoc().addReturn().append(format(RETURN_OPTIONAL_VALUE, property.getName(true)));
         // 3/3: Implement
         final var $factory = getterType.erasure();
         final var $delegation = $this.invoke($blueprint);
-        if (blueprintType.isPrimitive()) {
+        if (type.isPrimitive()) {
             $getter.body()._return($factory.staticInvoke("of").arg($delegation));
         } else {
-            final var $value = $getter.body().decl(FINAL, blueprintType, "value", $delegation);
+            final var $value = $getter.body().decl(FINAL, type, "value", $delegation);
             $getter.body()._return(cond($value.eq($null), $factory.staticInvoke("empty"), $factory.staticInvoke("of").arg($value)));
         }
         // Subsequently (!) modify the original getter method
@@ -417,8 +418,9 @@ extends AbstractPlugin {
         final var $Objects = this.reference(Objects.class);
         for (final var field : generatedFieldsOf(clazz).entrySet()) {
             final var attribute = field.getKey();
+            final var property = attribute.getPropertyInfo();
             final var $parameter = field.getValue();
-            parts.add(lit(attribute.getPropertyInfo().getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($parameter))));
+            parts.add(lit(property.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($parameter))));
         }
         if (clazz.getSuperClass() != null) {
             parts.add(lit("Super: ").plus($super.invoke("toString")));

@@ -19,13 +19,13 @@ public enum Printify {
         return fullName(outline.getImplClass());
     }
 
-    public static final String fullName(final JType type) {
-        return type.fullName();
+    public static final String fullName(final JType $type) {
+        return $type.fullName();
     }
 
-    public static final String render(final JGenerable generable) {
+    public static final String render(final JGenerable $generable) {
         final var out = new StringWriter();
-        generable.generate(new JFormatter(new PrintWriter(out)));
+        $generable.generate(new JFormatter(new PrintWriter(out)));
         return out.toString();
     }
 

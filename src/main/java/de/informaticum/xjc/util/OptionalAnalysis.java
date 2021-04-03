@@ -11,9 +11,9 @@ import com.sun.codemodel.JType;
 public enum OptionalAnalysis {
     ;
 
-    public static final boolean isOptionalMethod(final JMethod origin) {
-        final var model = origin.type().owner();
-        final var raw = origin.type().erasure();
+    public static final boolean isOptionalMethod(final JMethod $method) {
+        final var model = $method.type().owner();
+        final var raw = $method.type().erasure();
         if (model.ref(OptionalDouble.class).equals(raw)) {
             return true;
         } else if (model.ref(OptionalInt.class).equals(raw)) {
@@ -27,16 +27,16 @@ public enum OptionalAnalysis {
         }
     }
 
-    public static final JClass accordingOptionalFor(final JType originType) {
-        final var model = originType.owner();
-        if (originType.unboxify().equals(model.DOUBLE)) {
+    public static final JClass accordingOptionalFor(final JType $type) {
+        final var model = $type.owner();
+        if (model.DOUBLE.equals($type.unboxify())) {
             return model.ref(OptionalDouble.class);
-        } else if (originType.unboxify().equals(model.INT)) {
+        } else if (model.INT.equals($type.unboxify())) {
             return model.ref(OptionalInt.class);
-        } else if (originType.unboxify().equals(model.LONG)) {
+        } else if (model.LONG.equals($type.unboxify())) {
             return model.ref(OptionalLong.class);
         } else {
-            return model.ref(Optional.class).narrow(originType.boxify());
+            return model.ref(Optional.class).narrow($type.boxify());
         }
     }
 
