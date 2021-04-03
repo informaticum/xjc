@@ -3,8 +3,12 @@ package de.informaticum.xjc;
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JExpr.lit;
+import static com.sun.codemodel.JMod.ABSTRACT;
 import static com.sun.codemodel.JMod.FINAL;
+import static com.sun.codemodel.JMod.NONE;
+import static com.sun.codemodel.JMod.PROTECTED;
 import static com.sun.codemodel.JMod.PUBLIC;
+import static com.sun.codemodel.JMod.STATIC;
 import static com.sun.codemodel.JOp.cond;
 import static com.sun.codemodel.JOp.not;
 import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC;
@@ -30,6 +34,7 @@ import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedFieldsOf;
 import static de.informaticum.xjc.util.Printify.fullName;
 import static de.informaticum.xjc.util.Printify.render;
+import static de.informaticum.xjc.util.XjcAccessorGuesser.guessBuilderName;
 import static de.informaticum.xjc.util.XjcAccessorGuesser.guessFactoryName;
 import static java.lang.String.format;
 import static java.util.Map.entry;
@@ -41,14 +46,12 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
+import com.sun.codemodel.ClassType;
+import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.model.CAttributePropertyInfo;
-import com.sun.tools.xjc.model.CElementPropertyInfo;
-import com.sun.tools.xjc.model.CReferencePropertyInfo;
-import com.sun.tools.xjc.model.CValuePropertyInfo;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import org.slf4j.Logger;
@@ -66,6 +69,10 @@ extends AbstractPlugin {
     private static final String GENERATE_VALUESCONSTRUCTOR_DESC = "Generate all-values constructor. Default: false";
     private boolean generateValueConstructor = false;
 
+    private static final String GENERATE_VALUESBUILDER = "-boilerplate-valuesBuilder";
+    private static final String GENERATE_VALUESBUILDER_DESC = "Generate all-values builder. Default: false";
+    private boolean generateValueBuilder = false;
+
     private static final String GENERATE_OPTIONALGETTERS = "-boilerplate-optionalGetters";
     private static final String GENERATE_OPTIONALGETTERS_DESC = "Replace return type [T] of non-required fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false";
     private boolean generateOptionalGetters = false;
@@ -82,11 +89,13 @@ extends AbstractPlugin {
     private static final String GENERATE_TOSTRING_DESC = "Generate [#toString()] method. Default: false";
     private boolean generateToString = false;
 
+    private static final String SKIP_BUILDER = "Skip creation of builder for [{}] because {}.";
     private static final String SKIP_CONSTRUCTOR = "Skip creation of {} constructor for [{}] because {}.";
-    private static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] {}.";
+    private static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
     private static final String SKIP_OPTIONAL_GETTER = "Skip creation of optional getter for [{}] of [{}] because {}.";
     private static final String SKIP_OPTIONAL_GETTERS = "Skip creation of optional getters for [{}] because {}.";
     private static final String BECAUSE_ATTRIBUTE_IS_REQUIRED = "attribute is required";
+    private static final String BECAUSE_BUILDER_EXISTS = "such builder already exists";
     private static final String BECAUSE_CONSTRUCTOR_EXISTS = "such constructor already exists";
     private static final String BECAUSE_EFFECTIVELY_SIMILAR = "it is effectively similar to default-constructor";
     private static final String BECAUSE_METHOD_EXISTS = "such method already exists";
@@ -107,6 +116,7 @@ extends AbstractPlugin {
         return new LinkedHashMap<>(ofEntries(
             entry(GENERATE_DEFAULTCONSTRUCTOR, GENERATE_DEFAULTCONSTRUCTOR_DESC),
             entry(GENERATE_VALUESCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR_DESC),
+            entry(GENERATE_VALUESBUILDER, GENERATE_VALUESBUILDER_DESC),
             entry(GENERATE_OPTIONALGETTERS, GENERATE_OPTIONALGETTERS_DESC),
             entry(GENERATE_EQUALS, GENERATE_EQUALS_DESC),
             entry(GENERATE_HASHCODE, GENERATE_HASHCODE_DESC),
@@ -122,6 +132,9 @@ extends AbstractPlugin {
                 return 1;
             case GENERATE_VALUESCONSTRUCTOR:
                 this.generateValueConstructor = true;
+                return 1;
+            case GENERATE_VALUESBUILDER:
+                this.generateValueBuilder = true;
                 return 1;
             case GENERATE_OPTIONALGETTERS:
                 this.generateOptionalGetters = true;
@@ -144,6 +157,7 @@ extends AbstractPlugin {
     protected final boolean runClass(final ClassOutline clazz) {
         this.considerDefaultConstructor(clazz);
         this.considerValuesConstructor(clazz);
+        this.considerValuesBuilder(clazz);
         this.considerOptionalGetters(clazz);
         this.considerEquals(clazz);
         this.considerHashCode(clazz);
@@ -287,6 +301,55 @@ extends AbstractPlugin {
         final var $original = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
         // 2/2: Remove
         $factory.methods().remove($original);
+    }
+
+    private final void considerValuesBuilder(final ClassOutline clazz) {
+        if (!this.generateValueBuilder) {
+            LOG.trace(SKIP_BUILDER, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+        } else {
+            // TODO: LOG.warn(SKIP_BUILDER, "default", fullName(clazz), BECAUSE_BUILDER_EXISTS);
+            LOG.info("Generate all-values builder for [{}]", fullName(clazz));
+            this.generateValuesBuilder(clazz);
+        }
+    }
+
+    private JDefinedClass generateValuesBuilder(final ClassOutline clazz) {
+        for (final JDefinedClass c : (Iterable<JDefinedClass>) () -> clazz.getImplClass().classes()) {
+            if ("Builder".equals(c.name())) {
+                return c;
+            }
+        }
+        try {
+            final var mods = PUBLIC | STATIC | ((clazz.getImplClass().mods().getValue() & FINAL) == 0 ? NONE : FINAL);
+            final var $builder = clazz.getImplClass()._class(mods | (clazz.getImplClass().isAbstract() ? ABSTRACT : NONE), "Builder", ClassType.CLASS);
+            if (clazz.getSuperClass() != null) {
+                $builder._extends(this.generateValuesBuilder(clazz.getSuperClass()));
+            }
+            for (final var field : generatedFieldsOf(clazz).entrySet()) {
+                final var attribute = field.getKey();
+                final var $parameter = field.getValue();
+                final var $builderProperty = $builder.field(PROTECTED, $parameter.type(), $parameter.name());
+                final var $wither = $builder.method(PUBLIC | FINAL, $builder, guessBuilderName(attribute));
+                $wither.param(FINAL, $parameter.type(), $parameter.name());
+                $wither.body().assign($this.ref($builderProperty), $parameter);
+                $wither.body()._return($this);
+            }
+            final var $build = $builder.method(PUBLIC | (clazz.getImplClass().isAbstract() ? ABSTRACT : NONE), clazz.getImplClass(), "build");
+            if (!clazz.getImplClass().isAbstract()) {
+                final var $construction = _new(clazz.getImplClass());
+                $build.body()._return($construction);
+                for (final var field : superAndGeneratedFieldsOf(clazz).values()) {
+                    $construction.arg($this.ref(field));
+                }
+            }
+            if (!clazz.getImplClass().isAbstract()) {
+                final var $injection = clazz.getImplClass().method(mods, $builder, "builder");
+                $injection.body()._return(_new($builder));
+            }
+            return $builder;
+        } catch (final JClassAlreadyExistsException bug) {
+            return null;
+        }
     }
 
     private final void considerOptionalGetters(final ClassOutline clazz) {
