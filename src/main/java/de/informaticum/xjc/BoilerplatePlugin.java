@@ -215,7 +215,7 @@ extends AbstractPlugin {
                 this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
                 if (!this.generateDefaultConstructor) {
                     LOG.info("Remove default factory [{}] in according package's ObjectFactory because implicit default constructor no longer exists and has not been generated explicitly.", fullName(clazz));
-                    this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
+                    this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz);
                 }
             }
         }
@@ -296,7 +296,7 @@ extends AbstractPlugin {
         $construction.body()._return($instantiation);
     }
 
-    private final void removeDefaultConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
+    private final void removeDefaultConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz) {
         // 1/2: Identify
         final var $original = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
         // 2/2: Remove
