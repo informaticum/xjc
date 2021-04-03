@@ -149,4 +149,24 @@ public enum OutlineAnalysis {
         return getMethod(clazz, name, typesOf(vars));
     }
 
+    public static final boolean isRequired(final FieldOutline attribute) {
+        final var property = attribute.getPropertyInfo();
+        if (property instanceof CElementPropertyInfo) {
+            return ((CElementPropertyInfo) property).isRequired();
+        } else if (property instanceof CReferencePropertyInfo) {
+            return ((CReferencePropertyInfo) property).isRequired();
+        } else if (property instanceof CAttributePropertyInfo) {
+            return ((CAttributePropertyInfo) property).isRequired();
+        } else if (property instanceof CValuePropertyInfo) {
+            // return ((CValuePropertyInfo) property).isRequired();
+            return false;
+        } else {
+            return false;
+        }
+    }
+
+    public static final boolean isOptional(final FieldOutline attribute) {
+        return !isRequired(attribute);
+    }
+
 }

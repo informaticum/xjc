@@ -25,6 +25,8 @@ import static de.informaticum.xjc.util.OutlineAnalysis.generatedFieldsOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getConstructor;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
+import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
+import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedFieldsOf;
 import static de.informaticum.xjc.util.Printify.fullName;
 import static de.informaticum.xjc.util.Printify.render;
@@ -223,9 +225,9 @@ extends AbstractPlugin {
             final var $default = defaultValueFor(attribute);
             if ($parameter.type().isPrimitive()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
-            } else if (this.isOptional(attribute) && $default.isEmpty()) {
+            } else if (isOptional(attribute) && $default.isEmpty()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
-            } else if (this.isRequired(attribute) && $default.isEmpty()) {
+            } else if (isRequired(attribute) && $default.isEmpty()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
             } else {
                 assert $default.isPresent();
@@ -244,10 +246,10 @@ extends AbstractPlugin {
             if ($parameter.type().isPrimitive()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
                 $constructor.body().assign($this.ref($parameter), $parameter);
-            } else if (this.isOptional(attribute) && $default.isEmpty()) {
+            } else if (isOptional(attribute) && $default.isEmpty()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
                 $constructor.body().assign($this.ref($parameter), $parameter);
-            } else if (this.isRequired(attribute) && $default.isEmpty()) {
+            } else if (isRequired(attribute) && $default.isEmpty()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
                 $constructor._throws(IllegalArgumentException.class);
                 final var $condition = $constructor.body()._if($parameter.eq($null));
@@ -294,7 +296,7 @@ extends AbstractPlugin {
             for (final var getter : generatedGettersOf(clazz).entrySet()) {
                 final var attribute = getter.getKey();
                 final var $blueprint = getter.getValue();
-                if (this.isRequired(attribute)) {
+                if (isRequired(attribute)) {
                     LOG.debug(SKIP_OPTIONAL_GETTER, $blueprint.name(), fullName(clazz), BECAUSE_ATTRIBUTE_IS_REQUIRED);
                 } else if (isOptionalMethod($blueprint)) {
                     LOG.warn(SKIP_OPTIONAL_GETTER, $blueprint.name(), fullName(clazz), BECAUSE_METHOD_EXISTS);
@@ -428,26 +430,6 @@ extends AbstractPlugin {
         final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg(clazz.getImplClass().name() + "[").arg("]");
         // TODO: InsurantIdType#ROOT in toString()-Ausgabe aufnehmen
         $toString.body()._return(parts.stream().reduce($joiner, (join, next) -> join.invoke("add").arg(next)).invoke("toString"));
-    }
-
-    private final boolean isRequired(final FieldOutline key) {
-        final var prop = key.getPropertyInfo();
-        if (prop instanceof CElementPropertyInfo) {
-            return ((CElementPropertyInfo) prop).isRequired();
-        } else if (prop instanceof CReferencePropertyInfo) {
-            return ((CReferencePropertyInfo) prop).isRequired();
-        } else if (prop instanceof CAttributePropertyInfo) {
-            return ((CAttributePropertyInfo) prop).isRequired();
-        } else if (prop instanceof CValuePropertyInfo) {
-            // return ((CValuePropertyInfo) prop).isRequired();
-            return false;
-        } else {
-            return false;
-        }
-    }
-
-    private final boolean isOptional(final FieldOutline key) {
-        return !this.isRequired(key);
     }
 
 }
