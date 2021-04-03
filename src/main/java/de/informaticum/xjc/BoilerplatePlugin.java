@@ -213,6 +213,7 @@ extends AbstractPlugin {
             } else {
                 LOG.info("Adopt all-values constructor for [{}] in according package's ObjectFactory.", fullName(clazz));
                 this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
+                assertThat(clazz._package().objectFactory().getMethod(guessFactoryName(clazz), NO_ARG)).isNotNull();
                 if (!this.generateDefaultConstructor) {
                     LOG.info("Remove default factory [{}] in according package's ObjectFactory because implicit default constructor no longer exists and has not been generated explicitly.", fullName(clazz));
                     this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz);
@@ -244,7 +245,7 @@ extends AbstractPlugin {
             } else if (isRequired(attribute) && $default.isEmpty()) {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
             } else {
-                assert $default.isPresent();
+                assertThat($default).isPresent();
                 $constructor.javadoc().addParam($parameter).append(format(property.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
             }
             $constructor.param(FINAL, $parameter.type(), $parameter.name());
@@ -270,7 +271,7 @@ extends AbstractPlugin {
                 $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $parameter.name() + "' cannot be assigned to null!")));
                 $condition._else().assign($this.ref($parameter), $parameter);
             } else {
-                assert $default.isPresent();
+                assertThat($default).isPresent();
                 $constructor.javadoc().addParam($parameter).append(format(property.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
                 $constructor.body().assign($this.ref($parameter), cond($parameter.eq($null), $default.get(), $parameter));
             }
