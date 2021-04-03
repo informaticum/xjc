@@ -47,18 +47,18 @@ extends AbstractPlugin {
     }
 
     @Override
-    protected final boolean runObjectFactory(final JDefinedClass factory) {
+    protected final boolean runObjectFactory(final JDefinedClass $factory) {
         if (this.reuseQNames) {
             final var $QName = this.reference(QName.class);
-            LOG.info("Changing the access modifier of the [{}] fields of [{}].", $QName.name(), fullName(factory));
-            factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach(ReusePlugin::publicifyField);
+            LOG.info("Changing the access modifier of the [{}] fields of [{}].", $QName.name(), fullName($factory));
+            $factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach(ReusePlugin::publicifyField);
         }
         return true;
     }
 
-    private static final void publicifyField(final JFieldVar field) {
-        LOG.debug("Changing the access modifier of field [{}] to [{}].", field.name(), "public");
-        field.mods().setPublic();
+    private static final void publicifyField(final JFieldVar $field) {
+        LOG.debug("Changing the access modifier of field [{}] to [{}].", $field.name(), "public");
+        $field.mods().setPublic();
     }
 
 }
