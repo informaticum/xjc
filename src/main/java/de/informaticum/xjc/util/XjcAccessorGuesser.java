@@ -16,6 +16,8 @@ public enum XjcAccessorGuesser {
 
     public static final String SET = "set";
 
+    public static final String WITH = "with";
+
     /*
      * {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()}
      */
@@ -56,6 +58,18 @@ public enum XjcAccessorGuesser {
      */
     public static final String guessSetterName(final ClassOutline clazz, final JFieldVar $field) {
         final var prefix = SET;
+        final var property = clazz.parent().getModel().getNameConverter().toPropertyName($field.name());
+        return prefix + property;
+    }
+
+    public static final String guessBuilderName(final FieldOutline field) {
+        final var prefix = WITH;
+        final var property = field.getPropertyInfo().getName(true);
+        return prefix + property;
+    }
+
+    public static final String guessBuilderName(final ClassOutline clazz, final JFieldVar $field) {
+        final var prefix = WITH;
         final var property = clazz.parent().getModel().getNameConverter().toPropertyName($field.name());
         return prefix + property;
     }
