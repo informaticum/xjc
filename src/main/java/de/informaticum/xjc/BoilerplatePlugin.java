@@ -248,7 +248,7 @@ extends AbstractPlugin {
                 $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
                 $constructor._throws(IllegalArgumentException.class);
                 final var $condition = $constructor.body()._if($parameter.eq($null));
-                $condition._then()._throw(_new(this.modelOf(IllegalArgumentException.class)).arg(lit("Required field '" + $parameter.name() + "' cannot be assigned to null!")));
+                $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $parameter.name() + "' cannot be assigned to null!")));
                 $condition._else().assign($this.ref($parameter), $parameter);
             } else {
                 assert $default.isPresent();
@@ -344,7 +344,7 @@ extends AbstractPlugin {
         // 2/3: Annotate
         $equals.annotate(Override.class);
         // 3/3: Implement
-        final var $other = $equals.param(FINAL, this.modelOf(Object.class), "other");
+        final var $other = $equals.param(FINAL, this.reference(Object.class), "other");
         $equals.body()._if($other.eq($null))._then()._return(lit(false));
         $equals.body()._if($this.eq($other))._then()._return(lit(true));
         $equals.body()._if(not($this.invoke("getClass").invoke("equals").arg($other.invoke("getClass"))))._then()._return(lit(false));
@@ -354,7 +354,7 @@ extends AbstractPlugin {
         }
         final var fields = generatedFieldsOf(clazz).values();
         if (!fields.isEmpty()) {
-            final var $Objects = this.modelOf(Objects.class);
+            final var $Objects = this.reference(Objects.class);
             final var $that = $equals.body().decl(FINAL, clazz.getImplClass(), "that", cast(clazz.getImplClass(), $other));
             for (final var $field : fields) {
                 comparisons.add($Objects.staticInvoke("equals").arg($this.ref($field)).arg($that.ref($field)));
@@ -380,7 +380,7 @@ extends AbstractPlugin {
         // 2/3: Annotate
         $hashCode.annotate(Override.class);
         // 3/3: Implement
-        final var calculation = this.modelOf(Objects.class).staticInvoke("hash");
+        final var calculation = this.reference(Objects.class).staticInvoke("hash");
         if (clazz.getSuperClass() != null) {
             calculation.arg($super.invoke("hashCode"));
         }
@@ -408,7 +408,7 @@ extends AbstractPlugin {
         $toString.annotate(Override.class);
         // 3/3: Implement
         final var parts = new ArrayList<JExpression>();
-        final var $Objects = this.modelOf(Objects.class);
+        final var $Objects = this.reference(Objects.class);
         for (final var field : generatedFieldsOf(clazz).entrySet()) {
             final var attribute = field.getKey();
             final var $parameter = field.getValue();
@@ -417,7 +417,7 @@ extends AbstractPlugin {
         if (clazz.getSuperClass() != null) {
             parts.add(lit("Super: ").plus($super.invoke("toString")));
         }
-        final var $joiner = _new(this.modelOf(StringJoiner.class)).arg(", ").arg(clazz.getImplClass().name() + "[").arg("]");
+        final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg(clazz.getImplClass().name() + "[").arg("]");
         // TODO: InsurantIdType#ROOT in toString()-Ausgabe aufnehmen
         $toString.body()._return(parts.stream().reduce($joiner, (join, next) -> join.invoke("add").arg(next)).invoke("toString"));
     }

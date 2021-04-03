@@ -55,7 +55,7 @@ extends Plugin {
         return this.currentOutline.getCodeModel();
     }
 
-    public final JClass modelOf(final Class<?> clazz) {
+    public final JClass reference(final Class<?> clazz) {
         return this.currentOutline.getCodeModel().ref(clazz);
     }
 
