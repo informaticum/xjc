@@ -179,7 +179,7 @@ extends AbstractPlugin {
         }
     }
 
-    private void considerValuesConstructor(final ClassOutline clazz) {
+    private final void considerValuesConstructor(final ClassOutline clazz) {
         if (!this.generateValueConstructor) {
             LOG.trace(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else if (allValueConstructorArguments(clazz).length == 0 && this.generateDefaultConstructor) {
@@ -264,7 +264,7 @@ extends AbstractPlugin {
         return $constructor;
     }
 
-    private void generateValuesConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
+    private final void generateValuesConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
         final var $blueprint = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
         // 1/3: Create
         final var $construction = $factory.method($blueprint.mods().getValue(), $blueprint.type(), $blueprint.name());
@@ -282,14 +282,14 @@ extends AbstractPlugin {
         $construction.body()._return($instantiation);
     }
 
-    private void removeDefaultConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
+    private final void removeDefaultConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
         // 1/2: Identify
         final var $original = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
         // 2/2: Remove
         $factory.methods().remove($original);
     }
 
-    private void considerOptionalGetters(final ClassOutline clazz) {
+    private final void considerOptionalGetters(final ClassOutline clazz) {
         if (!this.generateOptionalGetters) {
             LOG.trace(SKIP_OPTIONAL_GETTERS, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else {
@@ -333,7 +333,7 @@ extends AbstractPlugin {
         $blueprint.name("_" + $blueprint.name());
     }
 
-    private void considerEquals(final ClassOutline clazz) {
+    private final void considerEquals(final ClassOutline clazz) {
         if (!this.generateEquals) {
             LOG.trace(SKIP_METHOD, "#equals(Object)", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else if (getMethod(clazz, "equals", Object.class) != null) {
@@ -370,7 +370,7 @@ extends AbstractPlugin {
         $equals.body()._return(comparisons.stream().reduce(JExpression::cand).orElse(lit(true)));
     }
 
-    private void considerHashCode(final ClassOutline clazz) {
+    private final void considerHashCode(final ClassOutline clazz) {
         if (!this.generateHashcode) {
             LOG.trace(SKIP_METHOD, "#hashCode()", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else if (getMethod(clazz, "hashCode", NO_ARG) != null) {
@@ -398,7 +398,7 @@ extends AbstractPlugin {
         $hashCode.body()._return(calculation.listArgs().length > 0 ? calculation : $this.invoke("getClass").invoke("hashCode"));
     }
 
-    private void considerToString(final ClassOutline clazz) {
+    private final void considerToString(final ClassOutline clazz) {
         if (!this.generateToString) {
             LOG.trace(SKIP_METHOD, "#toString()", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else if (getMethod(clazz, "toString", NO_ARG) != null) {
