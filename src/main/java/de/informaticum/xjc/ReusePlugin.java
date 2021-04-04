@@ -1,5 +1,6 @@
 package de.informaticum.xjc;
 
+import static de.informaticum.xjc.JavaDoc.PUBLIC_QNAME;
 import static de.informaticum.xjc.util.Printify.fullName;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
@@ -58,6 +59,7 @@ extends AbstractPlugin {
 
     private static final void publicifyField(final JFieldVar $field) {
         LOG.debug("Changing the access modifier of field [{}] to [{}].", $field.name(), "public");
+        $field.javadoc().append(PUBLIC_QNAME);
         $field.mods().setPublic();
     }
 

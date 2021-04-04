@@ -3,6 +3,8 @@ package de.informaticum.xjc;
 public enum JavaDoc {
     ;
 
+    public static final String PUBLIC_QNAME = "In order to allow reusage of this specific QName, it has been modified to be publicly accessible.";
+
     public static final String DEFAULT_CONSTRUCTOR_JAVADOC = "Creates a new instance of this class.%nIn detail, the default constructor of the super class is called, and then all fields are initialised in succession.";
 
     public static final String VALUES_CONSTRUCTOR_JAVADOC = "Creates a new instance of this class.%nIn detail, the all-values-constructor of the super class is called, and then all fields are assigned in succession.%nIf any given value is invalid, either the according default value will be assigned (if such value exists) or an according exception will be thrown.";
