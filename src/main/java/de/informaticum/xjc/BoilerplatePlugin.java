@@ -53,6 +53,7 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -256,30 +257,34 @@ extends AbstractPlugin {
         }
         for (final var field : generatedFieldsOf(clazz).entrySet()) {
             final var attribute = field.getKey();
-            final var property = attribute.getPropertyInfo();
-            final var name = property.getName(true);
             final var $parameter = field.getValue();
-            final var $default = defaultValueFor(attribute);
             $constructor.param(FINAL, $parameter.type(), $parameter.name());
-            if ($parameter.type().isPrimitive()) {
-                $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
-                $constructor.body().assign($this.ref($parameter), $parameter);
-            } else if (isOptional(attribute) && $default.isEmpty()) {
-                $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
-                $constructor.body().assign($this.ref($parameter), $parameter);
-            } else if (isRequired(attribute) && $default.isEmpty()) {
-                $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
-                $constructor._throws(IllegalArgumentException.class);
-                final var $condition = $constructor.body()._if($parameter.eq($null));
-                $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $parameter.name() + "' cannot be assigned to null!")));
-                $condition._else().assign($this.ref($parameter), $parameter);
-            } else {
-                assertThat($default).isPresent();
-                $constructor.javadoc().addParam($parameter).append(format(property.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
-                $constructor.body().assign($this.ref($parameter), cond($parameter.eq($null), $default.get(), $parameter));
-            }
+            this.accordingAssignment(attribute, $constructor, $parameter, $parameter);
         }
         return $constructor;
+    }
+
+    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JFieldVar $parameter) {
+        final var property = attribute.getPropertyInfo();
+        final var name = property.getName(true);
+        final var $default = defaultValueFor(attribute);
+        if ($parameter.type().isPrimitive()) {
+            $method.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
+            $method.body().assign($this.ref($property), $parameter);
+        } else if (isOptional(attribute) && $default.isEmpty()) {
+            $method.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
+            $method.body().assign($this.ref($property), $parameter);
+        } else if (isRequired(attribute) && $default.isEmpty()) {
+            $method.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
+            $method._throws(IllegalArgumentException.class);
+            final var $condition = $method.body()._if($parameter.eq($null));
+            $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $parameter.name() + "' cannot be assigned to null!")));
+            $condition._else().assign($this.ref($property), $parameter);
+        } else {
+            assertThat($default).isPresent();
+            $method.javadoc().addParam($parameter).append(format(property.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
+            $method.body().assign($this.ref($property), cond($parameter.eq($null), $default.get(), $parameter));
+        }
     }
 
     private final void generateValuesConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
@@ -327,10 +332,10 @@ extends AbstractPlugin {
             for (final var field : generatedFieldsOf(clazz).entrySet()) {
                 final var attribute = field.getKey();
                 final var $parameter = field.getValue();
-                final var $builderProperty = $builder.field(PROTECTED, $parameter.type(), $parameter.name());
+                final var $property = $builder.field(PROTECTED, $parameter.type(), $parameter.name());
                 final var $wither = $builder.method(PUBLIC | FINAL, $builder, guessBuilderName(attribute));
                 $wither.param(FINAL, $parameter.type(), $parameter.name());
-                $wither.body().assign($this.ref($builderProperty), $parameter);
+                this.accordingAssignment(attribute, $wither, $property, $parameter);
                 $wither.body()._return($this);
             }
             final var $build = $builder.method(PUBLIC | (clazz.getImplClass().isAbstract() ? ABSTRACT : NONE), clazz.getImplClass(), "build");
