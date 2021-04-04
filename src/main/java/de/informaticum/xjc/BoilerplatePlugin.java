@@ -38,6 +38,7 @@ import static de.informaticum.xjc.util.Printify.render;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessBuilderName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessFactoryName;
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +49,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.ClassType;
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpression;
@@ -315,12 +317,7 @@ extends AbstractPlugin {
         }
     }
 
-    private JDefinedClass generateValuesBuilder(final ClassOutline clazz) {
-        for (final JDefinedClass c : (Iterable<JDefinedClass>) () -> clazz.getImplClass().classes()) {
-            if ("Builder".equals(c.name())) {
-                return c;
-            }
-        }
+    private JClass generateValuesBuilder(final ClassOutline clazz) {
         try {
             final var mods = PUBLIC | STATIC | ((clazz.getImplClass().mods().getValue() & FINAL) == 0 ? NONE : FINAL);
             final var $builder = clazz.getImplClass()._class(mods | (clazz.getImplClass().isAbstract() ? ABSTRACT : NONE), "Builder", ClassType.CLASS);
@@ -349,8 +346,9 @@ extends AbstractPlugin {
                 $injection.body()._return(_new($builder));
             }
             return $builder;
-        } catch (final JClassAlreadyExistsException bug) {
-            return null;
+        } catch (final JClassAlreadyExistsException alreadyExists) {
+            return stream($clazz.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst()
+                                               .orElseThrow(() -> new RuntimeException("Nested class 'Builder' already exists but cannot be found!", alreadyExists));
         }
     }
 
