@@ -30,6 +30,7 @@ public enum DefaultAnalysis {
         final var raw = field.getRawType();
         final var codeModel = outline.getCodeModel();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugwiesen wird, ohne dass ein Default-Wert existiert
+        // Denn das darf nicht passieren. Ein "Boolean" ist initial "null".
         if (raw.equals(codeModel.BOOLEAN)) return Optional.of(FALSE);
         if (raw.equals(codeModel.BYTE))    return Optional.of(lit(0));
         if (raw.equals(codeModel.CHAR))    return Optional.of(lit('\u0000'));
