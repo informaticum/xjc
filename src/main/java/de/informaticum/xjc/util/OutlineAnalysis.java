@@ -47,133 +47,134 @@ public enum OutlineAnalysis {
 
     /**
      * Values might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according
-     * {@linkplain JFieldVar code field} (for whatever reason).
+     * {@linkplain JFieldVar property} (for whatever reason).
      *
      * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      */
-    private static final LinkedHashMap<FieldOutline, JFieldVar> declaredFieldsOf(final ClassOutline clazz) {
-        final var fields = new LinkedHashMap<FieldOutline, JFieldVar>();
+    private static final LinkedHashMap<FieldOutline, JFieldVar> declaredPropertiesOf(final ClassOutline clazz) {
+        final var properties = new LinkedHashMap<FieldOutline, JFieldVar>();
         if (clazz == null) {
-            return fields;
+            return properties;
         }
         for (final var outline : clazz.getDeclaredFields()) {
             final var name = outline.getPropertyInfo().getName(false);
             final var $clazz = outline.parent().getImplClass();
-            final var $field = $clazz.fields().get(name);
-            if ($field == null) {
+            final var $property = $clazz.fields().get(name);
+            if ($property == null) {
                 LOG.warn("There is no according field in class [{}] for declared property [{}].", $clazz.fullName(), name);
             }
-            fields.put(outline, $field);
+            properties.put(outline, $property);
         }
-        final var diff = clazz.getImplClass().fields().size() - fields.size();
+        final var diff = clazz.getImplClass().fields().size() - properties.size();
         if (diff != 0) {
             LOG.warn("Class [{}] contains {} fields that are not caused by declared properties.", clazz.getImplClass().fullName(), diff);
         }
-        return fields;
+        return properties;
     }
 
     /**
      * Values cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according
-     * {@linkplain JFieldVar code field} (for whatever reason), it is not contained in the returned result.
+     * {@linkplain JFieldVar property} (for whatever reason), it is not contained in the returned result.
      *
      * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      */
-    public static final LinkedHashMap<FieldOutline, JFieldVar> generatedFieldsOf(final ClassOutline clazz) {
-        final var fields = declaredFieldsOf(clazz);
-        fields.entrySet().removeIf(field -> field.getValue() == null);
-        return fields;
+    public static final LinkedHashMap<FieldOutline, JFieldVar> generatedPropertiesOf(final ClassOutline clazz) {
+        final var properties = declaredPropertiesOf(clazz);
+        properties.entrySet().removeIf(property -> property.getValue() == null);
+        return properties;
     }
 
     /**
      * Values might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according
-     * {@linkplain JFieldVar code field} (for whatever reason).
+     * {@linkplain JFieldVar property} (for whatever reason).
      *
      * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and super class'
      * fields comes first.
      */
-    private static final LinkedHashMap<FieldOutline, JFieldVar> superAndDeclaredFieldsOf(final ClassOutline clazz) {
-        final var fields = new LinkedHashMap<FieldOutline, JFieldVar>();
+    private static final LinkedHashMap<FieldOutline, JFieldVar> superAndDeclaredPropertiesOf(final ClassOutline clazz) {
+        final var properties = new LinkedHashMap<FieldOutline, JFieldVar>();
         if (clazz == null) {
-            return fields;
+            return properties;
         }
-        fields.putAll(superAndDeclaredFieldsOf(clazz.getSuperClass()));
-        fields.putAll(declaredFieldsOf(clazz));
-        return fields;
+        properties.putAll(superAndDeclaredPropertiesOf(clazz.getSuperClass()));
+        properties.putAll(declaredPropertiesOf(clazz));
+        return properties;
     }
 
     /**
      * Values cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according
-     * {@linkplain JFieldVar code field} (for whatever reason), it is not contained in the returned result.
+     * {@linkplain JFieldVar property} (for whatever reason), it is not contained in the returned result.
      *
      * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and super class'
      * fields comes first.
      */
-    public static final LinkedHashMap<FieldOutline, JFieldVar> superAndGeneratedFieldsOf(final ClassOutline clazz) {
-        final var fields = superAndDeclaredFieldsOf(clazz);
-        fields.entrySet().removeIf(field -> field.getValue() == null);
-        return fields;
+    public static final LinkedHashMap<FieldOutline, JFieldVar> superAndGeneratedPropertiesOf(final ClassOutline clazz) {
+        final var properties = superAndDeclaredPropertiesOf(clazz);
+        properties.entrySet().removeIf(property -> property.getValue() == null);
+        return properties;
     }
 
-    public static final JMethod getConstructor(final ClassOutline clazz, final Class<?>... argTypes) {
-        return getConstructor(clazz.getImplClass(), stream(argTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
+    public static final JMethod getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
+        return getConstructor(clazz.getImplClass(), stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
     }
 
-    public static final JMethod getConstructor(final ClassOutline clazz, final List<? extends JType> argTypes) {
-        return getConstructor(clazz.getImplClass(), argTypes);
+    public static final JMethod getConstructor(final ClassOutline clazz, final List<? extends JType> argumentTypes) {
+        return getConstructor(clazz.getImplClass(), argumentTypes);
     }
 
-    public static final JMethod getConstructor(final JDefinedClass $clazz, final JType... argTypes) {
-        return getConstructor($clazz, asList(argTypes));
+    public static final JMethod getConstructor(final JDefinedClass $clazz, final JType... argumentTypes) {
+        return getConstructor($clazz, asList(argumentTypes));
     }
 
-    public static final JMethod getConstructor(final JDefinedClass $clazz, final List<? extends JType> argTypes) {
-        final var $constructor = $clazz.getConstructor(argTypes.toArray(JType[]::new));
+    public static final JMethod getConstructor(final JDefinedClass $clazz, final List<? extends JType> argumentTypes) {
+        final var $constructor = $clazz.getConstructor(argumentTypes.toArray(JType[]::new));
         if ($constructor != null) {
             return $constructor;
         } else {
-            final var rawTypes = argTypes.stream().map(JType::erasure).toArray(JType[]::new);
+            final var rawTypes = argumentTypes.stream().map(JType::erasure).toArray(JType[]::new);
             return $clazz.getConstructor(rawTypes);
         }
     }
 
-    public static final JMethod getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> argTypes) {
-        return getConstructor(clazz.getImplClass(), argTypes.values().stream().map(JFieldVar::type).collect(toList()));
+    public static final JMethod getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
+        final var argumentTypes = properties.values().stream().map(JFieldVar::type).collect(toList());
+        return getConstructor(clazz.getImplClass(), argumentTypes);
     }
 
-    public static final JMethod getMethod(final ClassOutline clazz, final String name, final Class<?>... argTypes) {
-        return getMethod(clazz.getImplClass(), name, stream(argTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
+    public static final JMethod getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
+        return getMethod(clazz.getImplClass(), name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
     }
 
-    public static final JMethod getMethod(final ClassOutline clazz, final String name, final List<? extends JType> argTypes) {
-        return getMethod(clazz.getImplClass(), name, argTypes);
+    public static final JMethod getMethod(final ClassOutline clazz, final String name, final List<? extends JType> argumentTypes) {
+        return getMethod(clazz.getImplClass(), name, argumentTypes);
     }
 
-    public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final JType... argTypes) {
-        return getMethod($clazz, name, asList(argTypes));
+    public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final JType... argumentTypes) {
+        return getMethod($clazz, name, asList(argumentTypes));
     }
 
-    public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final List<? extends JType> argTypes) {
-        final var $method = $clazz.getMethod(name, argTypes.toArray(JType[]::new));
+    public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final List<? extends JType> argumentTypes) {
+        final var $method = $clazz.getMethod(name, argumentTypes.toArray(JType[]::new));
         if ($method != null) {
             return $method;
         } else {
-            final var rawTypes = argTypes.stream().map(JType::erasure).toArray(JType[]::new);
+            final var rawTypes = argumentTypes.stream().map(JType::erasure).toArray(JType[]::new);
             return $clazz.getMethod(name, rawTypes);
         }
     }
 
     public static final LinkedHashMap<FieldOutline, JMethod> generatedGettersOf(final ClassOutline clazz) {
         final var getters = new LinkedHashMap<FieldOutline, JMethod>();
-        for (final var fields : generatedFieldsOf(clazz).entrySet()) {
-            final var outline = fields.getKey();
-            final var $field = fields.getValue();
-            final var name = spyGetterName(outline);
-            final var getter = getMethod(clazz, name);
+        for (final var properties : generatedPropertiesOf(clazz).entrySet()) {
+            final var attribute = properties.getKey();
+            final var $property = properties.getValue();
+            final var getterName = spyGetterName(attribute);
+            final var getter = getMethod(clazz, getterName);
             if (getter != null) {
-                assertThat(getter.type().boxify()).isEqualTo($field.type().boxify());
-                getters.put(outline, getter);
+                assertThat(getter.type().boxify()).isEqualTo($property.type().boxify());
+                getters.put(attribute, getter);
             } else {
-                LOG.error("There is no getter method [{}] for field {} of class [{}].", name, $field.name(), clazz.getImplClass().fullName());
+                LOG.error("There is no getter method [{}] for property {} of class [{}].", getterName, $property.name(), clazz.getImplClass().fullName());
             }
         }
         return getters;

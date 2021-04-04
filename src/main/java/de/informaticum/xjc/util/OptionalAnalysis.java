@@ -27,7 +27,7 @@ public enum OptionalAnalysis {
         }
     }
 
-    public static final JClass accordingOptionalFor(final JType $type) {
+    public static final JClass accordingOptionalTypeFor(final JType $type) {
         final var model = $type.owner();
         if (model.DOUBLE.equals($type.unboxify())) {
             return model.ref(OptionalDouble.class);

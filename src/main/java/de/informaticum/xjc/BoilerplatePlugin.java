@@ -24,19 +24,19 @@ import static de.informaticum.xjc.JavaDoc.RETURN_OPTIONAL_VALUE;
 import static de.informaticum.xjc.JavaDoc.THROWS_IAE_BY_NULL;
 import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
-import static de.informaticum.xjc.util.OptionalAnalysis.accordingOptionalFor;
+import static de.informaticum.xjc.util.OptionalAnalysis.accordingOptionalTypeFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
-import static de.informaticum.xjc.util.OutlineAnalysis.generatedFieldsOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
+import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getConstructor;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
-import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedFieldsOf;
+import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedPropertiesOf;
 import static de.informaticum.xjc.util.Printify.fullName;
 import static de.informaticum.xjc.util.Printify.render;
-import static de.informaticum.xjc.util.XjcPropertyGuesser.guessBuilderName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessFactoryName;
+import static de.informaticum.xjc.util.XjcPropertyGuesser.guessWitherName;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Map.entry;
@@ -93,6 +93,10 @@ extends AbstractPlugin {
     private static final String GENERATE_TOSTRING_DESC = "Generate [#toString()] method. Default: false";
     private boolean generateToString = false;
 
+    private static final String GENERATE_BUILDER = "Generate all-values builder for [{}]";
+    private static final String GENERATE_CONSTRUCTOR = "Generate {} constructor for [{}]";
+    private static final String GENERATE_METHOD = "Generate [{}] method for [{}]";
+    private static final String GENERATE_OPTIONAL_GETTER = "Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type";
     private static final String SKIP_BUILDER = "Skip creation of builder for [{}] because {}.";
     private static final String SKIP_CONSTRUCTOR = "Skip creation of {} constructor for [{}] because {}.";
     private static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
@@ -175,7 +179,7 @@ extends AbstractPlugin {
         } else if (getConstructor(clazz) != null) {
             LOG.warn(SKIP_CONSTRUCTOR, "default", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
         } else {
-            LOG.info("Generate default constructor for [{}]", fullName(clazz));
+            LOG.info(GENERATE_CONSTRUCTOR, "default", fullName(clazz));
             this.generateDefaultConstructor(clazz);
             assertThat(getConstructor(clazz)).isNotNull();
         }
@@ -187,27 +191,29 @@ extends AbstractPlugin {
         // 2/3: JavaDocument
         $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC));
         // 3/3: Implement
-        $constructor.body().invoke("super");
-        for (final var field : generatedFieldsOf(clazz).entrySet()) {
-            final var attribute = field.getKey();
-            final var $parameter = field.getValue();
+        if (clazz.getSuperClass() != null) {
+            $constructor.body().invoke("super");
+        }
+        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
+            final var attribute = property.getKey();
+            final var $property = property.getValue();
             final var $value = defaultValueFor(attribute).orElse($null);
-            $constructor.javadoc().append(format(DEFAULT_FIELD_ASSIGNMENT, $parameter.name(), render($value)));
-            $constructor.body().assign($this.ref($parameter), $value);
+            $constructor.javadoc().append(format(DEFAULT_FIELD_ASSIGNMENT, $property.name(), render($value)));
+            $constructor.body().assign($this.ref($property), $value);
         }
     }
 
     private final void considerValuesConstructor(final ClassOutline clazz) {
         if (!this.generateValueConstructor) {
             LOG.trace(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (superAndGeneratedFieldsOf(clazz).isEmpty() && this.generateDefaultConstructor) {
+        } else if (superAndGeneratedPropertiesOf(clazz).isEmpty() && this.generateDefaultConstructor) {
             LOG.info(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_EFFECTIVELY_SIMILAR);
-        } else if (getConstructor(clazz, superAndGeneratedFieldsOf(clazz)) != null) {
+        } else if (getConstructor(clazz, superAndGeneratedPropertiesOf(clazz)) != null) {
             LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
         } else {
-            LOG.info("Generate all-values constructor for [{}].", fullName(clazz));
+            LOG.info(GENERATE_CONSTRUCTOR, "all-values", fullName(clazz));
             final var $constructor = this.generateValuesConstructor(clazz);
-            assertThat(getConstructor(clazz, superAndGeneratedFieldsOf(clazz))).isNotNull();
+            assertThat(getConstructor(clazz, superAndGeneratedPropertiesOf(clazz))).isNotNull();
             if (clazz.getImplClass().isAbstract()) {
                 LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
             } else if (clazz._package().objectFactory() == null) {
@@ -235,81 +241,96 @@ extends AbstractPlugin {
         // TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten)
         $constructor.javadoc().addThrows(IllegalArgumentException.class).append(format(THROWS_IAE_BY_NULL));
         // 3/3: Implement
-        final var $super = $constructor.body().invoke("super");
-        for (final var field : superAndGeneratedFieldsOf(clazz.getSuperClass()).entrySet()) {
-            final var attribute = field.getKey();
-            final var property = attribute.getPropertyInfo();
-            final var name = property.getName(true);
-            final var $parameter = field.getValue();
-            final var $default = defaultValueFor(attribute);
-            if ($parameter.type().isPrimitive()) {
-                $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
-            } else if (isOptional(attribute) && $default.isEmpty()) {
-                $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
-            } else if (isRequired(attribute) && $default.isEmpty()) {
-                $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
-            } else {
-                assertThat($default).isPresent();
-                $constructor.javadoc().addParam($parameter).append(format(property.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
+        if (clazz.getSuperClass() != null) {
+            final var $super = $constructor.body().invoke("super");
+            for (final var property : superAndGeneratedPropertiesOf(clazz.getSuperClass()).entrySet()) {
+                final var attribute = property.getKey();
+                final var info = attribute.getPropertyInfo();
+                final var name = info.getName(true);
+                final var $property = property.getValue();
+                final var $parameter = $constructor.param(FINAL, $property.type(), $property.name());
+                final var $default = defaultValueFor(attribute);
+                if ($parameter.type().isPrimitive()) {
+                    $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
+                } else if (isOptional(attribute) && $default.isEmpty()) {
+                    $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
+                } else if (isRequired(attribute) && $default.isEmpty()) {
+                    $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
+                } else {
+                    assertThat($default).isPresent();
+                    $constructor.javadoc().addParam($parameter).append(format(info.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
+                }
+                $super.arg($parameter);
             }
-            $constructor.param(FINAL, $parameter.type(), $parameter.name());
-            $super.arg($parameter);
         }
-        for (final var field : generatedFieldsOf(clazz).entrySet()) {
-            final var attribute = field.getKey();
-            final var $parameter = field.getValue();
-            $constructor.param(FINAL, $parameter.type(), $parameter.name());
-            this.accordingAssignment(attribute, $constructor, $parameter, $parameter);
+        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
+            final var attribute = property.getKey();
+            final var $property = property.getValue();
+            final var $parameter = $constructor.param(FINAL, $property.type(), $property.name());
+            this.accordingAssignment(attribute, $constructor, $property, $parameter);
         }
         return $constructor;
     }
 
-    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JFieldVar $parameter) {
-        final var property = attribute.getPropertyInfo();
-        final var name = property.getName(true);
+    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $parameter) {
+        this.accordingAssignment(attribute, $method, $property, $parameter, true);
+    }
+
+    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $parameter, final boolean javadoc) {
+        final var info = attribute.getPropertyInfo();
+        final var name = info.getName(true);
         final var $default = defaultValueFor(attribute);
-        if ($parameter.type().isPrimitive()) {
-            $method.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
+        if ($property.type().isPrimitive()) {
+            if (javadoc) {
+                $method.javadoc().addParam($property).append(format(PARAM_THAT_IS_PRIMITIVE, name));
+            }
             $method.body().assign($this.ref($property), $parameter);
         } else if (isOptional(attribute) && $default.isEmpty()) {
-            $method.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
+            if (javadoc) {
+                $method.javadoc().addParam($property).append(format(PARAM_THAT_IS_OPTIONAL, name));
+            }
             $method.body().assign($this.ref($property), $parameter);
         } else if (isRequired(attribute) && $default.isEmpty()) {
-            $method.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
+            if (javadoc) {
+                $method.javadoc().addParam($property).append(format(PARAM_THAT_IS_REQUIRED, name));
+            }
             $method._throws(IllegalArgumentException.class);
             final var $condition = $method.body()._if($parameter.eq($null));
-            $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $parameter.name() + "' cannot be assigned to null!")));
+            $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
             $condition._else().assign($this.ref($property), $parameter);
         } else {
             assertThat($default).isPresent();
-            $method.javadoc().addParam($parameter).append(format(property.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
+            if (javadoc) {
+                $method.javadoc().addParam($property).append(format(info.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
+            }
             $method.body().assign($this.ref($property), cond($parameter.eq($null), $default.get(), $parameter));
         }
     }
 
-    private final void generateValuesConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
-        final var $blueprint = getMethod($factory, guessFactoryName(clazz));
+    private final void generateValuesConstructorFactory(final JDefinedClass $objectFactory, final ClassOutline clazz, final JMethod $constructor) {
+        final var $defaultFactory = getMethod($objectFactory, guessFactoryName(clazz));
         // 1/3: Create
-        final var $construction = $factory.method($blueprint.mods().getValue(), $blueprint.type(), $blueprint.name());
+        final var $allValuesFactory = $objectFactory.method($defaultFactory.mods().getValue(), $defaultFactory.type(), $defaultFactory.name());
         // TODO: Re-throw declared exceptions of constructor
         // 2/3: JavaDocument
-        $construction.javadoc().addAll($blueprint.javadoc());
+        $allValuesFactory.javadoc().addAll($defaultFactory.javadoc());
+        // TODO: @return-JavaDoc?!
         // 3/3: Implement
         final var $instantiation = _new(clazz.getImplClass());
-        for (final var $param : $constructor.listParams()) {
+        for (final var $constructorParameter : $constructor.listParams()) {
+            final var $factoryParameter = $allValuesFactory.param(FINAL, $constructorParameter.type(), $constructorParameter.name());
             // TODO: Generate JavaDoc similar to all-values constructor
-            $construction.javadoc().addParam($param).append("See all-values constructor of ").append(clazz.getImplClass());
-            $construction.param(FINAL, $param.type(), $param.name());
-            $instantiation.arg($param);
+            $allValuesFactory.javadoc().addParam($factoryParameter).append("See all-values constructor of ").append(clazz.getImplClass());
+            $instantiation.arg($factoryParameter);
         }
-        $construction.body()._return($instantiation);
+        $allValuesFactory.body()._return($instantiation);
     }
 
-    private final void removeDefaultConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz) {
+    private final void removeDefaultConstructorFactory(final JDefinedClass $objectFactory, final ClassOutline clazz) {
         // 1/2: Identify
-        final var $original = getMethod($factory, guessFactoryName(clazz));
+        final var $defaultFactory = getMethod($objectFactory, guessFactoryName(clazz));
         // 2/2: Remove
-        $factory.methods().remove($original);
+        $objectFactory.methods().remove($defaultFactory);
     }
 
     private final void considerValuesBuilder(final ClassOutline clazz) {
@@ -317,45 +338,68 @@ extends AbstractPlugin {
             LOG.trace(SKIP_BUILDER, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else {
             // TODO: LOG.warn(SKIP_BUILDER, "default", fullName(clazz), BECAUSE_BUILDER_EXISTS);
-            LOG.info("Generate all-values builder for [{}]", fullName(clazz));
+            LOG.info(GENERATE_BUILDER, fullName(clazz));
             this.generateValuesBuilder(clazz);
         }
     }
 
-    private JClass generateValuesBuilder(final ClassOutline clazz) {
+    private final JClass generateValuesBuilder(final ClassOutline clazz) {
         final var $clazz = clazz.getImplClass();
         try {
             final var isAbstract = $clazz.isAbstract();
             final var isFinal = ($clazz.mods().getValue() & FINAL) != 0;
-            final var mods = PUBLIC | STATIC | (isAbstract ? ABSTRACT : NONE) | (isFinal ? FINAL : NONE);
+            final var builderModifiers = PUBLIC | STATIC | (isAbstract ? ABSTRACT : NONE) | (isFinal ? FINAL : NONE);
             // 1/3: Create
-            final var $builder = $clazz._class(mods, "Builder", ClassType.CLASS);
-            if (!isAbstract) {
-                assertThat(mods & ABSTRACT).isEqualTo(0);
-                final var $factory = $clazz.method(mods, $builder, "builder");
-                $factory.body()._return(_new($builder));
-            }
+            final var $Builder = $clazz._class(builderModifiers, "Builder", ClassType.CLASS);
             // 2/3: JavaDocument
+            $Builder.javadoc().append("Builder for (enclosing) class ").append($clazz).append(".");
             // 3/3: Implement
+            final var $defaultConstructor = $Builder.constructor(PROTECTED);
+            $defaultConstructor.javadoc().append("Default constructor.");
+            final var $blueprintConstructor = $Builder.constructor(PROTECTED);
+            $blueprintConstructor.javadoc().append("Blueprint constructor.");
+            final var $blueprint = $blueprintConstructor.param(FINAL, $clazz, "blueprint");
+            $blueprintConstructor.javadoc().addParam($blueprint).append("the blueprint ").append($clazz).append(" instance to get all initial values from");
             if (clazz.getSuperClass() != null) {
-                $builder._extends(this.generateValuesBuilder(clazz.getSuperClass()));
+                $Builder._extends(this.generateValuesBuilder(clazz.getSuperClass()));
+                $defaultConstructor.body().invoke("super");
+                $blueprintConstructor.body().invoke("super").arg($blueprint);
             }
-            for (final var field : generatedFieldsOf(clazz).entrySet()) {
-                final var attribute = field.getKey();
-                final var $parameter = field.getValue();
-                final var $property = $builder.field(PROTECTED, $parameter.type(), $parameter.name());
-                final var $wither = $builder.method(PUBLIC | FINAL, $builder, guessBuilderName(attribute));
-                $wither.param(FINAL, $parameter.type(), $parameter.name());
-                this.accordingAssignment(attribute, $wither, $property, $parameter);
+            if (!isAbstract) {
+                assertThat(builderModifiers & ABSTRACT).isEqualTo(0);
+                final var $builder = $clazz.method(builderModifiers, $Builder, "builder");
+                $builder.body()._return(_new($Builder));
+                final var $toBuilder = $clazz.method(PUBLIC, $Builder, "toBuilder");
+                $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" with all properties initialised with the current values of {@code this} instance");
+                $toBuilder.body()._return(_new($Builder).arg($this));
+            }
+            for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
+                final var attribute = blueprintProperty.getKey();
+                final var $blueprintProperty = blueprintProperty.getValue();
+                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute).orElse($null));
+                this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty), false);
+                final var $wither = $Builder.method(PUBLIC | FINAL, $Builder, guessWitherName(attribute));
+                final var $parameter = $wither.param(FINAL, $builderProperty.type(), $builderProperty.name());
+                this.accordingAssignment(attribute, $wither, $builderProperty, $parameter);
+                $wither.javadoc().addReturn().append("{@code this} builder instance for fluent API style");
                 $wither.body()._return($this);
             }
-            final var $build = $builder.method(PUBLIC | (isAbstract ? ABSTRACT : NONE), $clazz, "build");
+            final var $build = $Builder.method(PUBLIC | (isAbstract ? ABSTRACT : NONE), $clazz, "build");
             if (!isAbstract) {
                 final var $instantiation = _new($clazz);
-                superAndGeneratedFieldsOf(clazz).values().forEach($field -> $instantiation.arg($this.ref($field)));
+                for (final var $blueprintProperty : superAndGeneratedPropertiesOf(clazz).values()) {
+                    // The according builder property is either a field of the current builder class' ...
+                    // /* final var $builderProperty = $Builder.fields().get($blueprintProperty.name()); */
+                    // ... or is specified in any of the builder's super classes.
+                    // /* if ($builderProperty == null) { ??? } */
+                    // Fortunately, the name is sufficient enough to identify the accordingly named property.
+                    final var $builderProperty = $blueprintProperty.name();
+                    $instantiation.arg($this.ref($builderProperty));
+                }
+                $build.javadoc().addReturn().append("a new instance of ").append($clazz);
                 $build.body()._return($instantiation);
             }
-            return $builder;
+            return $Builder;
         } catch (final JClassAlreadyExistsException alreadyExists) {
             return stream($clazz.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst()
                                                .orElseThrow(() -> new RuntimeException("Nested class 'Builder' already exists but cannot be found!", alreadyExists));
@@ -368,42 +412,42 @@ extends AbstractPlugin {
         } else {
             for (final var getter : generatedGettersOf(clazz).entrySet()) {
                 final var attribute = getter.getKey();
-                final var $blueprint = getter.getValue();
+                final var $getter = getter.getValue();
                 if (isRequired(attribute)) {
-                    LOG.debug(SKIP_OPTIONAL_GETTER, $blueprint.name(), fullName(clazz), BECAUSE_ATTRIBUTE_IS_REQUIRED);
-                } else if (isOptionalMethod($blueprint)) {
-                    LOG.warn(SKIP_OPTIONAL_GETTER, $blueprint.name(), fullName(clazz), BECAUSE_METHOD_EXISTS);
+                    LOG.debug(SKIP_OPTIONAL_GETTER, $getter.name(), fullName(clazz), BECAUSE_ATTRIBUTE_IS_REQUIRED);
+                } else if (isOptionalMethod($getter)) {
+                    LOG.warn(SKIP_OPTIONAL_GETTER, $getter.name(), fullName(clazz), BECAUSE_METHOD_EXISTS);
                 } else {
-                    LOG.info("Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type", fullName(clazz), $blueprint.name());
+                    LOG.info(GENERATE_OPTIONAL_GETTER, fullName(clazz), $getter.name());
                     this.generateOptionalGetters(clazz, getter);
                 }
             }
         }
     }
 
-    private final void generateOptionalGetters(final ClassOutline clazz, final Entry<FieldOutline, JMethod> original) {
+    private final void generateOptionalGetters(final ClassOutline clazz, final Entry<? extends FieldOutline, ? extends JMethod> original) {
         final var attribute = original.getKey();
-        final var property = attribute.getPropertyInfo();
-        final var $blueprint = original.getValue();
-        final var type = $blueprint.type();
+        final var info = attribute.getPropertyInfo();
+        final var $originalGetter = original.getValue();
+        final var originalType = $originalGetter.type();
         // 1/3: Create
-        final var getterType = accordingOptionalFor(type);
-        final var $getter = clazz.getImplClass().method($blueprint.mods().getValue(), getterType, $blueprint.name());
+        final var optionalType = accordingOptionalTypeFor(originalType);
+        final var $optionalGetter = clazz.getImplClass().method($originalGetter.mods().getValue(), optionalType, $originalGetter.name());
         // 2/3: JavaDocument
-        $getter.javadoc().addReturn().append(format(RETURN_OPTIONAL_VALUE, property.getName(true)));
+        $optionalGetter.javadoc().addReturn().append(format(RETURN_OPTIONAL_VALUE, info.getName(true)));
         // 3/3: Implement
-        final var $factory = getterType.erasure();
-        final var $delegation = $this.invoke($blueprint);
-        if (type.isPrimitive()) {
-            $getter.body()._return($factory.staticInvoke("of").arg($delegation));
+        final var $OptionalClass = optionalType.erasure();
+        final var $delegation = $this.invoke($originalGetter);
+        if (originalType.isPrimitive()) {
+            $optionalGetter.body()._return($OptionalClass.staticInvoke("of").arg($delegation));
         } else {
-            final var $value = $getter.body().decl(FINAL, type, "value", $delegation);
-            $getter.body()._return(cond($value.eq($null), $factory.staticInvoke("empty"), $factory.staticInvoke("of").arg($value)));
+            final var $value = $optionalGetter.body().decl(FINAL, originalType, "value", $delegation);
+            $optionalGetter.body()._return(cond($value.eq($null), $OptionalClass.staticInvoke("empty"), $OptionalClass.staticInvoke("of").arg($value)));
         }
         // Subsequently (!) modify the original getter method
-        $blueprint.mods().setPrivate();
-        $blueprint.mods().setFinal(true);
-        $blueprint.name("_" + $blueprint.name());
+        $originalGetter.mods().setPrivate();
+        $originalGetter.mods().setFinal(true);
+        $originalGetter.name("_" + $originalGetter.name());
     }
 
     private final void considerEquals(final ClassOutline clazz) {
@@ -412,7 +456,7 @@ extends AbstractPlugin {
         } else if (getMethod(clazz, "equals", Object.class) != null) {
             LOG.warn(SKIP_METHOD, "#equals(Object)", fullName(clazz), BECAUSE_METHOD_EXISTS);
         } else {
-            LOG.info("Generate [#equals(Object)] method for [{}]", fullName(clazz));
+            LOG.info(GENERATE_METHOD, "#equals(Object)", fullName(clazz));
             this.generateEquals(clazz);
             assertThat(getMethod(clazz, "equals", Object.class)).isNotNull();
         }
@@ -432,12 +476,12 @@ extends AbstractPlugin {
         if (clazz.getSuperClass() != null) {
             comparisons.add($super.invoke("equals").arg($other));
         }
-        final var fields = generatedFieldsOf(clazz).values();
-        if (!fields.isEmpty()) {
+        final var properties = generatedPropertiesOf(clazz);
+        if (!properties.isEmpty()) {
             final var $Objects = this.reference(Objects.class);
             final var $that = $equals.body().decl(FINAL, clazz.getImplClass(), "that", cast(clazz.getImplClass(), $other));
-            for (final var $field : fields) {
-                comparisons.add($Objects.staticInvoke("equals").arg($this.ref($field)).arg($that.ref($field)));
+            for (final var $property : properties.values()) {
+                comparisons.add($Objects.staticInvoke("equals").arg($this.ref($property)).arg($that.ref($property)));
             }
         }
         $equals.body()._return(comparisons.stream().reduce(JExpression::cand).orElse(TRUE));
@@ -449,7 +493,7 @@ extends AbstractPlugin {
         } else if (getMethod(clazz, "hashCode") != null) {
             LOG.warn(SKIP_METHOD, "#hashCode()", fullName(clazz), BECAUSE_METHOD_EXISTS);
         } else {
-            LOG.info("Generate [#hashCode()] method for [{}]", fullName(clazz));
+            LOG.info(GENERATE_METHOD, "#hashCode()", fullName(clazz));
             this.addHashCode(clazz);
             assertThat(getMethod(clazz, "hashCode")).isNotNull();
         }
@@ -465,8 +509,8 @@ extends AbstractPlugin {
         if (clazz.getSuperClass() != null) {
             calculation.arg($super.invoke("hashCode"));
         }
-        for (final var $field : generatedFieldsOf(clazz).values()) {
-            calculation.arg($this.ref($field));
+        for (final var $property : generatedPropertiesOf(clazz).values()) {
+            calculation.arg($this.ref($property));
         }
         $hashCode.body()._return(calculation.listArgs().length > 0 ? calculation : $this.invoke("getClass").invoke("hashCode"));
     }
@@ -477,7 +521,7 @@ extends AbstractPlugin {
         } else if (getMethod(clazz, "toString") != null) {
             LOG.warn(SKIP_METHOD, "#toString()", fullName(clazz), BECAUSE_METHOD_EXISTS);
         } else {
-            LOG.info("Generate [#toString()] method for [{}]", fullName(clazz));
+            LOG.info(GENERATE_METHOD, "#toString()", fullName(clazz));
             this.addToString(clazz);
             assertThat(getMethod(clazz, "toString")).isNotNull();
         }
@@ -491,11 +535,11 @@ extends AbstractPlugin {
         // 3/3: Implement
         final var parts = new ArrayList<JExpression>();
         final var $Objects = this.reference(Objects.class);
-        for (final var field : generatedFieldsOf(clazz).entrySet()) {
-            final var attribute = field.getKey();
-            final var property = attribute.getPropertyInfo();
-            final var $parameter = field.getValue();
-            parts.add(lit(property.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($parameter))));
+        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
+            final var attribute = property.getKey();
+            final var info = attribute.getPropertyInfo();
+            final var $property = property.getValue();
+            parts.add(lit(info.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($property))));
         }
         if (clazz.getSuperClass() != null) {
             parts.add(lit("Super: ").plus($super.invoke("toString")));
