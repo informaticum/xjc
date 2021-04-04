@@ -24,7 +24,6 @@ import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.accordingOptionalFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
-import static de.informaticum.xjc.util.OutlineAnalysis.allValueConstructorArguments;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedFieldsOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getConstructor;
@@ -168,12 +167,12 @@ extends AbstractPlugin {
     private final void considerDefaultConstructor(final ClassOutline clazz) {
         if (!this.generateDefaultConstructor) {
             LOG.trace(SKIP_CONSTRUCTOR, "default", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getConstructor(clazz, NO_ARG) != null) {
+        } else if (getConstructor(clazz) != null) {
             LOG.warn(SKIP_CONSTRUCTOR, "default", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
         } else {
             LOG.info("Generate default constructor for [{}]", fullName(clazz));
             this.generateDefaultConstructor(clazz);
-            assertThat(getConstructor(clazz, NO_ARG)).isNotNull();
+            assertThat(getConstructor(clazz)).isNotNull();
         }
     }
 
@@ -196,24 +195,24 @@ extends AbstractPlugin {
     private final void considerValuesConstructor(final ClassOutline clazz) {
         if (!this.generateValueConstructor) {
             LOG.trace(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (allValueConstructorArguments(clazz).length == 0 && this.generateDefaultConstructor) {
+        } else if (superAndGeneratedFieldsOf(clazz).isEmpty() && this.generateDefaultConstructor) {
             LOG.info(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_EFFECTIVELY_SIMILAR);
-        } else if (getConstructor(clazz, allValueConstructorArguments(clazz)) != null) {
+        } else if (getConstructor(clazz, superAndGeneratedFieldsOf(clazz)) != null) {
             LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_EXISTS);
         } else {
             LOG.info("Generate all-values constructor for [{}].", fullName(clazz));
             final var $constructor = this.generateValuesConstructor(clazz);
-            assertThat(getConstructor(clazz, allValueConstructorArguments(clazz))).isNotNull();
+            assertThat(getConstructor(clazz, superAndGeneratedFieldsOf(clazz))).isNotNull();
             if (clazz.getImplClass().isAbstract()) {
                 LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
             } else if (clazz._package().objectFactory() == null) {
                 LOG.error("Skip adoption of all-values constructor for [{}] because there is no according package's ObjectFactory.", fullName(clazz));
-            } else if (clazz._package().objectFactory().getMethod(guessFactoryName(clazz), NO_ARG) == null) {
+            } else if (getMethod(clazz._package().objectFactory(), guessFactoryName(clazz)) == null) {
                 LOG.error("Skip adoption of all-values constructor for [{}] because according package's ObjectFactory does not contain a predefined factory method for this class.", fullName(clazz));
             } else {
                 LOG.info("Adopt all-values constructor for [{}] in according package's ObjectFactory.", fullName(clazz));
                 this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
-                assertThat(clazz._package().objectFactory().getMethod(guessFactoryName(clazz), NO_ARG)).isNotNull();
+                assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz))).isNotNull();
                 if (!this.generateDefaultConstructor) {
                     LOG.info("Remove default factory [{}] in according package's ObjectFactory because implicit default constructor no longer exists and has not been generated explicitly.", fullName(clazz));
                     this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz);
@@ -280,7 +279,7 @@ extends AbstractPlugin {
     }
 
     private final void generateValuesConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz, final JMethod $constructor) {
-        final var $blueprint = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
+        final var $blueprint = getMethod($factory, guessFactoryName(clazz));
         // 1/3: Create
         final var $construction = $factory.method($blueprint.mods().getValue(), $blueprint.type(), $blueprint.name());
         // TODO: Re-throw declared exceptions of constructor
@@ -299,7 +298,7 @@ extends AbstractPlugin {
 
     private final void removeDefaultConstructorFactory(final JDefinedClass $factory, final ClassOutline clazz) {
         // 1/2: Identify
-        final var $original = $factory.getMethod(guessFactoryName(clazz), NO_ARG);
+        final var $original = getMethod($factory, guessFactoryName(clazz));
         // 2/2: Remove
         $factory.methods().remove($original);
     }
@@ -437,12 +436,12 @@ extends AbstractPlugin {
     private final void considerHashCode(final ClassOutline clazz) {
         if (!this.generateHashcode) {
             LOG.trace(SKIP_METHOD, "#hashCode()", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getMethod(clazz, "hashCode", NO_ARG) != null) {
+        } else if (getMethod(clazz, "hashCode") != null) {
             LOG.warn(SKIP_METHOD, "#hashCode()", fullName(clazz), BECAUSE_METHOD_EXISTS);
         } else {
             LOG.info("Generate [#hashCode()] method for [{}]", fullName(clazz));
             this.addHashCode(clazz);
-            assertThat(getMethod(clazz, "hashCode", NO_ARG)).isNotNull();
+            assertThat(getMethod(clazz, "hashCode")).isNotNull();
         }
     }
 
@@ -465,12 +464,12 @@ extends AbstractPlugin {
     private final void considerToString(final ClassOutline clazz) {
         if (!this.generateToString) {
             LOG.trace(SKIP_METHOD, "#toString()", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getMethod(clazz, "toString", NO_ARG) != null) {
+        } else if (getMethod(clazz, "toString") != null) {
             LOG.warn(SKIP_METHOD, "#toString()", fullName(clazz), BECAUSE_METHOD_EXISTS);
         } else {
             LOG.info("Generate [#toString()] method for [{}]", fullName(clazz));
             this.addToString(clazz);
-            assertThat(getMethod(clazz, "toString", NO_ARG)).isNotNull();
+            assertThat(getMethod(clazz, "toString")).isNotNull();
         }
     }
 

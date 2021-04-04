@@ -8,7 +8,6 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JType;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -23,8 +22,6 @@ import org.xml.sax.SAXParseException;
 
 public abstract class AbstractPlugin
 extends Plugin {
-
-    public static final JType[] NO_ARG = new JType[0];
 
     public static final Class<?>[] DIAMOND = new Class<?>[0];
 
