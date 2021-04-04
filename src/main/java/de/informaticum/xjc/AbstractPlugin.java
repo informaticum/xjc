@@ -1,12 +1,14 @@
 package de.informaticum.xjc;
 
+import static com.sun.codemodel.JExpr._null;
+import static com.sun.codemodel.JExpr._super;
+import static com.sun.codemodel.JExpr._this;
 import static java.lang.String.format;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
@@ -25,11 +27,11 @@ extends Plugin {
 
     public static final Class<?>[] DIAMOND = new Class<?>[0];
 
-    public static final JExpression $null = JExpr._null();
+    public static final JExpression $null = _null();
 
-    public static final JExpression $super = JExpr._super();
+    public static final JExpression $super = _super();
 
-    public static final JExpression $this = JExpr._this();
+    public static final JExpression $this = _this();
 
     private Outline currentOutline = null;
 
