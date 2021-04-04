@@ -1,9 +1,9 @@
 package com.sun.tools.xjc.generator.bean.field;
 
-import static de.informaticum.xjc.util.XjcAccessorGuesser.guessGetterName;
+import static de.informaticum.xjc.util.XjcPropertyGuesser.guessGetterName;
 import com.sun.tools.xjc.outline.FieldOutline;
 
-public enum XjcAccessorSpy {
+public enum XjcPropertySpy {
     ;
 
     public static final String spyGetterName(final FieldOutline field) {

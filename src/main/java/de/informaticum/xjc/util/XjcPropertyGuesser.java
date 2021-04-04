@@ -5,7 +5,7 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 
-public enum XjcAccessorGuesser {
+public enum XjcPropertyGuesser {
     ;
 
     public static final String CREATE = "create";

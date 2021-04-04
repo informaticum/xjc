@@ -1,6 +1,6 @@
 package de.informaticum.xjc.util;
 
-import static com.sun.tools.xjc.generator.bean.field.XjcAccessorSpy.spyGetterName;
+import static com.sun.tools.xjc.generator.bean.field.XjcPropertySpy.spyGetterName;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
