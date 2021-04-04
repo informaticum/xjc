@@ -323,9 +323,20 @@ extends AbstractPlugin {
     }
 
     private JClass generateValuesBuilder(final ClassOutline clazz) {
+        final var $clazz = clazz.getImplClass();
         try {
-            final var mods = PUBLIC | STATIC | ((clazz.getImplClass().mods().getValue() & FINAL) == 0 ? NONE : FINAL);
-            final var $builder = clazz.getImplClass()._class(mods | (clazz.getImplClass().isAbstract() ? ABSTRACT : NONE), "Builder", ClassType.CLASS);
+            final var isAbstract = $clazz.isAbstract();
+            final var isFinal = ($clazz.mods().getValue() & FINAL) != 0;
+            final var mods = PUBLIC | STATIC | (isAbstract ? ABSTRACT : NONE) | (isFinal ? FINAL : NONE);
+            // 1/3: Create
+            final var $builder = $clazz._class(mods, "Builder", ClassType.CLASS);
+            if (!isAbstract) {
+                assertThat(mods & ABSTRACT).isEqualTo(0);
+                final var $factory = $clazz.method(mods, $builder, "builder");
+                $factory.body()._return(_new($builder));
+            }
+            // 2/3: JavaDocument
+            // 3/3: Implement
             if (clazz.getSuperClass() != null) {
                 $builder._extends(this.generateValuesBuilder(clazz.getSuperClass()));
             }
@@ -338,17 +349,11 @@ extends AbstractPlugin {
                 this.accordingAssignment(attribute, $wither, $property, $parameter);
                 $wither.body()._return($this);
             }
-            final var $build = $builder.method(PUBLIC | (clazz.getImplClass().isAbstract() ? ABSTRACT : NONE), clazz.getImplClass(), "build");
-            if (!clazz.getImplClass().isAbstract()) {
-                final var $construction = _new(clazz.getImplClass());
-                $build.body()._return($construction);
-                for (final var field : superAndGeneratedFieldsOf(clazz).values()) {
-                    $construction.arg($this.ref(field));
-                }
-            }
-            if (!clazz.getImplClass().isAbstract()) {
-                final var $injection = clazz.getImplClass().method(mods, $builder, "builder");
-                $injection.body()._return(_new($builder));
+            final var $build = $builder.method(PUBLIC | (isAbstract ? ABSTRACT : NONE), $clazz, "build");
+            if (!isAbstract) {
+                final var $instantiation = _new($clazz);
+                superAndGeneratedFieldsOf(clazz).values().forEach($field -> $instantiation.arg($this.ref($field)));
+                $build.body()._return($instantiation);
             }
             return $builder;
         } catch (final JClassAlreadyExistsException alreadyExists) {
