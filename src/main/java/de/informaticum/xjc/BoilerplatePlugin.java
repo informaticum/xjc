@@ -399,6 +399,7 @@ extends AbstractPlugin {
                 final var $parameter = $wither.param(FINAL, $blueprintProperty.type(), $blueprintProperty.name());
                 $wither.body().invoke($super, $wither).arg($parameter);
                 $wither.body()._return($this);
+                // TODO: immediate "withXYZ(xyz)"-Methoden: { return this.toBuilder.with(xyz).build(); }
             }
             for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
                 final var attribute = blueprintProperty.getKey();
