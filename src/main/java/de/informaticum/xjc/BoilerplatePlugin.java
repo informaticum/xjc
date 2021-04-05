@@ -428,13 +428,13 @@ extends AbstractPlugin {
                     LOG.warn(SKIP_OPTIONAL_GETTER, $getter.name(), fullName(clazz), BECAUSE_METHOD_EXISTS);
                 } else {
                     LOG.info(GENERATE_OPTIONAL_GETTER, fullName(clazz), $getter.name());
-                    this.generateOptionalGetters(clazz, getter);
+                    this.generateOptionalGetter(clazz, getter);
                 }
             }
         }
     }
 
-    private final void generateOptionalGetters(final ClassOutline clazz, final Entry<? extends FieldOutline, ? extends JMethod> original) {
+    private final void generateOptionalGetter(final ClassOutline clazz, final Entry<? extends FieldOutline, ? extends JMethod> original) {
         final var attribute = original.getKey();
         final var info = attribute.getPropertyInfo();
         final var $originalGetter = original.getValue();
