@@ -346,7 +346,7 @@ extends AbstractPlugin {
             // 3/3: Implement
             // (a) "toBuilder()" in XSDClass
             final var $toBuilder = $clazz.method(builderModifiers & ~STATIC, $Builder, "toBuilder");
-            $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" with all properties initialised with the current values of {@code this} instance");
+            $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" instance  with all properties initialised with the current values of {@code this} instance");
             // (b) "Builder()" in Builder
             final var $defaultConstructor = $Builder.constructor(PROTECTED);
             $defaultConstructor.javadoc().append("Default constructor.");
@@ -372,6 +372,7 @@ extends AbstractPlugin {
             if (!isAbstract) {
                 final var $builder = $clazz.method(builderModifiers, $Builder, "builder");
                 $builder.body()._return(_new($Builder));
+                $build.javadoc().addReturn().append("a new instance of the ").append($Builder).append(" class corresponding to this ").append($clazz).append(" clazz");
                 // (a) "toBuilder()" in XSDClass
                 $toBuilder.body()._return(_new($Builder).arg($this));
                 // (d) "build()" in Builder
