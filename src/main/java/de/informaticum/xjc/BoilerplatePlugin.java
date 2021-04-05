@@ -13,7 +13,9 @@ import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JMod.STATIC;
 import static com.sun.codemodel.JOp.cond;
 import static com.sun.codemodel.JOp.not;
-import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC;
+import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_FIELDS;
+import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_INTRO;
+import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_SUPER;
 import static de.informaticum.xjc.JavaDoc.DEFAULT_FIELD_ASSIGNMENT;
 import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_OPTIONAL;
 import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_PRIMITIVE;
@@ -22,7 +24,9 @@ import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_MULTI_VALUE;
 import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_SINGLE_VALUE;
 import static de.informaticum.xjc.JavaDoc.RETURN_OPTIONAL_VALUE;
 import static de.informaticum.xjc.JavaDoc.THROWS_IAE_BY_NULL;
-import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC;
+import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC_FIELDS;
+import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC_INTRO;
+import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC_SUPER;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.accordingOptionalTypeFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
@@ -52,9 +56,11 @@ import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -189,11 +195,13 @@ extends AbstractPlugin {
         // 1/3: Create
         final var $constructor = clazz.getImplClass().constructor(PUBLIC);
         // 2/3: JavaDocument
-        $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC));
+        $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC_INTRO));
         // 3/3: Implement
         if (clazz.getSuperClass() != null) {
+            $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC_SUPER));
             $constructor.body().invoke("super");
         }
+        $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC_FIELDS));
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -236,33 +244,22 @@ extends AbstractPlugin {
         // 1/3: Create
         final var $constructor = clazz.getImplClass().constructor(PUBLIC);
         // 2/3: JavaDocument
-        // TODO: JavaDoc anpassen, wenn kein Parameter vorhanden
-        $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC));
+        $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC_INTRO));
         // TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten)
         $constructor.javadoc().addThrows(IllegalArgumentException.class).append(format(THROWS_IAE_BY_NULL));
         // 3/3: Implement
         if (clazz.getSuperClass() != null) {
+            $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC_SUPER));
             final var $super = $constructor.body().invoke("super");
             for (final var property : superAndGeneratedPropertiesOf(clazz.getSuperClass()).entrySet()) {
                 final var attribute = property.getKey();
-                final var info = attribute.getPropertyInfo();
-                final var name = info.getName(true);
                 final var $property = property.getValue();
                 final var $parameter = $constructor.param(FINAL, $property.type(), $property.name());
-                final var $default = defaultValueFor(attribute);
-                if ($parameter.type().isPrimitive()) {
-                    $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
-                } else if (isOptional(attribute) && $default.isEmpty()) {
-                    $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
-                } else if (isRequired(attribute) && $default.isEmpty()) {
-                    $constructor.javadoc().addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
-                } else {
-                    assertThat($default).isPresent();
-                    $constructor.javadoc().addParam($parameter).append(format(info.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
-                }
+                appendParameterJavaDoc($constructor.javadoc(), attribute, $parameter);
                 $super.arg($parameter);
             }
         }
+        $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC_FIELDS));
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -272,37 +269,42 @@ extends AbstractPlugin {
         return $constructor;
     }
 
+    private static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter) {
+        final var info = attribute.getPropertyInfo();
+        final var name = info.getName(true);
+        final var $default = defaultValueFor(attribute);
+        if ($parameter.type().isPrimitive()) {
+            javadoc.addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
+        } else if (isOptional(attribute) && $default.isEmpty()) {
+            javadoc.addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
+        } else if (isRequired(attribute) && $default.isEmpty()) {
+            javadoc.addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
+        } else {
+            assertThat($default).isPresent();
+            javadoc.addParam($parameter).append(format(info.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
+        }
+    }
+
     private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $parameter) {
         this.accordingAssignment(attribute, $method, $property, $parameter, true);
     }
 
     private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $parameter, final boolean javadoc) {
-        final var info = attribute.getPropertyInfo();
-        final var name = info.getName(true);
+        if (javadoc) {
+            appendParameterJavaDoc($method.javadoc(), attribute, $property);
+        }
         final var $default = defaultValueFor(attribute);
         if ($property.type().isPrimitive()) {
-            if (javadoc) {
-                $method.javadoc().addParam($property).append(format(PARAM_THAT_IS_PRIMITIVE, name));
-            }
             $method.body().assign($this.ref($property), $parameter);
         } else if (isOptional(attribute) && $default.isEmpty()) {
-            if (javadoc) {
-                $method.javadoc().addParam($property).append(format(PARAM_THAT_IS_OPTIONAL, name));
-            }
             $method.body().assign($this.ref($property), $parameter);
         } else if (isRequired(attribute) && $default.isEmpty()) {
-            if (javadoc) {
-                $method.javadoc().addParam($property).append(format(PARAM_THAT_IS_REQUIRED, name));
-            }
             $method._throws(IllegalArgumentException.class);
             final var $condition = $method.body()._if($parameter.eq($null));
             $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
             $condition._else().assign($this.ref($property), $parameter);
         } else {
             assertThat($default).isPresent();
-            if (javadoc) {
-                $method.javadoc().addParam($property).append(format(info.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
-            }
             $method.body().assign($this.ref($property), cond($parameter.eq($null), $default.get(), $parameter));
         }
     }
