@@ -145,6 +145,7 @@ extends AbstractPlugin {
                 this.generateDefaultConstructor = true;
                 return 1;
             case GENERATE_VALUESCONSTRUCTOR:
+                this.generateDefaultConstructor = true;
                 this.generateValueConstructor = true;
                 return 1;
             case GENERATE_VALUESBUILDER:
@@ -232,10 +233,6 @@ extends AbstractPlugin {
                 LOG.info("Adopt all-values constructor for [{}] in according package's ObjectFactory.", fullName(clazz));
                 this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
                 assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz))).isNotNull();
-                if (!this.generateDefaultConstructor) {
-                    LOG.info("Remove default factory [{}] in according package's ObjectFactory because implicit default constructor no longer exists and has not been generated explicitly.", fullName(clazz));
-                    this.removeDefaultConstructorFactory(clazz._package().objectFactory(), clazz);
-                }
             }
         }
     }
@@ -324,13 +321,6 @@ extends AbstractPlugin {
             $instantiation.arg($factoryParameter);
         }
         $allValuesFactory.body()._return($instantiation);
-    }
-
-    private final void removeDefaultConstructorFactory(final JDefinedClass $objectFactory, final ClassOutline clazz) {
-        // 1/2: Identify
-        final var $defaultFactory = getMethod($objectFactory, guessFactoryName(clazz));
-        // 2/2: Remove
-        $objectFactory.methods().remove($defaultFactory);
     }
 
     private final void considerValuesBuilder(final ClassOutline clazz) {
