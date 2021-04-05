@@ -76,8 +76,8 @@ public enum XjcPropertyGuesser {
 
     public static final String guessFactoryName(final ClassOutline clazz) {
         final var prefix = CREATE;
-        var factory = clazz.getImplClass().name();
-        for (var parent = clazz.getImplClass().parentContainer(); parent instanceof JDefinedClass; parent = parent.parentContainer()) {
+        var factory = clazz.implClass.name();
+        for (var parent = clazz.implClass.parentContainer(); parent instanceof JDefinedClass; parent = parent.parentContainer()) {
             factory = ((JDefinedClass) parent).name() + factory;
         }
         return prefix + factory;

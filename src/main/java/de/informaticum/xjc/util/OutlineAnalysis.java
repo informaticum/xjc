@@ -59,16 +59,15 @@ public enum OutlineAnalysis {
         }
         for (final var outline : clazz.getDeclaredFields()) {
             final var name = outline.getPropertyInfo().getName(false);
-            final var $clazz = outline.parent().getImplClass();
-            final var $property = $clazz.fields().get(name);
+            final var $property = clazz.implClass.fields().get(name);
             if ($property == null) {
-                LOG.warn("There is no according field in class [{}] for declared property [{}].", $clazz.fullName(), name);
+                LOG.warn("There is no according field in class [{}] for declared property [{}].", clazz.implClass.fullName(), name);
             }
             properties.put(outline, $property);
         }
-        final var diff = clazz.getImplClass().fields().size() - properties.size();
+        final var diff = clazz.implClass.fields().size() - properties.size();
         if (diff != 0) {
-            LOG.warn("Class [{}] contains {} fields that are not caused by declared properties.", clazz.getImplClass().fullName(), diff);
+            LOG.warn("Class [{}] contains {} fields that are not caused by declared properties.", clazz.implClass.fullName(), diff);
         }
         return properties;
     }
@@ -116,11 +115,11 @@ public enum OutlineAnalysis {
     }
 
     public static final JMethod getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
-        return getConstructor(clazz.getImplClass(), stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
+        return getConstructor(clazz.implClass, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
     }
 
     public static final JMethod getConstructor(final ClassOutline clazz, final List<? extends JType> argumentTypes) {
-        return getConstructor(clazz.getImplClass(), argumentTypes);
+        return getConstructor(clazz.implClass, argumentTypes);
     }
 
     public static final JMethod getConstructor(final JDefinedClass $clazz, final JType... argumentTypes) {
@@ -139,15 +138,15 @@ public enum OutlineAnalysis {
 
     public static final JMethod getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
         final var argumentTypes = properties.values().stream().map(JFieldVar::type).collect(toList());
-        return getConstructor(clazz.getImplClass(), argumentTypes);
+        return getConstructor(clazz.implClass, argumentTypes);
     }
 
     public static final JMethod getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
-        return getMethod(clazz.getImplClass(), name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
+        return getMethod(clazz.implClass, name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
     }
 
     public static final JMethod getMethod(final ClassOutline clazz, final String name, final List<? extends JType> argumentTypes) {
-        return getMethod(clazz.getImplClass(), name, argumentTypes);
+        return getMethod(clazz.implClass, name, argumentTypes);
     }
 
     public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final JType... argumentTypes) {
@@ -175,7 +174,7 @@ public enum OutlineAnalysis {
                 assertThat(getter.type().boxify()).isEqualTo($property.type().boxify());
                 getters.put(attribute, getter);
             } else {
-                LOG.error("There is no getter method [{}] for property {} of class [{}].", getterName, $property.name(), clazz.getImplClass().fullName());
+                LOG.error("There is no getter method [{}] for property {} of class [{}].", getterName, $property.name(), clazz.implClass.fullName());
             }
         }
         return getters;
@@ -187,12 +186,12 @@ public enum OutlineAnalysis {
             final var attribute = properties.getKey();
             final var $property = properties.getValue();
             final var setterName = guessSetterName(attribute);
-            final var setter = getMethod(clazz.getImplClass(), setterName, $property.type());
+            final var setter = getMethod(clazz.implClass, setterName, $property.type());
             if (setter != null) {
-                assertThat(setter.type()).isEqualTo(clazz.getImplClass().owner().VOID);
+                assertThat(setter.type()).isEqualTo(clazz.implClass.owner().VOID);
                 setters.put(attribute, setter);
             } else {
-                LOG.error("There is no setter method [{}] for property {} of class [{}].", setterName, $property.name(), clazz.getImplClass().fullName());
+                LOG.error("There is no setter method [{}] for property {} of class [{}].", setterName, $property.name(), clazz.implClass.fullName());
             }
         }
         return setters;

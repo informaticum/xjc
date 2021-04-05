@@ -193,8 +193,9 @@ extends AbstractPlugin {
     }
 
     private final void generateDefaultConstructor(final ClassOutline clazz) {
+        final var $class = clazz.implClass;
         // 1/3: Create
-        final var $constructor = clazz.getImplClass().constructor(PUBLIC);
+        final var $constructor = $class.constructor(PUBLIC);
         // 2/3: JavaDocument
         $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC_INTRO));
         // 3/3: Implement
@@ -223,7 +224,7 @@ extends AbstractPlugin {
             LOG.info(GENERATE_CONSTRUCTOR, "all-values", fullName(clazz));
             final var $constructor = this.generateValuesConstructor(clazz);
             assertThat(getConstructor(clazz, superAndGeneratedPropertiesOf(clazz))).isNotNull();
-            if (clazz.getImplClass().isAbstract()) {
+            if (clazz.implClass.isAbstract()) {
                 LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
             } else if (clazz._package().objectFactory() == null) {
                 LOG.error("Skip adoption of all-values constructor for [{}] because there is no according package's ObjectFactory.", fullName(clazz));
@@ -238,8 +239,9 @@ extends AbstractPlugin {
     }
 
     private final JMethod generateValuesConstructor(final ClassOutline clazz) {
+        final var $class = clazz.implClass;
         // 1/3: Create
-        final var $constructor = clazz.getImplClass().constructor(PUBLIC);
+        final var $constructor = $class.constructor(PUBLIC);
         // 2/3: JavaDocument
         $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC_INTRO));
         // TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten)
@@ -306,6 +308,7 @@ extends AbstractPlugin {
 
     private final void generateValuesConstructorFactory(final JDefinedClass $objectFactory, final ClassOutline clazz, final JMethod $constructor) {
         final var $defaultFactory = getMethod($objectFactory, guessFactoryName(clazz));
+        final var $class = clazz.implClass;
         // 1/3: Create
         final var $allValuesFactory = $objectFactory.method($defaultFactory.mods().getValue(), $defaultFactory.type(), $defaultFactory.name());
         // TODO: Re-throw declared exceptions of constructor
@@ -313,11 +316,11 @@ extends AbstractPlugin {
         $allValuesFactory.javadoc().addAll($defaultFactory.javadoc());
         // TODO: @return-JavaDoc?!
         // 3/3: Implement
-        final var $instantiation = _new(clazz.getImplClass());
+        final var $instantiation = _new($class);
         for (final var $constructorParameter : $constructor.listParams()) {
             final var $factoryParameter = $allValuesFactory.param(FINAL, $constructorParameter.type(), $constructorParameter.name());
             // TODO: Generate JavaDoc similar to all-values constructor
-            $allValuesFactory.javadoc().addParam($factoryParameter).append("See all-values constructor of ").append(clazz.getImplClass());
+            $allValuesFactory.javadoc().addParam($factoryParameter).append("See all-values constructor of ").append($class);
             $instantiation.arg($factoryParameter);
         }
         $allValuesFactory.body()._return($instantiation);
@@ -334,7 +337,7 @@ extends AbstractPlugin {
     }
 
     private final JClass generateValuesBuilder(final ClassOutline clazz) {
-        final var $clazz = clazz.getImplClass();
+        final var $clazz = clazz.implClass;
         try {
             final var isAbstract = $clazz.isAbstract();
             final var isFinal = ($clazz.mods().getValue() & FINAL) != 0;
@@ -435,13 +438,14 @@ extends AbstractPlugin {
     }
 
     private final void generateOptionalGetter(final ClassOutline clazz, final Entry<? extends FieldOutline, ? extends JMethod> original) {
+        final var $class = clazz.implClass;
         final var attribute = original.getKey();
         final var info = attribute.getPropertyInfo();
         final var $originalGetter = original.getValue();
         final var originalType = $originalGetter.type();
         // 1/3: Create
         final var optionalType = accordingOptionalTypeFor(originalType);
-        final var $optionalGetter = clazz.getImplClass().method($originalGetter.mods().getValue(), optionalType, $originalGetter.name());
+        final var $optionalGetter = $class.method($originalGetter.mods().getValue(), optionalType, $originalGetter.name());
         // 2/3: JavaDocument
         $optionalGetter.javadoc().addReturn().append(format(RETURN_OPTIONAL_VALUE, info.getName(true)));
         // 3/3: Implement
@@ -472,8 +476,9 @@ extends AbstractPlugin {
     }
 
     private final void generateEquals(final ClassOutline clazz) {
+        final var $class = clazz.implClass;
         // 1/3: Create
-        final var $equals = clazz.getImplClass().method(PUBLIC, boolean.class, "equals");
+        final var $equals = $class.method(PUBLIC, boolean.class, "equals");
         // 2/3: Annotate
         $equals.annotate(Override.class);
         // 3/3: Implement
@@ -488,7 +493,7 @@ extends AbstractPlugin {
         final var properties = generatedPropertiesOf(clazz);
         if (!properties.isEmpty()) {
             final var $Objects = this.reference(Objects.class);
-            final var $that = $equals.body().decl(FINAL, clazz.getImplClass(), "that", cast(clazz.getImplClass(), $other));
+            final var $that = $equals.body().decl(FINAL, $class, "that", cast($class, $other));
             for (final var $property : properties.values()) {
                 comparisons.add($Objects.staticInvoke("equals").arg($this.ref($property)).arg($that.ref($property)));
             }
@@ -509,8 +514,9 @@ extends AbstractPlugin {
     }
 
     private final void addHashCode(final ClassOutline clazz) {
+        final var $class = clazz.implClass;
         // 1/3: Create
-        final var $hashCode = clazz.getImplClass().method(PUBLIC, int.class, "hashCode");
+        final var $hashCode = $class.method(PUBLIC, int.class, "hashCode");
         // 2/3: Annotate
         $hashCode.annotate(Override.class);
         // 3/3: Implement
@@ -537,8 +543,9 @@ extends AbstractPlugin {
     }
 
     private final void addToString(final ClassOutline clazz) {
+        final var $class = clazz.implClass;
         // 1/3: Create
-        final var $toString = clazz.getImplClass().method(PUBLIC, String.class, "toString");
+        final var $toString = $class.method(PUBLIC, String.class, "toString");
         // 2/3: Annotate
         $toString.annotate(Override.class);
         // 3/3: Implement
@@ -553,7 +560,7 @@ extends AbstractPlugin {
         if (clazz.getSuperClass() != null) {
             parts.add(lit("Super: ").plus($super.invoke("toString")));
         }
-        final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg(clazz.getImplClass().name() + "[").arg("]");
+        final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg($class.name() + "[").arg("]");
         // TODO: InsurantIdType#ROOT in toString()-Ausgabe aufnehmen
         $toString.body()._return(parts.stream().reduce($joiner, (join, next) -> join.invoke("add").arg(next)).invoke("toString"));
     }
