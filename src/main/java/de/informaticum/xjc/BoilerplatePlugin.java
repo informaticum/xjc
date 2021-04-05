@@ -356,38 +356,37 @@ extends AbstractPlugin {
             // 2/3: JavaDocument
             $Builder.javadoc().append("Builder for (enclosing) class ").append($clazz).append(".");
             // 3/3: Implement
+            // (a) "toBuilder()" in XSDClass
+            final var $toBuilder = $clazz.method(builderModifiers & ~STATIC, $Builder, "toBuilder");
+            $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" with all properties initialised with the current values of {@code this} instance");
+            // (b) "Builder()" in Builder
             final var $defaultConstructor = $Builder.constructor(PROTECTED);
             $defaultConstructor.javadoc().append("Default constructor.");
+            // (c) "Builder(XSDClass blueprint)" in Builder
             final var $blueprintConstructor = $Builder.constructor(PROTECTED);
             $blueprintConstructor.javadoc().append("Blueprint constructor.");
             final var $blueprint = $blueprintConstructor.param(FINAL, $clazz, "blueprint");
             $blueprintConstructor.javadoc().addParam($blueprint).append("the blueprint ").append($clazz).append(" instance to get all initial values from");
+            // (d) "build()" in Builder
+            final var $build = $Builder.method(builderModifiers & ~STATIC, $clazz, "build");
+            $build.javadoc().addReturn().append("a new instance of ").append($clazz);
             if (clazz.getSuperClass() != null) {
                 $Builder._extends(this.generateValuesBuilder(clazz.getSuperClass()));
+                // (a) "toBuilder()" in XSDClass
+                $toBuilder.annotate(Override.class);
+                // (b) "Builder()" in Builder
                 $defaultConstructor.body().invoke("super");
+                // (c) "Builder(XSDClass blueprint)" in Builder
                 $blueprintConstructor.body().invoke("super").arg($blueprint);
+                // (d) "build()" in Builder
+                $build.annotate(Override.class);
             }
             if (!isAbstract) {
-                assertThat(builderModifiers & ABSTRACT).isEqualTo(0);
                 final var $builder = $clazz.method(builderModifiers, $Builder, "builder");
                 $builder.body()._return(_new($Builder));
-                final var $toBuilder = $clazz.method(PUBLIC, $Builder, "toBuilder");
-                $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" with all properties initialised with the current values of {@code this} instance");
+                // (a) "toBuilder()" in XSDClass
                 $toBuilder.body()._return(_new($Builder).arg($this));
-            }
-            for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
-                final var attribute = blueprintProperty.getKey();
-                final var $blueprintProperty = blueprintProperty.getValue();
-                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute).orElse($null));
-                this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty), false);
-                final var $wither = $Builder.method(PUBLIC | FINAL, $Builder, guessWitherName(attribute));
-                final var $parameter = $wither.param(FINAL, $builderProperty.type(), $builderProperty.name());
-                this.accordingAssignment(attribute, $wither, $builderProperty, $parameter);
-                $wither.javadoc().addReturn().append("{@code this} builder instance for fluent API style");
-                $wither.body()._return($this);
-            }
-            final var $build = $Builder.method(PUBLIC | (isAbstract ? ABSTRACT : NONE), $clazz, "build");
-            if (!isAbstract) {
+                // (d) "build()" in Builder
                 final var $instantiation = _new($clazz);
                 for (final var $blueprintProperty : superAndGeneratedPropertiesOf(clazz).values()) {
                     // The according builder property is either a field of the current builder class' ...
@@ -398,8 +397,18 @@ extends AbstractPlugin {
                     final var $builderProperty = $blueprintProperty.name();
                     $instantiation.arg($this.ref($builderProperty));
                 }
-                $build.javadoc().addReturn().append("a new instance of ").append($clazz);
                 $build.body()._return($instantiation);
+            }
+            for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
+                final var attribute = blueprintProperty.getKey();
+                final var $blueprintProperty = blueprintProperty.getValue();
+                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute).orElse($null));
+                this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty), false);
+                final var $wither = $Builder.method(PUBLIC | FINAL, $Builder, guessWitherName(attribute));
+                final var $parameter = $wither.param(FINAL, $builderProperty.type(), $builderProperty.name());
+                this.accordingAssignment(attribute, $wither, $builderProperty, $parameter);
+                $wither.body()._return($this);
+                $wither.javadoc().addReturn().append("{@code this} builder instance for fluent API style");
             }
             return $Builder;
         } catch (final JClassAlreadyExistsException alreadyExists) {
