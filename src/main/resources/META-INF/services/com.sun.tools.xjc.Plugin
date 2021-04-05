@@ -1,3 +1,4 @@
 de.informaticum.xjc.BoilerplatePlugin
+de.informaticum.xjc.ImmutablePlugin
 de.informaticum.xjc.ReusePlugin
 de.informaticum.xjc.TracePlugin
