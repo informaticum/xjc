@@ -285,27 +285,25 @@ extends AbstractPlugin {
         }
     }
 
-    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $parameter) {
-        this.accordingAssignment(attribute, $method, $property, $parameter, true);
+    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JVar $parameter) {
+        appendParameterJavaDoc($method.javadoc(), attribute, $parameter);
+        this.accordingAssignment(attribute, $method, $property, (JExpression) $parameter);
     }
 
-    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $parameter, final boolean javadoc) {
-        if (javadoc) {
-            appendParameterJavaDoc($method.javadoc(), attribute, $property);
-        }
+    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $expression) {
         final var $default = defaultValueFor(attribute);
         if ($property.type().isPrimitive()) {
-            $method.body().assign($this.ref($property), $parameter);
+            $method.body().assign($this.ref($property), $expression);
         } else if (isOptional(attribute) && $default.isEmpty()) {
-            $method.body().assign($this.ref($property), $parameter);
+            $method.body().assign($this.ref($property), $expression);
         } else if (isRequired(attribute) && $default.isEmpty()) {
             $method._throws(IllegalArgumentException.class);
-            final var $condition = $method.body()._if($parameter.eq($null));
+            final var $condition = $method.body()._if($expression.eq($null));
             $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
-            $condition._else().assign($this.ref($property), $parameter);
+            $condition._else().assign($this.ref($property), $expression);
         } else {
             assertThat($default).isPresent();
-            $method.body().assign($this.ref($property), cond($parameter.eq($null), $default.get(), $parameter));
+            $method.body().assign($this.ref($property), cond($expression.eq($null), $default.get(), $expression));
         }
     }
 
@@ -399,12 +397,21 @@ extends AbstractPlugin {
                 }
                 $build.body()._return($instantiation);
             }
+            for (final var blueprintProperty : superAndGeneratedPropertiesOf(clazz.getSuperClass()).entrySet()) {
+                final var attribute = blueprintProperty.getKey();
+                final var $blueprintProperty = blueprintProperty.getValue();
+                final var $wither = $Builder.method(PUBLIC | (isFinal ? FINAL : NONE), $Builder, guessWitherName(attribute));
+                $wither.annotate(Override.class);
+                final var $parameter = $wither.param(FINAL, $blueprintProperty.type(), $blueprintProperty.name());
+                $wither.body().invoke($super, $wither).arg($parameter);
+                $wither.body()._return($this);
+            }
             for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
                 final var attribute = blueprintProperty.getKey();
                 final var $blueprintProperty = blueprintProperty.getValue();
                 final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute).orElse($null));
-                this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty), false);
-                final var $wither = $Builder.method(PUBLIC | FINAL, $Builder, guessWitherName(attribute));
+                this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty));
+                final var $wither = $Builder.method(PUBLIC | (isFinal ? FINAL : NONE), $Builder, guessWitherName(attribute));
                 final var $parameter = $wither.param(FINAL, $builderProperty.type(), $builderProperty.name());
                 this.accordingAssignment(attribute, $wither, $builderProperty, $parameter);
                 $wither.body()._return($this);
