@@ -1,6 +1,7 @@
 package de.informaticum.xjc.util;
 
 import static com.sun.tools.xjc.generator.bean.field.XjcPropertySpy.spyGetterName;
+import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
@@ -178,6 +179,23 @@ public enum OutlineAnalysis {
             }
         }
         return getters;
+    }
+
+    public static final LinkedHashMap<FieldOutline, JMethod> generatedSettersOf(final ClassOutline clazz) {
+        final var setters = new LinkedHashMap<FieldOutline, JMethod>();
+        for (final var properties : generatedPropertiesOf(clazz).entrySet()) {
+            final var attribute = properties.getKey();
+            final var $property = properties.getValue();
+            final var setterName = guessSetterName(attribute);
+            final var setter = getMethod(clazz.getImplClass(), setterName, $property.type());
+            if (setter != null) {
+                assertThat(setter.type()).isEqualTo(clazz.getImplClass().owner().VOID);
+                setters.put(attribute, setter);
+            } else {
+                LOG.error("There is no setter method [{}] for property {} of class [{}].", setterName, $property.name(), clazz.getImplClass().fullName());
+            }
+        }
+        return setters;
     }
 
 }
