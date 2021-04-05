@@ -224,10 +224,10 @@ extends AbstractPlugin {
             LOG.info(GENERATE_CONSTRUCTOR, "all-values", fullName(clazz));
             final var $constructor = this.generateValuesConstructor(clazz);
             assertThat(getConstructor(clazz, superAndGeneratedPropertiesOf(clazz))).isNotNull();
-            if (clazz.implClass.isAbstract()) {
-                LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
-            } else if (clazz._package().objectFactory() == null) {
+            if (clazz._package().objectFactory() == null) {
                 LOG.error("Skip adoption of all-values constructor for [{}] because there is no according package's ObjectFactory.", fullName(clazz));
+            } else if (clazz.implClass.isAbstract()) {
+                LOG.info("Skip adoption of all-values constructor for [{}] because this class is abstract.", fullName(clazz));
             } else if (getMethod(clazz._package().objectFactory(), guessFactoryName(clazz)) == null) {
                 LOG.error("Skip adoption of all-values constructor for [{}] because according package's ObjectFactory does not contain a predefined factory method for this class.", fullName(clazz));
             } else {
