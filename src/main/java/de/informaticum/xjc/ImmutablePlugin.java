@@ -1,5 +1,6 @@
 package de.informaticum.xjc;
 
+import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedSettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getConstructor;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
@@ -36,7 +37,15 @@ extends AbstractPlugin {
     private static final String REMOVE_SETTERS = "-immutable-removeSetters";
     private static final String REMOVE_SETTERS_DESC = "Removes the property setters. Default: false";
     private boolean removeSetters = false;
-    
+
+    private static final String PRIVATE_FIELDS = "-immutable-privateFields";
+    private static final String PRIVATE_FIELDS_DESC = "Modifies the visibility of the generated fields onto 'private'. Default: false";
+    private boolean privateFields = false;
+
+    private static final String FINAL_FIELDS = "-immutable-finalFields";
+    private static final String FINAL_FIELDS_DESC = "Modifies the generated fields onto 'final'. Default: false";
+    private boolean finalFields = false;
+
     private static final String HIDE_DEFAULT_CONSTRUCTOR = "Hide default constructor [{}#{}()].";
     private static final String REMOVE_DEFAULT_FACTORY = "Remove default factory [{}#{}()].";
     private static final String REMOVE_PROPERTY_SETTERS = "Remove property setters [{}#{}({})].";
@@ -60,7 +69,9 @@ extends AbstractPlugin {
         return new LinkedHashMap<>(ofEntries(
             entry(HIDE_DEFAULT_CONSTRUCTORS, HIDE_DEFAULT_CONSTRUCTORS_DESC),
             entry(REMOVE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES_DESC),
-            entry(REMOVE_SETTERS, REMOVE_SETTERS_DESC)
+            entry(REMOVE_SETTERS, REMOVE_SETTERS_DESC),
+            entry(PRIVATE_FIELDS, PRIVATE_FIELDS_DESC),
+            entry(FINAL_FIELDS, FINAL_FIELDS_DESC)
         ));
     }
 
@@ -76,6 +87,12 @@ extends AbstractPlugin {
             case REMOVE_SETTERS:
                 this.removeSetters = true;
                 return 1;
+            case PRIVATE_FIELDS:
+                this.privateFields = true;
+                return 1;
+            case FINAL_FIELDS:
+                this.finalFields = true;
+                return 1;
             default:
                 return 0;
         }
@@ -86,6 +103,8 @@ extends AbstractPlugin {
         this.considerHideDefaultConstructor(clazz);
         this.considerRemoveDefaultFactory(clazz);
         this.considerRemoveSetters(clazz);
+        this.considerPrivateFields(clazz);
+        this.considerFinalFields(clazz);
         // TODO: Defensive-copy of Lists in constructors/builders
         // TODO: Defensive-copy of Lists in property getters
         return true;
@@ -152,6 +171,39 @@ extends AbstractPlugin {
 
     private final void removeSetter(final ClassOutline clazz, final Entry<FieldOutline, JMethod> setter) {
         clazz.implClass.methods().remove(setter.getValue());
+    }
+
+    private final void considerPrivateFields(final ClassOutline clazz) {
+        if (!this.privateFields) {
+            //
+        } else {
+            this.setFieldsPrivate(clazz);
+        }
+    }
+
+    private final void setFieldsPrivate(final ClassOutline clazz) {
+        for (final var $property : generatedPropertiesOf(clazz).values()) {
+            $property.mods().setPrivate();
+        }
+    }
+
+    private final void considerFinalFields(final ClassOutline clazz) {
+        if (!this.finalFields) {
+            //
+        } else {
+            this.setFieldsFinal(clazz);
+        }
+    }
+
+    private final void setFieldsFinal(final ClassOutline clazz) {
+        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
+            if (property.getKey().getPropertyInfo().isCollection()) {
+                // TODO: Handle Collection types -- these are re-assigned (!) within the current getters
+            } else {
+                final var $property = property.getValue();
+                $property.mods().setFinal(true);
+            }
+        }
     }
 
 }
