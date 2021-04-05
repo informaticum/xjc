@@ -232,7 +232,7 @@ extends AbstractPlugin {
             } else {
                 LOG.info("Adopt all-values constructor for [{}] in according package's ObjectFactory.", fullName(clazz));
                 this.generateValuesConstructorFactory(clazz._package().objectFactory(), clazz, $constructor);
-                assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz))).isNotNull();
+                assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz), $constructor.listParamTypes())).isNotNull();
             }
         }
     }
