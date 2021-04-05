@@ -88,7 +88,7 @@ extends AbstractPlugin {
     private boolean generateOptionalGetters = false;
 
     private static final String GENERATE_EQUALS = "-boilerplate-equals";
-    private static final String GENERATE_EQUALS_DESC = "Generate #equals(Object) method. Default: false";
+    private static final String GENERATE_EQUALS_DESC = "Generate [#equals(Object)] method. Default: false";
     private boolean generateEquals = false;
 
     private static final String GENERATE_HASHCODE = "-boilerplate-hashCode";
@@ -346,7 +346,7 @@ extends AbstractPlugin {
             // 3/3: Implement
             // (a) "toBuilder()" in XSDClass
             final var $toBuilder = $clazz.method(builderModifiers & ~STATIC, $Builder, "toBuilder");
-            $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" instance  with all properties initialised with the current values of {@code this} instance");
+            $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" instance with all properties initialised with the current values of {@code this} instance");
             // (b) "Builder()" in Builder
             final var $defaultConstructor = $Builder.constructor(PROTECTED);
             $defaultConstructor.javadoc().append("Default constructor.");
@@ -372,7 +372,7 @@ extends AbstractPlugin {
             if (!isAbstract) {
                 final var $builder = $clazz.method(builderModifiers, $Builder, "builder");
                 $builder.body()._return(_new($Builder));
-                $build.javadoc().addReturn().append("a new instance of the ").append($Builder).append(" class corresponding to this ").append($clazz).append(" clazz");
+                $builder.javadoc().addReturn().append("a new instance of the ").append($Builder).append(" class, corresponding to this ").append($clazz).append(" clazz");
                 // (a) "toBuilder()" in XSDClass
                 $toBuilder.body()._return(_new($Builder).arg($this));
                 // (d) "build()" in Builder
