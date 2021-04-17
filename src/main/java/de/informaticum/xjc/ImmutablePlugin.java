@@ -17,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JMethod;
-import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.plugin.BasePlugin;
@@ -38,23 +37,18 @@ extends BasePlugin {
 
     private static final String HIDE_DEFAULT_CONSTRUCTORS = "-immutable-hideDefaultConstructors";
     private static final String HIDE_DEFAULT_CONSTRUCTORS_DESC = "Hides default constructors. Default: false";
-    private boolean hideDefaultConstructors = false;
 
     private static final String REMOVE_DEFAULT_FACTORIES = "-immutable-removeDefaultFactories";
     private static final String REMOVE_DEFAULT_FACTORIES_DESC = "Removes default factory methods. Default: false";
-    private boolean removeDefaultFactories = false;
 
     private static final String REMOVE_SETTERS = "-immutable-removeSetters";
     private static final String REMOVE_SETTERS_DESC = "Removes the property setters. Default: false";
-    private boolean removeSetters = false;
 
     private static final String PRIVATE_FIELDS = "-immutable-privateFields";
     private static final String PRIVATE_FIELDS_DESC = "Modifies the visibility of the generated fields onto 'private'. Default: false";
-    private boolean privateFields = false;
 
     private static final String FINAL_FIELDS = "-immutable-finalFields";
     private static final String FINAL_FIELDS_DESC = "Modifies the generated fields onto 'final'. Default: false";
-    private boolean finalFields = false;
 
     private static final String HIDE_DEFAULT_CONSTRUCTOR = "Hide default constructor [{}#{}()].";
     private static final String REMOVE_DEFAULT_FACTORY = "Remove default factory [{}#{}()].";
@@ -76,29 +70,6 @@ extends BasePlugin {
     }
 
     @Override
-    public final int parseArgument(final Options options, final String[] arguments, final int index) {
-        switch (arguments[index]) {
-            case HIDE_DEFAULT_CONSTRUCTORS:
-                this.hideDefaultConstructors = true;
-                return 1;
-            case REMOVE_DEFAULT_FACTORIES:
-                this.removeDefaultFactories = true;
-                return 1;
-            case REMOVE_SETTERS:
-                this.removeSetters = true;
-                return 1;
-            case PRIVATE_FIELDS:
-                this.privateFields = true;
-                return 1;
-            case FINAL_FIELDS:
-                this.finalFields = true;
-                return 1;
-            default:
-                return 0;
-        }
-    }
-
-    @Override
     protected final boolean runClass(final ClassOutline clazz) {
         this.considerHideDefaultConstructor(clazz);
         this.considerRemoveDefaultFactory(clazz);
@@ -111,7 +82,7 @@ extends BasePlugin {
     }
 
     private final void considerHideDefaultConstructor(final ClassOutline clazz) {
-        if (!this.hideDefaultConstructors) {
+        if (!this.isActive(HIDE_DEFAULT_CONSTRUCTORS)) {
             LOG.trace(SKIP_HIDE_DEFAULT_CONSTRUCTOR, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else if (getConstructor(clazz) == null) {
             //
@@ -137,7 +108,7 @@ extends BasePlugin {
     }
 
     private final void considerRemoveDefaultFactory(final ClassOutline clazz) {
-        if (!this.removeDefaultFactories) {
+        if (!this.isActive(REMOVE_DEFAULT_FACTORIES)) {
             LOG.trace(SKIP_REMOVE_DEFAULT_FACTORY, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else {
             final var $objectFactory = clazz._package().objectFactory();
@@ -158,7 +129,7 @@ extends BasePlugin {
 
 
     private final void considerRemoveSetters(final ClassOutline clazz) {
-        if (!this.removeSetters) {
+        if (!this.isActive(REMOVE_SETTERS)) {
             LOG.trace(SKIP_REMOVE_PROPERTY_SETTERS, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else {
             for (final var setter : generatedSettersOf(clazz).entrySet()) {
@@ -174,7 +145,7 @@ extends BasePlugin {
     }
 
     private final void considerPrivateFields(final ClassOutline clazz) {
-        if (!this.privateFields) {
+        if (!this.isActive(PRIVATE_FIELDS)) {
             //
         } else {
             this.setFieldsPrivate(clazz);
@@ -188,7 +159,7 @@ extends BasePlugin {
     }
 
     private final void considerFinalFields(final ClassOutline clazz) {
-        if (!this.finalFields) {
+        if (!this.isActive(FINAL_FIELDS)) {
             //
         } else {
             this.setFieldsFinal(clazz);

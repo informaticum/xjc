@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
-import com.sun.tools.xjc.Options;
 import de.informaticum.xjc.plugin.BasePlugin;
 import org.slf4j.Logger;
 
@@ -30,7 +29,6 @@ extends BasePlugin {
 
     private static final String REUSE_QNAMES = "-reuse-qnames";
     private static final String REUSE_QNAMES_DESC = "Modify QNames' accessibility to \"public\". Default: false";
-    private boolean reuseQNames = false;
 
     @Override
     public final LinkedHashMap<String, String> getPluginArguments() {
@@ -38,19 +36,8 @@ extends BasePlugin {
     }
 
     @Override
-    public final int parseArgument(final Options options, final String[] arguments, final int index) {
-        switch (arguments[index]) {
-            case REUSE_QNAMES:
-                this.reuseQNames = true;
-                return 1;
-            default:
-                return 0;
-        }
-    }
-
-    @Override
     protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        if (this.reuseQNames) {
+        if (this.isActive(REUSE_QNAMES)) {
             final var $QName = this.reference(QName.class);
             LOG.info("Changing the access modifier of the [{}] fields of [{}].", $QName.name(), fullName($factory));
             $factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach(ReusePlugin::publicifyField);

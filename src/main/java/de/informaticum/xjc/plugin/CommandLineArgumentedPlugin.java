@@ -2,8 +2,10 @@ package de.informaticum.xjc.plugin;
 
 import static java.lang.String.format;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
+import java.util.Set;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -32,10 +34,20 @@ extends Plugin {
         return usage.toString();
     }
 
+    private final Set<String> activeArguments = new HashSet<>();
+
     @Override
     public int parseArgument(final Options options, final String[] arguments, final int index)
     throws BadCommandLineException, IOException {
-        return 0; // no option recognized
+        if (this.getPluginArguments().containsKey(arguments[index])) {
+            this.activeArguments.add(arguments[index]);
+            return 1;
+        } else {
+            return super.parseArgument(options, arguments, index);
+        }
     }
 
+    public boolean isActive(final String argument) {
+        return this.activeArguments.contains(argument);
+    }
 }
