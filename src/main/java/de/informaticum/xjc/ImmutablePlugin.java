@@ -12,6 +12,7 @@ import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import com.sun.codemodel.JDefinedClass;
@@ -19,10 +20,11 @@ import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
+import de.informaticum.xjc.plugin.BasePlugin;
 import org.slf4j.Logger;
 
 public final class ImmutablePlugin
-extends AbstractPlugin {
+extends BasePlugin {
 
     private static final Logger LOG = getLogger(ImmutablePlugin.class);
 
@@ -55,13 +57,8 @@ extends AbstractPlugin {
     private static final String BECAUSE_OPTION_IS_DISABLED = "according option has not been selected";
 
     @Override
-    public final String getOptionName() {
-        return "ITBSG-xjc-immutable";
-    }
-
-    @Override
-    public final String getOptionDescription() {
-        return "Let's make the generated code immutable.";
+    public final Entry<String, String> getOption() {
+        return new SimpleImmutableEntry<>("ITBSG-xjc-immutable", "Let's make the generated code immutable.");
     }
 
     @Override

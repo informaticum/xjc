@@ -7,7 +7,7 @@ import org.junit.Test;
 public class FooTest {
 
     @Test
-    public void testName()
+    public void testUsage()
     throws Exception {
         final var plugin = new BarPlugin();
         // System.out.println(plugin.getUsage());

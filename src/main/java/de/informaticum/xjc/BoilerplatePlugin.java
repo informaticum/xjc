@@ -13,6 +13,9 @@ import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JMod.STATIC;
 import static com.sun.codemodel.JOp.cond;
 import static com.sun.codemodel.JOp.not;
+import static de.informaticum.xjc.plugin.TargetCode.$null;
+import static de.informaticum.xjc.plugin.TargetCode.$super;
+import static de.informaticum.xjc.plugin.TargetCode.$this;
 import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_FIELDS;
 import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_INTRO;
 import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_SUPER;
@@ -47,6 +50,7 @@ import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -64,10 +68,11 @@ import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
+import de.informaticum.xjc.plugin.BasePlugin;
 import org.slf4j.Logger;
 
 public final class BoilerplatePlugin
-extends AbstractPlugin {
+extends BasePlugin {
 
     private static final Logger LOG = getLogger(BoilerplatePlugin.class);
 
@@ -116,13 +121,8 @@ extends AbstractPlugin {
     private static final String BECAUSE_OPTION_IS_DISABLED = "according option has not been selected";
 
     @Override
-    public final String getOptionName() {
-        return "ITBSG-xjc-boilerplate";
-    }
-
-    @Override
-    public final String getOptionDescription() {
-        return "Generates common boilerplate code.";
+    public final Entry<String, String> getOption() {
+        return new SimpleImmutableEntry<>("ITBSG-xjc-boilerplate", "Generates common boilerplate code.");
     }
 
     @Override

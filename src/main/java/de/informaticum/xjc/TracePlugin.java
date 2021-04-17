@@ -2,25 +2,23 @@ package de.informaticum.xjc;
 
 import static de.informaticum.xjc.util.Printify.fullName;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map.Entry;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
+import de.informaticum.xjc.plugin.BasePlugin;
 import org.slf4j.Logger;
 
 public final class TracePlugin
-extends AbstractPlugin {
+extends BasePlugin {
 
     private static final Logger LOG = getLogger(TracePlugin.class);
 
     @Override
-    public final String getOptionName() {
-        return "ITBSG-xjc-trace";
-    }
-
-    @Override
-    public final String getOptionDescription() {
-        return "Traces all generated sources, mainly intended to enable debugging purposes.";
+    public final Entry<String, String> getOption() {
+        return new SimpleImmutableEntry<>("ITBSG-xjc-trace", "Traces all generated sources, mainly intended to enable debugging purposes.");
     }
 
     @Override

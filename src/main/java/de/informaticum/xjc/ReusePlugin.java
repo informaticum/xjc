@@ -5,15 +5,18 @@ import static de.informaticum.xjc.util.Printify.fullName;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.tools.xjc.Options;
+import de.informaticum.xjc.plugin.BasePlugin;
 import org.slf4j.Logger;
 
 public final class ReusePlugin
-extends AbstractPlugin {
+extends BasePlugin {
 
     private static final Logger LOG = getLogger(ReusePlugin.class);
 
@@ -22,13 +25,8 @@ extends AbstractPlugin {
     private boolean reuseQNames = false;
 
     @Override
-    public final String getOptionName() {
-        return "ITBSG-xjc-reuse";
-    }
-
-    @Override
-    public final String getOptionDescription() {
-        return "Reuse generated XJC-API elements.";
+    public final Entry<String, String> getOption() {
+        return new SimpleImmutableEntry<>("ITBSG-xjc-reuse", "Widens and/or lessens the usage of the generated XJC-API elements.");
     }
 
     @Override
