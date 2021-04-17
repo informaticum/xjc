@@ -22,13 +22,13 @@ extends Plugin {
         return this.getOption().getValue();
     }
 
-    public LinkedHashMap<String, String> getPluginOptions() {
+    public LinkedHashMap<String, String> getPluginArguments() {
         return new LinkedHashMap<>();
     }
 
     @Override
     public final String getUsage() {
-        final var options = this.getPluginOptions();
+        final var options = this.getPluginArguments();
         final var width = options.keySet().stream().mapToInt(String::length).max().orElse(this.getOptionName().length());
         final var usage = new StringBuilder();
         usage.append(format("  %1$s :  %2$s%n", "-" + this.getOptionName(), this.getOptionDescription()));

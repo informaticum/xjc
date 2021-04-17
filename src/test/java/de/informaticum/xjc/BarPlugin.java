@@ -14,7 +14,7 @@ extends BasePlugin {
     }
 
     @Override
-    public LinkedHashMap<String, String> getPluginOptions() {
+    public LinkedHashMap<String, String> getPluginArguments() {
         final var options = new LinkedHashMap<String, String>();
         options.put("-aaaaaa", "Some aaaaaa information. Default: aaaaaa");
         options.put("-bb", "Some bb information. Default: bb");

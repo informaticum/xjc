@@ -28,6 +28,14 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(ImmutablePlugin.class);
 
+    public static final String OPTION_NAME        = "ITBSG-xjc-immutable";
+    public static final String OPTION_DESCRIPTION = "Let's make the generated code immutable.";
+
+    @Override
+    public final Entry<String, String> getOption() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
+    }
+
     private static final String HIDE_DEFAULT_CONSTRUCTORS = "-immutable-hideDefaultConstructors";
     private static final String HIDE_DEFAULT_CONSTRUCTORS_DESC = "Hides default constructors. Default: false";
     private boolean hideDefaultConstructors = false;
@@ -57,12 +65,7 @@ extends BasePlugin {
     private static final String BECAUSE_OPTION_IS_DISABLED = "according option has not been selected";
 
     @Override
-    public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>("ITBSG-xjc-immutable", "Let's make the generated code immutable.");
-    }
-
-    @Override
-    public final LinkedHashMap<String, String> getPluginOptions() {
+    public final LinkedHashMap<String, String> getPluginArguments() {
         return new LinkedHashMap<>(ofEntries(
             entry(HIDE_DEFAULT_CONSTRUCTORS, HIDE_DEFAULT_CONSTRUCTORS_DESC),
             entry(REMOVE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES_DESC),

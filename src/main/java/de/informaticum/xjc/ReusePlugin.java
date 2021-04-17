@@ -20,17 +20,20 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(ReusePlugin.class);
 
+    public static final String OPTION_NAME        = "ITBSG-xjc-reuse";
+    public static final String OPTION_DESCRIPTION = "Widens and/or lessens the usage of the generated XJC-API elements.";
+
+    @Override
+    public final Entry<String, String> getOption() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
+    }
+
     private static final String REUSE_QNAMES = "-reuse-qnames";
     private static final String REUSE_QNAMES_DESC = "Modify QNames' accessibility to \"public\". Default: false";
     private boolean reuseQNames = false;
 
     @Override
-    public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>("ITBSG-xjc-reuse", "Widens and/or lessens the usage of the generated XJC-API elements.");
-    }
-
-    @Override
-    public final LinkedHashMap<String, String> getPluginOptions() {
+    public final LinkedHashMap<String, String> getPluginArguments() {
         return new LinkedHashMap<>(ofEntries(entry(REUSE_QNAMES, REUSE_QNAMES_DESC)));
     }
 

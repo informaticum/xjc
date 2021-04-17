@@ -76,6 +76,14 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(BoilerplatePlugin.class);
 
+    private static final String OPTION_NAME        = "ITBSG-xjc-boilerplate";
+    private static final String OPTION_DESCRIPTION = "Generates common boilerplate code.";
+
+    @Override
+    public final Entry<String, String> getOption() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
+    }
+
     private static final String GENERATE_DEFAULTCONSTRUCTOR = "-boilerplate-defaultConstructor";
     private static final String GENERATE_DEFAULTCONSTRUCTOR_DESC = "Generate default constructor. Default: false";
     private boolean generateDefaultConstructor = false;
@@ -121,12 +129,7 @@ extends BasePlugin {
     private static final String BECAUSE_OPTION_IS_DISABLED = "according option has not been selected";
 
     @Override
-    public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>("ITBSG-xjc-boilerplate", "Generates common boilerplate code.");
-    }
-
-    @Override
-    public final LinkedHashMap<String, String> getPluginOptions() {
+    public final LinkedHashMap<String, String> getPluginArguments() {
         return new LinkedHashMap<>(ofEntries(
             entry(GENERATE_DEFAULTCONSTRUCTOR, GENERATE_DEFAULTCONSTRUCTOR_DESC),
             entry(GENERATE_VALUESCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR_DESC),

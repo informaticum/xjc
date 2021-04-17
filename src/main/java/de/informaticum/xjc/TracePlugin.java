@@ -16,9 +16,12 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(TracePlugin.class);
 
+    public static final String OPTION_NAME        = "ITBSG-xjc-trace";
+    public static final String OPTION_DESCRIPTION = "Traces all generated sources, mainly intended to enable debugging purposes.";
+
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>("ITBSG-xjc-trace", "Traces all generated sources, mainly intended to enable debugging purposes.");
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
     }
 
     @Override
