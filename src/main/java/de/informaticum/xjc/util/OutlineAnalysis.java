@@ -4,6 +4,7 @@ import static com.sun.tools.xjc.generator.bean.field.XjcPropertySpy.spyGetterNam
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
@@ -116,12 +117,24 @@ public enum OutlineAnalysis {
         return properties;
     }
 
+    public static final JMethod getConstructor(final ClassOutline clazz) {
+        return getConstructor(clazz.implClass, emptyList());
+    }
+
     public static final JMethod getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
         return getConstructor(clazz.implClass, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
     }
 
+    public static final JMethod getConstructor(final ClassOutline clazz, final JType... argumentTypes) {
+        return getConstructor(clazz.implClass, asList(argumentTypes));
+    }
+
     public static final JMethod getConstructor(final ClassOutline clazz, final List<? extends JType> argumentTypes) {
         return getConstructor(clazz.implClass, argumentTypes);
+    }
+
+    public static final JMethod getConstructor(final JDefinedClass $clazz) {
+        return getConstructor($clazz, emptyList());
     }
 
     public static final JMethod getConstructor(final JDefinedClass $clazz, final JType... argumentTypes) {
@@ -143,12 +156,24 @@ public enum OutlineAnalysis {
         return getConstructor(clazz.implClass, argumentTypes);
     }
 
+    public static final JMethod getMethod(final ClassOutline clazz, final String name) {
+        return getMethod(clazz.implClass, name, emptyList());
+    }
+
     public static final JMethod getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
         return getMethod(clazz.implClass, name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
     }
 
+    public static final JMethod getMethod(final ClassOutline clazz, final String name, final JType... argumentTypes) {
+        return getMethod(clazz.implClass, name, asList(argumentTypes));
+    }
+
     public static final JMethod getMethod(final ClassOutline clazz, final String name, final List<? extends JType> argumentTypes) {
         return getMethod(clazz.implClass, name, argumentTypes);
+    }
+
+    public static final JMethod getMethod(final JDefinedClass $clazz, final String name) {
+        return getMethod($clazz, name, emptyList());
     }
 
     public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final JType... argumentTypes) {
