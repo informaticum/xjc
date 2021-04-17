@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import com.sun.codemodel.JDefinedClass;
@@ -65,9 +66,10 @@ public enum OutlineAnalysis {
             }
             properties.put(outline, $property);
         }
-        final var diff = clazz.implClass.fields().size() - properties.size();
-        if (diff != 0) {
-            LOG.warn("Class [{}] contains {} fields that are not caused by declared properties.", clazz.implClass.fullName(), diff);
+        if (clazz.implClass.fields().size() - properties.size() != 0) {
+            final var noncaused = new HashMap<>(clazz.implClass.fields());
+            noncaused.values().removeAll(properties.values());
+            LOG.warn("Class [{}] contains fields that are not caused by declared properties: {}", clazz.implClass.fullName(), noncaused.keySet());
         }
         return properties;
     }
