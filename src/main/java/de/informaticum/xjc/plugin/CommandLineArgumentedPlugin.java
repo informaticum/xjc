@@ -18,10 +18,6 @@ extends Plugin {
         return this.getOption().getKey();
     }
 
-    private final String getOptionDescription() {
-        return this.getOption().getValue();
-    }
-
     public LinkedHashMap<String, String> getPluginArguments() {
         return new LinkedHashMap<>();
     }
@@ -31,7 +27,7 @@ extends Plugin {
         final var options = this.getPluginArguments();
         final var width = options.keySet().stream().mapToInt(String::length).max().orElse(this.getOptionName().length());
         final var usage = new StringBuilder();
-        usage.append(format("  %1$s :  %2$s%n", "-" + this.getOptionName(), this.getOptionDescription()));
+        usage.append(format("  %1$s :  %2$s%n", "-" + this.getOptionName(), this.getOption().getValue()));
         options.entrySet().forEach(o -> usage.append(format("  %1$-" + width + "s :  %2$s%n", o.getKey(), o.getValue())));
         return usage.toString();
     }
