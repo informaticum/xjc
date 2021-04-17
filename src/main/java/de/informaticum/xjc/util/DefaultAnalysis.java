@@ -1,11 +1,9 @@
 package de.informaticum.xjc.util;
 
 import static com.sun.codemodel.JExpr.FALSE;
-import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;
-import static de.informaticum.xjc.AbstractPlugin.DIAMOND;
+import static de.informaticum.xjc.util.CollectionAnalysis.accordingDefaultFactoryFor;
 import static org.slf4j.LoggerFactory.getLogger;
-import java.util.ArrayList;
 import java.util.Optional;
 import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -39,7 +37,7 @@ public enum DefaultAnalysis {
         if (raw.equals(codeModel.INT))     return Optional.of(lit(0));
         if (raw.equals(codeModel.LONG))    return Optional.of(lit(0L));
         if (raw.equals(codeModel.SHORT))   return Optional.of(lit(0));        
-        if (property.isCollection()) return Optional.of(_new(codeModel.ref(ArrayList.class).narrow(DIAMOND)));
+        if (property.isCollection()) return Optional.of(accordingDefaultFactoryFor(field.getRawType()));
         return Optional.empty();
     }
 
