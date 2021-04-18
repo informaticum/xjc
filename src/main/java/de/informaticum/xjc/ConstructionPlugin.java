@@ -83,6 +83,9 @@ extends BasePlugin {
     public static final String BECAUSE_CONSTRUCTOR_ALREADY_EXISTS = "such constructor already exists";
     public static final String BECAUSE_EFFECTIVELY_SIMILAR = "it is effectively similar to default-constructor";
 
+    private static final String HIDE_DEFAULT_CONSTRUCTOR = "Hide default constructor [{}#{}()].";
+    private static final String SKIP_HIDE_DEFAULT_CONSTRUCTOR = "Skip hiding of default constructor for [{}] because {}.";
+
     public static final String GENERATE_FACTORY = "Adopt {} constructor for [{}] in according package's ObjectFactory.";
     public static final String SKIP_FACTORY = "Skip adoption of {} object-factory method for [{}] because {}.";
     public static final String BECAUSE_ABSTRACT_CLASS = "this class is abstract";
@@ -93,12 +96,17 @@ extends BasePlugin {
     public static final String GENERATE_BUILDER = "Generate builder for [{}].";
     public static final String SKIP_BUILDER = "Skip creation of builder for [{}] because {}.";
 
+    private static final String REMOVE_DEFAULT_FACTORY = "Remove default factory [{}#{}()].";
+    private static final String SKIP_REMOVE_DEFAULT_FACTORY = "Skip removal of default factory method for [{}] because {}.";
+
     private static final String clone = "clone";
     private static final String CLONE_SIGNATURE = format("#%s()", clone);
 
     private static final String OPTION_NAME = "ITBSG-xjc-construction";
     private static final String GENERATE_DEFAULTCONSTRUCTOR_NAME = "-construction-default-constructor";
     private static final CommandLineArgument GENERATE_DEFAULTCONSTRUCTOR = new CommandLineArgument(GENERATE_DEFAULTCONSTRUCTOR_NAME, "Generate default constructor.");
+    private static final String HIDE_DEFAULTCONSTRUCTOR_NAME = "-construction-hide-default-constructor";
+    private static final CommandLineArgument HIDE_DEFAULTCONSTRUCTOR = new CommandLineArgument(HIDE_DEFAULTCONSTRUCTOR_NAME, "Hides default constructors if such constructor exists. Default: false");
     // TODO: Minimum-value constructor (only required fields without default)
     // TODO: Reduced-value constructor (only required fields)
     private static final String GENERATE_VALUESCONSTRUCTOR_NAME = "-construction-values-constructor";
@@ -111,6 +119,8 @@ extends BasePlugin {
     private static final CommandLineArgument GENERATE_CLONE = new CommandLineArgument(GENERATE_CLONE_NAME, format("Generate [%s] method.", CLONE_SIGNATURE));
     private static final String GENERATE_DEFENSIVECOPIES_NAME = "-construction-defensive-copies";
     private static final CommandLineArgument GENERATE_DEFENSIVECOPIES = new CommandLineArgument(GENERATE_DEFENSIVECOPIES_NAME, "Generated code will create defensive copies of the submitted collection/array/cloneable arguments. (Note: No deep copies!)");
+    private static final String REMOVE_DEFAULT_FACTORIES_NAME = "-construction-remove-default-factories";
+    private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES = new CommandLineArgument(REMOVE_DEFAULT_FACTORIES_NAME, "Removes default factory methods of object factories. Default: false");
 
     @Override
     public final Entry<String, String> getOption() {
@@ -119,7 +129,7 @@ extends BasePlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return asList(GENERATE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COPYCONSTRUCTOR, GENERATE_VALUESBUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES);
+        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COPYCONSTRUCTOR, GENERATE_VALUESBUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, REMOVE_DEFAULT_FACTORIES);
     }
 
     @Override
@@ -141,6 +151,9 @@ extends BasePlugin {
         this.considerCopyConstructor(clazz);
         this.considerValuesBuilder(clazz);
         this.considerClone(clazz);
+        // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.) 
+        this.considerHideDefaultConstructor(clazz);
+        this.considerRemoveDefaultFactory(clazz);
         return true;
     }
 
@@ -176,6 +189,32 @@ extends BasePlugin {
             $constructor.javadoc().append(format(DEFAULT_FIELD_ASSIGNMENT, $property.name(), render($value)));
             $constructor.body().assign($this.ref($property), $value);
         }
+    }
+
+    private final void considerHideDefaultConstructor(final ClassOutline clazz) {
+        if (!HIDE_DEFAULTCONSTRUCTOR.isActivated()) {
+            LOG.trace(SKIP_HIDE_DEFAULT_CONSTRUCTOR, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+        } else if (getConstructor(clazz) == null) {
+            // TODO: Log the absence of the default constructor
+        } else {
+            LOG.info(HIDE_DEFAULT_CONSTRUCTOR, fullName(clazz), fullName(clazz));
+            assertThat(getConstructor(clazz)).isNotNull();
+            this.hideDefaultConstructor(clazz);
+        }
+    }
+
+    private final void hideDefaultConstructor(final ClassOutline clazz) {
+        final var $constructor = getConstructor(clazz);
+        $constructor.mods().setProtected();
+        $constructor.javadoc().append(format("%n%nThis constructor has been intentionally set on {@code protected} visibility to be not used anymore."))
+                    .append(format("%nInstead in order to create instances of this class, use the all-values constructor"));
+        final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
+        if ($Builder.isPresent()) {
+            $constructor.javadoc().append(" or utilise the nested ").append($Builder.get());
+        }
+        $constructor.javadoc().append(".");
+        $constructor.javadoc().append(format("%n%nSince JAX-B's reflective instantiation bases on a default constructor, it has not been removed."))
+                    .append(format("(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)"));
     }
 
     private final void considerValuesConstructor(final ClassOutline clazz) {
@@ -530,6 +569,26 @@ extends BasePlugin {
             return stream($clazz.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst()
             .orElseThrow(() -> new RuntimeException("Nested class 'Builder' already exists but cannot be found!", alreadyExists));
         }
+    }
+
+    private final void considerRemoveDefaultFactory(final ClassOutline clazz) {
+        if (!REMOVE_DEFAULT_FACTORIES.isActivated()) {
+            LOG.trace(SKIP_REMOVE_DEFAULT_FACTORY, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+        } else {
+            final var $objectFactory = clazz._package().objectFactory();
+            final var $factory = getMethod($objectFactory, guessFactoryName(clazz));
+            if ($factory == null) {
+                //
+            } else {
+                LOG.info(REMOVE_DEFAULT_FACTORY, fullName($objectFactory), $factory.name());
+                this.removeDefaultFactory($objectFactory, $factory);
+                assertThat(getMethod($objectFactory, guessFactoryName(clazz))).isNull();
+            }
+        }
+    }
+
+    private final void removeDefaultFactory(final JDefinedClass $objectFactory, final JMethod $factory) {
+        $objectFactory.methods().remove($factory);
     }
 
 }
