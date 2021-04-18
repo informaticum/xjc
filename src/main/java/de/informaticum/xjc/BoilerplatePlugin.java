@@ -76,99 +76,39 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(BoilerplatePlugin.class);
 
-    private static final String OPTION_NAME        = "ITBSG-xjc-boilerplate";
-    private static final String OPTION_DESCRIPTION = "Generates common boilerplate code.";
+    private static final String equals = "equals";
+    private static final String EQUALS_SIGNATURE = format("#%s(Object)", equals);
+    private static final String hashCode = "hashCode";
+    private static final String HASHCODE_SIGNATURE = format("#%s()", hashCode);
+    private static final String toString = "toString";
+    private static final String TOSTRING_SIGNATURE = format("#%s()", toString);
+
+    private static final String OPTION_NAME = "ITBSG-xjc-boilerplate";
+    private static final String GENERATE_EQUALS_NAME = "-boilerplate-equals";
+    private static final CommandLineArgument GENERATE_EQUALS = new CommandLineArgument(GENERATE_EQUALS_NAME, format("Generate [%s] method (automatically enables option '-boilerplate-hashCode').", EQUALS_SIGNATURE));
+    private static final String GENERATE_HASHCODE_NAME = "-boilerplate-hashCode";
+    private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument(GENERATE_HASHCODE_NAME, format("Generate [%s] method (automatically enables option '-boilerplate-equals').", HASHCODE_SIGNATURE));
+    private static final String GENERATE_TOSTRING_NAME = "-boilerplate-toString";
+    private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument(GENERATE_TOSTRING_NAME, format("Generate [%s] method.", TOSTRING_SIGNATURE));
 
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
-    }
-
-    private static final String GENERATE_DEFAULTCONSTRUCTOR = "-boilerplate-defaultConstructor";
-    private static final String GENERATE_DEFAULTCONSTRUCTOR_DESC = "Generate default constructor. Default: false";
-    private boolean generateDefaultConstructor = false;
-
-    private static final String GENERATE_VALUESCONSTRUCTOR = "-boilerplate-valuesConstructor";
-    private static final String GENERATE_VALUESCONSTRUCTOR_DESC = "Generate all-values constructor. Default: false";
-    private boolean generateValueConstructor = false;
-
-    private static final String GENERATE_VALUESBUILDER = "-boilerplate-valuesBuilder";
-    private static final String GENERATE_VALUESBUILDER_DESC = "Generate all-values builder. Default: false";
-    private boolean generateValueBuilder = false;
-
-    private static final String GENERATE_OPTIONALGETTERS = "-boilerplate-optionalGetters";
-    private static final String GENERATE_OPTIONALGETTERS_DESC = "Replace return type [T] of non-required fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false";
-    private boolean generateOptionalGetters = false;
-
-    private static final String GENERATE_EQUALS = "-boilerplate-equals";
-    private static final String GENERATE_EQUALS_DESC = "Generate [#equals(Object)] method. Default: false";
-    private boolean generateEquals = false;
-
-    private static final String GENERATE_HASHCODE = "-boilerplate-hashCode";
-    private static final String GENERATE_HASHCODE_DESC = "Generate [#hashCode()] method. Default: false";
-    private boolean generateHashcode = false;
-
-    private static final String GENERATE_TOSTRING = "-boilerplate-toString";
-    private static final String GENERATE_TOSTRING_DESC = "Generate [#toString()] method. Default: false";
-    private boolean generateToString = false;
-
-    private static final String GENERATE_BUILDER = "Generate all-values builder for [{}]";
-    private static final String GENERATE_CONSTRUCTOR = "Generate {} constructor for [{}]";
-    private static final String GENERATE_METHOD = "Generate [{}] method for [{}]";
-    private static final String GENERATE_OPTIONAL_GETTER = "Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type";
-    private static final String SKIP_BUILDER = "Skip creation of builder for [{}] because {}.";
-    private static final String SKIP_CONSTRUCTOR = "Skip creation of {} constructor for [{}] because {}.";
-    private static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
-    private static final String SKIP_OPTIONAL_GETTER = "Skip creation of optional getter for [{}] of [{}] because {}.";
-    private static final String SKIP_OPTIONAL_GETTERS = "Skip creation of optional getters for [{}] because {}.";
-    private static final String BECAUSE_ATTRIBUTE_IS_REQUIRED = "attribute is required";
-    private static final String BECAUSE_BUILDER_EXISTS = "such builder already exists";
-    private static final String BECAUSE_CONSTRUCTOR_EXISTS = "such constructor already exists";
-    private static final String BECAUSE_EFFECTIVELY_SIMILAR = "it is effectively similar to default-constructor";
-    private static final String BECAUSE_METHOD_EXISTS = "such method already exists";
-    private static final String BECAUSE_OPTION_IS_DISABLED = "according option has not been selected";
-
-    @Override
-    public final LinkedHashMap<String, String> getPluginArguments() {
-        return new LinkedHashMap<>(ofEntries(
-            entry(GENERATE_DEFAULTCONSTRUCTOR, GENERATE_DEFAULTCONSTRUCTOR_DESC),
-            entry(GENERATE_VALUESCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR_DESC),
-            entry(GENERATE_VALUESBUILDER, GENERATE_VALUESBUILDER_DESC),
-            entry(GENERATE_OPTIONALGETTERS, GENERATE_OPTIONALGETTERS_DESC),
-            entry(GENERATE_EQUALS, GENERATE_EQUALS_DESC),
-            entry(GENERATE_HASHCODE, GENERATE_HASHCODE_DESC),
-            entry(GENERATE_TOSTRING, GENERATE_TOSTRING_DESC)
-        ));
+        return new SimpleImmutableEntry<>(OPTION_NAME, "Generates common boilerplate code.");
     }
 
     @Override
-    public final int parseArgument(final Options options, final String[] arguments, final int index) {
-        switch (arguments[index]) {
-            case GENERATE_DEFAULTCONSTRUCTOR:
-                this.generateDefaultConstructor = true;
-                return 1;
-            case GENERATE_VALUESCONSTRUCTOR:
-                this.generateDefaultConstructor = true;
-                this.generateValueConstructor = true;
-                return 1;
-            case GENERATE_VALUESBUILDER:
-                this.generateValueBuilder = true;
-                return 1;
-            case GENERATE_OPTIONALGETTERS:
-                this.generateOptionalGetters = true;
-                return 1;
-            case GENERATE_EQUALS:
-                this.generateEquals = true;
-                return 1;
-            case GENERATE_HASHCODE:
-                this.generateHashcode = true;
-                return 1;
-            case GENERATE_TOSTRING:
-                this.generateToString = true;
-                return 1;
-            default:
-                return 0;
-        }
+    public final List<CommandLineArgument> getPluginArguments() {
+        return asList(GENERATE_EQUALS, GENERATE_HASHCODE, GENERATE_TOSTRING);
+    }
+
+    @Override
+    public boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    throws SAXException {
+        // activate implicit arguments
+        GENERATE_EQUALS.alsoActivate(GENERATE_HASHCODE);
+        GENERATE_HASHCODE.alsoActivate(GENERATE_EQUALS);
+        // execute usual process
+        return super.run(outline, options, errorHandler);
     }
 
     @Override

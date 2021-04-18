@@ -23,6 +23,10 @@ implements RunningPlugin, InitialisedOutline {
     public static final String BECAUSE_CODE_ALREADY_EXISTS = "such code already exists";
     public static final String BECAUSE_OPTION_IS_DISABLED = "according option has not been selected";
 
+    public static final String GENERATE_METHOD = "Generate [{}] method for [{}].";
+    public static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
+    public static final String BECAUSE_METHOD_ALREADY_EXISTS = "such method already exists";
+
     private Outline currentOutline = null;
 
     private Options currentOptions = null;

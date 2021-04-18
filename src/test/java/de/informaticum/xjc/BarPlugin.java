@@ -1,9 +1,11 @@
 package de.informaticum.xjc;
 
+import static java.util.Arrays.asList;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import de.informaticum.xjc.plugin.BasePlugin;
+import de.informaticum.xjc.plugin.CommandLineArgument;
 
 public class BarPlugin
 extends BasePlugin {
@@ -14,11 +16,11 @@ extends BasePlugin {
     }
 
     @Override
-    public LinkedHashMap<String, String> getPluginArguments() {
-        final var options = new LinkedHashMap<String, String>();
-        options.put("-aaaaaa", "Some aaaaaa information. Default: aaaaaa");
-        options.put("-bb", "Some bb information. Default: bb");
-        return options;
+    public List<CommandLineArgument> getPluginArguments() {
+        return asList(
+            new CommandLineArgument("-aaaaaa", "Some aaaaaa information. Default: aaaaaa"),
+            new CommandLineArgument("-bb", "Some bb information. Default: bb")
+        );
     }
 
 }
