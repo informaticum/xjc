@@ -4,8 +4,10 @@ import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.JavaDoc.RETURN_IMMUTABLE_VALUE;
 import static de.informaticum.xjc.JavaDoc.RETURN_OPTIONAL_VALUE;
+import static de.informaticum.xjc.JavaDoc.RETURN_STRAIGHT_VALUE;
 import static de.informaticum.xjc.plugin.TargetCode.$null;
 import static de.informaticum.xjc.plugin.TargetCode.$this;
+import static de.informaticum.xjc.util.CollectionAnalysis.accordingDefaultFactoryFor;
 import static de.informaticum.xjc.util.CollectionAnalysis.accordingEmptyFactoryFor;
 import static de.informaticum.xjc.util.CollectionAnalysis.accordingImmutableFactoryFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.accordingOptionalTypeFor;
@@ -23,26 +25,35 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
+import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
+import com.sun.tools.xjc.outline.Outline;
 import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.util.CollectionAnalysis;
 import org.slf4j.Logger;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
 
 public class PropertyPlugin
 extends BasePlugin {
 
     private static final Logger LOG = getLogger(PropertyPlugin.class);
-    
-    private static final String GENERATE_IMMUTABLE_GETTER = "Replace return value of [{}#{}()] with an according immutable version";
+
+    private static final String GENERATE_STRAIGHT_GETTER = "Replace original implementation body [{}#{}()] with a similar but straight version.";
+    private static final String SKIP_STRAIGHT_GETTERS = "Skip creation of straight getters for [{}] because {}.";
+    private static final String SKIP_STRAIGHT_GETTER = "Skip creation of straight getter for [{}] of [{}] because {}.";
+    private static final String BECAUSE_ATTRIBUTE_IS_NONCOLLECTION = "attribute is not a collection type";
+
+    private static final String GENERATE_IMMUTABLE_GETTER = "Replace return value of [{}#{}()] with an according immutable version.";
     private static final String SKIP_IMMUTABLE_GETTERS = "Skip creation of immutable getters for [{}] because {}.";
     private static final String SKIP_IMMUTABLE_GETTER = "Skip creation of immutable getter for [{}] of [{}] because {}.";
-    private static final String BECAUSE_ATTRIBUTE_IS_NONCOLLECTION = "attribute is not a collection type";
     private static final String BECAUSE_METHOD_EXISTS = "such method already exists";
 
-    private static final String GENERATE_OPTIONAL_GETTER = "Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type";
+    private static final String GENERATE_OPTIONAL_GETTER = "Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type.";
     private static final String SKIP_OPTIONAL_GETTER = "Skip creation of optional getter for [{}] of [{}] because {}.";
     private static final String SKIP_OPTIONAL_GETTERS = "Skip creation of optional getters for [{}] because {}.";
     private static final String BECAUSE_ATTRIBUTE_IS_REQUIRED = "attribute is required";
@@ -51,16 +62,18 @@ extends BasePlugin {
     private static final String SKIP_REMOVE_PROPERTY_SETTERS = "Skip removal of property setters for [{}] because {}.";
 
     private static final String OPTION_NAME = "ITBSG-xjc-properties";
-    private static final String PRIVATE_FIELDS_NAME = "-properties-private-fields";
-    private static final CommandLineArgument PRIVATE_FIELDS = new CommandLineArgument(PRIVATE_FIELDS_NAME, "Modifies the visibility of the generated fields onto 'private'. Default: false");
-    private static final String FINAL_FIELDS_NAME = "-properties-final-fields";
-    private static final CommandLineArgument FINAL_FIELDS = new CommandLineArgument(FINAL_FIELDS_NAME, "Modifies the generated fields onto 'final'. Default: false");
+    private static final String GENERATE_STRAIGHTGETTERS_NAME = "-properties-straight-getters";
+    private static final CommandLineArgument GENERATE_STRAIGHTGETTERS = new CommandLineArgument(GENERATE_STRAIGHTGETTERS_NAME, "Refactor collection fields' getter methods with immediate return statement, i.e., without previous implicit field assigment in case of an actual 'null' value. Default: false");
     private static final String GENERATE_IMMUTABLEGETTERS_NAME = "-properties-immutable-getters";
     private static final CommandLineArgument GENERATE_IMMUTABLEGETTERS = new CommandLineArgument(GENERATE_IMMUTABLEGETTERS_NAME, "Replace return value for collection fields' getter methods with an immutable version. Default: false");
     private static final String GENERATE_OPTIONALGETTERS_NAME = "-properties-optional-getters";
     private static final CommandLineArgument GENERATE_OPTIONALGETTERS = new CommandLineArgument(GENERATE_OPTIONALGETTERS_NAME, "Replace return type [T] of non-required fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false");
     private static final String REMOVE_SETTERS_NAME = "-properties-remove-setters";
     private static final CommandLineArgument REMOVE_SETTERS = new CommandLineArgument(REMOVE_SETTERS_NAME, "Removes the property setters. Default: false");
+    private static final String PRIVATE_FIELDS_NAME = "-properties-private-fields";
+    private static final CommandLineArgument PRIVATE_FIELDS = new CommandLineArgument(PRIVATE_FIELDS_NAME, "Modifies the visibility of the generated fields onto 'private'. Default: false");
+    private static final String FINAL_FIELDS_NAME = "-properties-final-fields";
+    private static final CommandLineArgument FINAL_FIELDS = new CommandLineArgument(FINAL_FIELDS_NAME, format("Modifies the generated fields onto 'final' (automatically enables option '%s'). Default: false", GENERATE_STRAIGHTGETTERS_NAME));
 
     @Override
     public final Entry<String, String> getOption() {
@@ -69,13 +82,23 @@ extends BasePlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return Arrays.asList(PRIVATE_FIELDS, FINAL_FIELDS, GENERATE_IMMUTABLEGETTERS, GENERATE_OPTIONALGETTERS, REMOVE_SETTERS);
+        return Arrays.asList(PRIVATE_FIELDS, FINAL_FIELDS, GENERATE_STRAIGHTGETTERS, GENERATE_IMMUTABLEGETTERS, GENERATE_OPTIONALGETTERS, REMOVE_SETTERS);
+    }
+
+    @Override
+    public boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    throws SAXException {
+        // activate implicit arguments
+        FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHTGETTERS);
+        // execute usual process
+        return super.run(outline, options, errorHandler);
     }
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
         this.considerPrivateFields(clazz);
         this.considerFinalFields(clazz);
+        this.considerStraightGetters(clazz);
         this.considerImmutableGetters(clazz);
         this.considerOptionalGetters(clazz);
         this.considerRemoveSetters(clazz);
@@ -113,6 +136,46 @@ extends BasePlugin {
                 $property.mods().setFinal(true);
             }
         }
+    }
+
+
+    private final void considerStraightGetters(final ClassOutline clazz) {
+        if (!GENERATE_STRAIGHTGETTERS.isActivated()) {
+            LOG.trace(SKIP_STRAIGHT_GETTERS, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+        } else {
+            final var properties = generatedPropertiesOf(clazz);
+            for (final var getter : generatedGettersOf(clazz).entrySet()) {
+                final var attribute = getter.getKey();
+                assertThat(properties).containsKey(attribute);
+                final var $getter = getter.getValue();
+                if (!attribute.getPropertyInfo().isCollection()) {
+                    assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
+                    LOG.debug(SKIP_STRAIGHT_GETTER, $getter.name(), fullName(clazz), BECAUSE_ATTRIBUTE_IS_NONCOLLECTION);
+                } else {
+                    assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
+                    LOG.info(GENERATE_STRAIGHT_GETTER, fullName(clazz), $getter.name());
+                    this.generateStraightGetter(clazz, properties.get(attribute), getter);
+                }
+            }
+        }
+    }
+
+    private final void generateStraightGetter(final ClassOutline clazz, final JFieldVar $property, final Entry<? extends FieldOutline, ? extends JMethod> original) {
+        final var $class = clazz.implClass;
+        final var attribute = original.getKey();
+        final var info = attribute.getPropertyInfo();
+        final var $originalGetter = original.getValue();
+        final var originalType = $originalGetter.type();
+        // 1/3: Create
+        final var $straightGetter = $class.method($originalGetter.mods().getValue(), originalType, $originalGetter.name());
+        // 2/3: JavaDocument
+        $straightGetter.javadoc().addAll($originalGetter.javadoc());
+        $straightGetter.javadoc().addReturn().append(format(RETURN_STRAIGHT_VALUE, info.getName(true)));
+        // 3/3: Implement
+        final var $factory = accordingDefaultFactoryFor(originalType);
+        $straightGetter.body()._return(cond($this.ref($property).eq($null), $factory, $this.ref($property)));
+        // Subsequently (!) remove the original getter method
+        clazz.implClass.methods().remove($originalGetter);
     }
 
     private final void considerImmutableGetters(final ClassOutline clazz) {

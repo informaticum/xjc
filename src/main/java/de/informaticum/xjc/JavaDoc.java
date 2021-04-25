@@ -41,6 +41,8 @@ public enum JavaDoc {
 
     public static final String RETURN_OPTIONAL_VALUE = "the value of the optional attribute '%s'";
 
+    public static final String RETURN_STRAIGHT_VALUE = "the value of the attribute '%s'";
+
     public static final String THROWS_IAE_BY_NULL = "iff any given value is {@code null} illegally";
 
 }
