@@ -204,15 +204,15 @@ extends BasePlugin {
         final var $originalGetter = original.getValue();
         final var originalType = $originalGetter.type();
         // 1/3: Create
-        final var immutableGetter = $class.method($originalGetter.mods().getValue(), originalType, $originalGetter.name());
+        final var $immutableGetter = $class.method($originalGetter.mods().getValue(), originalType, $originalGetter.name());
         // 2/3: JavaDocument
-        immutableGetter.javadoc().addReturn().append(format(RETURN_IMMUTABLE_VALUE, info.getName(true)));
+        $immutableGetter.javadoc().addReturn().append(format(RETURN_IMMUTABLE_VALUE, info.getName(true)));
         // 3/3: Implement
         final var $empty = accordingEmptyFactoryFor(originalType);
         final var $factory = accordingImmutableFactoryFor(originalType);
         final var $delegation = $this.invoke($originalGetter);
-        final var $value = immutableGetter.body().decl(FINAL, originalType, "value", $delegation);
-        immutableGetter.body()._return(cond($value.invoke("isEmpty"), $empty, $factory.arg($value)));
+        final var $value = $immutableGetter.body().decl(FINAL, originalType, "value", $delegation);
+        $immutableGetter.body()._return(cond($value.invoke("isEmpty"), $empty, $factory.arg($value)));
         // Subsequently (!) modify the original getter method
         $originalGetter.mods().setPrivate();
         $originalGetter.mods().setFinal(true);
