@@ -96,6 +96,9 @@ extends BasePlugin {
     public static final String GENERATE_BUILDER = "Generate builder for [{}].";
     public static final String SKIP_BUILDER = "Skip creation of builder for [{}] because {}.";
 
+    private static final String HIDE_DEFAULT_FACTORY = "Hide default factory [{}#{}()].";
+    private static final String SKIP_HIDE_DEFAULT_FACTORY = "Skip removal of default factory method for [{}] because {}.";
+
     private static final String REMOVE_DEFAULT_FACTORY = "Remove default factory [{}#{}()].";
     private static final String SKIP_REMOVE_DEFAULT_FACTORY = "Skip removal of default factory method for [{}] because {}.";
 
@@ -119,6 +122,8 @@ extends BasePlugin {
     private static final CommandLineArgument GENERATE_CLONE = new CommandLineArgument(GENERATE_CLONE_NAME, format("Generate [%s] method.", CLONE_SIGNATURE));
     private static final String GENERATE_DEFENSIVECOPIES_NAME = "-construction-defensive-copies";
     private static final CommandLineArgument GENERATE_DEFENSIVECOPIES = new CommandLineArgument(GENERATE_DEFENSIVECOPIES_NAME, "Generated code will create defensive copies of the submitted collection/array/cloneable arguments. (Note: No deep copies!)");
+    private static final String HIDE_DEFAULT_FACTORIES_NAME = "-construction-hide-default-factories";
+    private static final CommandLineArgument HIDE_DEFAULT_FACTORIES = new CommandLineArgument(HIDE_DEFAULT_FACTORIES_NAME, "Hides default factory methods of object factories. Default: false");
     private static final String REMOVE_DEFAULT_FACTORIES_NAME = "-construction-remove-default-factories";
     private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES = new CommandLineArgument(REMOVE_DEFAULT_FACTORIES_NAME, "Removes default factory methods of object factories. Default: false");
 
@@ -129,7 +134,13 @@ extends BasePlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COPYCONSTRUCTOR, GENERATE_VALUESBUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, REMOVE_DEFAULT_FACTORIES);
+        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR,
+                      GENERATE_VALUESCONSTRUCTOR,
+                      GENERATE_COPYCONSTRUCTOR,
+                      GENERATE_VALUESBUILDER,
+                      GENERATE_CLONE,
+                      GENERATE_DEFENSIVECOPIES,
+                      HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
     }
 
     @Override
@@ -153,6 +164,7 @@ extends BasePlugin {
         this.considerClone(clazz);
         // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.) 
         this.considerHideDefaultConstructor(clazz);
+        this.considerHideDefaultFactory(clazz);
         this.considerRemoveDefaultFactory(clazz);
         return true;
     }
@@ -569,6 +581,34 @@ extends BasePlugin {
             return stream($clazz.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst()
             .orElseThrow(() -> new RuntimeException("Nested class 'Builder' already exists but cannot be found!", alreadyExists));
         }
+    }
+
+    private final void considerHideDefaultFactory(final ClassOutline clazz) {
+        if (!HIDE_DEFAULT_FACTORIES.isActivated()) {
+            LOG.trace(SKIP_HIDE_DEFAULT_FACTORY, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+        } else {
+            final var $objectFactory = clazz._package().objectFactory();
+            final var $factory = getMethod($objectFactory, guessFactoryName(clazz));
+            if ($factory == null) {
+                //
+            } else {
+                LOG.info(HIDE_DEFAULT_FACTORY, fullName($objectFactory), $factory.name());
+                this.hideDefaultFactory($objectFactory, $factory, clazz);
+                // TODO: assert private modifier
+            }
+        }
+    }
+
+    private final void hideDefaultFactory(final JDefinedClass $objectFactory, final JMethod $factory, final ClassOutline clazz) {
+        $factory.mods().setPrivate();
+        $factory.annotate(SuppressWarnings.class).param("value", "unused");
+        $factory.javadoc().append(format("%n%nThis factory method has been intentionally set on {@code protected} visibility to be not used anymore."))
+                          .append(format("%nInstead in order to create instances of this class, use the all-values constructor"));
+        final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
+        if ($Builder.isPresent()) {
+            $factory.javadoc().append(" or utilise the nested ").append($Builder.get());
+        }
+        $factory.javadoc().append(".");
     }
 
     private final void considerRemoveDefaultFactory(final ClassOutline clazz) {
