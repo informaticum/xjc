@@ -219,14 +219,14 @@ extends BasePlugin {
         final var $constructor = getConstructor(clazz);
         $constructor.mods().setProtected();
         $constructor.javadoc().append(format("%n%nThis constructor has been intentionally set on {@code protected} visibility to be not used anymore."))
-                    .append(format("%nInstead in order to create instances of this class, use the all-values constructor"));
+                              .append(format("%nInstead in order to create instances of this class, use the all-values constructor"));
         final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
         if ($Builder.isPresent()) {
             $constructor.javadoc().append(" or utilise the nested ").append($Builder.get());
         }
         $constructor.javadoc().append(".");
         $constructor.javadoc().append(format("%n%nSince JAX-B's reflective instantiation bases on a default constructor, it has not been removed."))
-                    .append(format("(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)"));
+                              .append(format("(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)"));
     }
 
     private final void considerValuesConstructor(final ClassOutline clazz) {
