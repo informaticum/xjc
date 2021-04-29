@@ -61,6 +61,12 @@ extends BasePlugin {
     private static final String REMOVE_PROPERTY_SETTERS = "Remove property setters [{}#{}({})].";
     private static final String SKIP_REMOVE_PROPERTY_SETTERS = "Skip removal of property setters for [{}] because {}.";
 
+    private static final String PRIVATISE_FIELDS = "Set accessibility of property [{}#{}] onto [private].";
+    private static final String SKIP_PRIVATE_FIELDS = "Skip private properties for [{}] because {}.";
+
+    private static final String FINALISE_FIELDS = "Set mutability of property [{}#{}] onto [final].";
+    private static final String SKIP_FINAL_FIELDS = "Skip final properties for [{}] because {}.";
+
     private static final String OPTION_NAME = "ITBSG-xjc-properties";
     private static final String GENERATE_STRAIGHTGETTERS_NAME = "-properties-straight-getters";
     private static final CommandLineArgument GENERATE_STRAIGHTGETTERS = new CommandLineArgument(GENERATE_STRAIGHTGETTERS_NAME, "Refactor collection fields' getter methods with immediate return statement, i.e., without previous implicit field assigment in case of an actual 'null' value. Default: false");
@@ -107,7 +113,7 @@ extends BasePlugin {
 
     private final void considerPrivateFields(final ClassOutline clazz) {
         if (!PRIVATE_FIELDS.isActivated()) {
-            //
+            LOG.trace(SKIP_PRIVATE_FIELDS, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else {
             this.setFieldsPrivate(clazz);
         }
@@ -115,13 +121,14 @@ extends BasePlugin {
 
     private final void setFieldsPrivate(final ClassOutline clazz) {
         for (final var $property : generatedPropertiesOf(clazz).values()) {
+            LOG.info(PRIVATISE_FIELDS, fullName(clazz), $property);
             $property.mods().setPrivate();
         }
     }
 
     private final void considerFinalFields(final ClassOutline clazz) {
         if (!FINAL_FIELDS.isActivated()) {
-            //
+            LOG.trace(SKIP_FINAL_FIELDS, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
         } else {
             this.setFieldsFinal(clazz);
         }
@@ -133,6 +140,7 @@ extends BasePlugin {
                 // TODO: Handle Collection types -- these are re-assigned (!) within the current getters
             } else {
                 final var $property = property.getValue();
+                LOG.info(FINALISE_FIELDS, fullName(clazz), $property);
                 $property.mods().setFinal(true);
             }
         }
