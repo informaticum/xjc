@@ -135,14 +135,9 @@ extends BasePlugin {
     }
 
     private final void setFieldsFinal(final ClassOutline clazz) {
-        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            if (property.getKey().getPropertyInfo().isCollection()) {
-                // TODO: Handle Collection types -- these are re-assigned (!) within the current getters
-            } else {
-                final var $property = property.getValue();
-                LOG.info(FINALISE_FIELDS, fullName(clazz), $property);
-                $property.mods().setFinal(true);
-            }
+        for (final var $property : generatedPropertiesOf(clazz).values()) {
+            LOG.info(FINALISE_FIELDS, fullName(clazz), $property);
+            $property.mods().setFinal(true);
         }
     }
 
