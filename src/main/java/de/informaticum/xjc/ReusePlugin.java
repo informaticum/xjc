@@ -1,6 +1,5 @@
 package de.informaticum.xjc;
 
-import static de.informaticum.xjc.JavaDoc.PUBLIC_QNAME;
 import static de.informaticum.xjc.util.Printify.fullName;
 import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -45,7 +44,7 @@ extends BasePlugin {
 
     private static final void publicifyField(final JFieldVar $field) {
         LOG.debug("Changing the access modifier of field [{}] to [{}].", $field.name(), "public");
-        $field.javadoc().append(PUBLIC_QNAME);
+        $field.javadoc().append("In order to allow reusage of this specific QName, it has been modified to be publicly accessible.");
         $field.mods().setPublic();
     }
 
