@@ -18,9 +18,7 @@ public enum XjcPropertyGuesser {
 
     public static final String WITH = "with";
 
-    /*
-     * {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()}
-     */
+    /* {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()} */
     public static final String guessGetterName(final FieldOutline attribute) {
         final var outline = attribute.parent().parent();
         final var model = outline.getModel();
@@ -31,9 +29,7 @@ public enum XjcPropertyGuesser {
         return prefix + property;
     }
 
-    /*
-     * {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()}
-     */
+    /* {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()} */
     public static final String guessGetterName(final ClassOutline clazz, final JFieldVar $property) {
         final var outline = clazz.parent();
         final var codeModel = outline.getCodeModel();
@@ -44,18 +40,14 @@ public enum XjcPropertyGuesser {
         return prefix + property;
     }
 
-    /*
-     * {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar.Accessor#fromRawValue(com.sun.codemodel.JBlock, String, com.sun.codemodel.JExpression)}
-     */
+    /* {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar.Accessor#fromRawValue(com.sun.codemodel.JBlock, String, com.sun.codemodel.JExpression)} */
     public static final String guessSetterName(final FieldOutline attribute) {
         final var prefix = SET;
         final var property = attribute.getPropertyInfo().getName(true);
         return prefix + property;
     }
 
-    /*
-     * {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar.Accessor#fromRawValue(com.sun.codemodel.JBlock, String, com.sun.codemodel.JExpression)}
-     */
+    /* {@link com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar.Accessor#fromRawValue(com.sun.codemodel.JBlock, String, com.sun.codemodel.JExpression)} */
     public static final String guessSetterName(final ClassOutline clazz, final JFieldVar $property) {
         final var prefix = SET;
         final var property = clazz.parent().getModel().getNameConverter().toPropertyName($property.name());

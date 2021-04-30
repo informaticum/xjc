@@ -49,10 +49,10 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Values might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according
-     * {@linkplain JFieldVar property} (for whatever reason).
+     * Values of the returned {@link LinkedHashMap} might be {@code null}: A {@linkplain FieldOutline field outline}
+     * might not map onto an according {@linkplain JFieldVar property} (for whatever reason).
      *
-     * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
+     * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      */
     private static final LinkedHashMap<FieldOutline, JFieldVar> declaredPropertiesOf(final ClassOutline clazz) {
         final var properties = new LinkedHashMap<FieldOutline, JFieldVar>();
@@ -76,10 +76,11 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Values cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according
-     * {@linkplain JFieldVar property} (for whatever reason), it is not contained in the returned result.
+     * Values of the returned {@link LinkedHashMap} cannot be {@code null}: If a {@linkplain FieldOutline field outline}
+     * is not mapped onto an according {@linkplain JFieldVar property} (for whatever reason), it is not contained in the
+     * returned result.
      *
-     * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
+     * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      */
     public static final LinkedHashMap<FieldOutline, JFieldVar> generatedPropertiesOf(final ClassOutline clazz) {
         final var properties = declaredPropertiesOf(clazz);
@@ -88,11 +89,11 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Values might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according
-     * {@linkplain JFieldVar property} (for whatever reason).
+     * Values of the returned {@link LinkedHashMap} might be {@code null}: A {@linkplain FieldOutline field outline}
+     * might not map onto an according {@linkplain JFieldVar property} (for whatever reason).
      *
-     * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and super class'
-     * fields comes first.
+     * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and
+     * super class' fields comes first.
      */
     private static final LinkedHashMap<FieldOutline, JFieldVar> superAndDeclaredPropertiesOf(final ClassOutline clazz) {
         final var properties = new LinkedHashMap<FieldOutline, JFieldVar>();
@@ -105,11 +106,12 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Values cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according
-     * {@linkplain JFieldVar property} (for whatever reason), it is not contained in the returned result.
+     * Values of the returned {@link LinkedHashMap} cannot be {@code null}: If a {@linkplain FieldOutline field outline}
+     * is not mapped onto an according {@linkplain JFieldVar property} (for whatever reason), it is not contained in the
+     * returned result.
      *
-     * Return result is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and super class'
-     * fields comes first.
+     * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and
+     * super class' fields comes first.
      */
     public static final LinkedHashMap<FieldOutline, JFieldVar> superAndGeneratedPropertiesOf(final ClassOutline clazz) {
         final var properties = superAndDeclaredPropertiesOf(clazz);
@@ -190,6 +192,10 @@ public enum OutlineAnalysis {
         }
     }
 
+    /**
+     * The returned {@link LinkedHashMap} is ordered similar to the result order of
+     * {@link ClassOutline#getDeclaredFields()}.
+     */
     public static final LinkedHashMap<FieldOutline, JMethod> generatedGettersOf(final ClassOutline clazz) {
         final var getters = new LinkedHashMap<FieldOutline, JMethod>();
         for (final var properties : generatedPropertiesOf(clazz).entrySet()) {
@@ -207,6 +213,10 @@ public enum OutlineAnalysis {
         return getters;
     }
 
+    /**
+     * The returned {@link LinkedHashMap} is ordered similar to the result order of
+     * {@link ClassOutline#getDeclaredFields()}.
+     */
     public static final LinkedHashMap<FieldOutline, JMethod> generatedSettersOf(final ClassOutline clazz) {
         final var setters = new LinkedHashMap<FieldOutline, JMethod>();
         for (final var properties : generatedPropertiesOf(clazz).entrySet()) {
