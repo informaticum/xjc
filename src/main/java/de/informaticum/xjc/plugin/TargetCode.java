@@ -13,6 +13,4 @@ public abstract class TargetCode {
 
     public static final JExpression $null = _null();
 
-    public static final Class<?>[] DIAMOND = new Class<?>[0];
-
 }

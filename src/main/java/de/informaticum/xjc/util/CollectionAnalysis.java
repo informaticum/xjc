@@ -1,7 +1,6 @@
 package de.informaticum.xjc.util;
 
 import static com.sun.codemodel.JExpr._new;
-import static de.informaticum.xjc.plugin.TargetCode.DIAMOND;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyNavigableSet;
 import static java.util.Collections.emptySet;
@@ -27,6 +26,8 @@ import com.sun.codemodel.JType;
 
 public enum CollectionAnalysis {
     ;
+
+    public static final Class<?>[] DIAMOND = new Class<?>[0];
 
     private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing factory method has been modified ;-(";
 
