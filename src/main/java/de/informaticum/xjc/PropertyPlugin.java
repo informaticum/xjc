@@ -68,17 +68,17 @@ extends BasePlugin {
     private static final String SKIP_FINAL_FIELDS = "Skip final properties for [{}] because {}.";
 
     private static final String OPTION_NAME = "ITBSG-xjc-properties";
-    private static final String GENERATE_STRAIGHTGETTERS_NAME = "-properties-straight-getters";
+    private static final String GENERATE_STRAIGHTGETTERS_NAME = "properties-straight-getters";
     private static final CommandLineArgument GENERATE_STRAIGHTGETTERS = new CommandLineArgument(GENERATE_STRAIGHTGETTERS_NAME, "Refactor collection fields' getter methods with immediate return statement, i.e., without previous implicit field assigment in case of an actual 'null' value. Default: false");
-    private static final String GENERATE_IMMUTABLEGETTERS_NAME = "-properties-immutable-getters";
+    private static final String GENERATE_IMMUTABLEGETTERS_NAME = "properties-immutable-getters";
     private static final CommandLineArgument GENERATE_IMMUTABLEGETTERS = new CommandLineArgument(GENERATE_IMMUTABLEGETTERS_NAME, "Replace return value for collection fields' getter methods with an immutable version. Default: false");
-    private static final String GENERATE_OPTIONALGETTERS_NAME = "-properties-optional-getters";
+    private static final String GENERATE_OPTIONALGETTERS_NAME = "properties-optional-getters";
     private static final CommandLineArgument GENERATE_OPTIONALGETTERS = new CommandLineArgument(GENERATE_OPTIONALGETTERS_NAME, "Replace return type [T] of non-required fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false");
-    private static final String REMOVE_SETTERS_NAME = "-properties-remove-setters";
+    private static final String REMOVE_SETTERS_NAME = "properties-remove-setters";
     private static final CommandLineArgument REMOVE_SETTERS = new CommandLineArgument(REMOVE_SETTERS_NAME, "Removes the property setters. Default: false");
-    private static final String PRIVATE_FIELDS_NAME = "-properties-private-fields";
+    private static final String PRIVATE_FIELDS_NAME = "properties-private-fields";
     private static final CommandLineArgument PRIVATE_FIELDS = new CommandLineArgument(PRIVATE_FIELDS_NAME, "Modifies the visibility of the generated fields onto 'private'. Default: false");
-    private static final String FINAL_FIELDS_NAME = "-properties-final-fields";
+    private static final String FINAL_FIELDS_NAME = "properties-final-fields";
     private static final CommandLineArgument FINAL_FIELDS = new CommandLineArgument(FINAL_FIELDS_NAME, format("Modifies the generated fields onto 'final' (automatically enables option '%s'). Default: false", GENERATE_STRAIGHTGETTERS_NAME));
 
     @Override

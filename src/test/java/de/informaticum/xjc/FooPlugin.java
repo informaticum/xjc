@@ -18,8 +18,8 @@ extends BasePlugin {
     @Override
     public List<CommandLineArgument> getPluginArguments() {
         return asList(
-            new CommandLineArgument("-a", "Some a information. Default: a"),
-            new CommandLineArgument("-bb", "Some bb information. Default: bb")
+            new CommandLineArgument("a", "Some a information. Default: a"),
+            new CommandLineArgument("bb", "Some bb information. Default: bb")
         );
     }
 

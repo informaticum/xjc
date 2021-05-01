@@ -47,11 +47,11 @@ extends BasePlugin {
     private static final String TOSTRING_SIGNATURE = format("#%s()", toString);
 
     private static final String OPTION_NAME = "ITBSG-xjc-boilerplate";
-    private static final String GENERATE_EQUALS_NAME = "-boilerplate-equals";
+    private static final String GENERATE_EQUALS_NAME = "boilerplate-equals";
     private static final CommandLineArgument GENERATE_EQUALS = new CommandLineArgument(GENERATE_EQUALS_NAME, format("Generate [%s] method (automatically enables option '-boilerplate-hashCode').", EQUALS_SIGNATURE));
-    private static final String GENERATE_HASHCODE_NAME = "-boilerplate-hashCode";
+    private static final String GENERATE_HASHCODE_NAME = "boilerplate-hashCode";
     private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument(GENERATE_HASHCODE_NAME, format("Generate [%s] method (automatically enables option '-boilerplate-equals').", HASHCODE_SIGNATURE));
-    private static final String GENERATE_TOSTRING_NAME = "-boilerplate-toString";
+    private static final String GENERATE_TOSTRING_NAME = "boilerplate-toString";
     private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument(GENERATE_TOSTRING_NAME, format("Generate [%s] method.", TOSTRING_SIGNATURE));
 
     @Override

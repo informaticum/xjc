@@ -106,25 +106,25 @@ extends BasePlugin {
     private static final String CLONE_SIGNATURE = format("#%s()", clone);
 
     private static final String OPTION_NAME = "ITBSG-xjc-construction";
-    private static final String GENERATE_DEFAULTCONSTRUCTOR_NAME = "-construction-default-constructor";
+    private static final String GENERATE_DEFAULTCONSTRUCTOR_NAME = "construction-default-constructor";
     private static final CommandLineArgument GENERATE_DEFAULTCONSTRUCTOR = new CommandLineArgument(GENERATE_DEFAULTCONSTRUCTOR_NAME, "Generate default constructor.");
-    private static final String HIDE_DEFAULTCONSTRUCTOR_NAME = "-construction-hide-default-constructor";
+    private static final String HIDE_DEFAULTCONSTRUCTOR_NAME = "construction-hide-default-constructor";
     private static final CommandLineArgument HIDE_DEFAULTCONSTRUCTOR = new CommandLineArgument(HIDE_DEFAULTCONSTRUCTOR_NAME, "Hides default constructors if such constructor exists. Default: false");
     // TODO: Minimum-value constructor (only required fields without default)
     // TODO: Reduced-value constructor (only required fields)
-    private static final String GENERATE_VALUESCONSTRUCTOR_NAME = "-construction-values-constructor";
+    private static final String GENERATE_VALUESCONSTRUCTOR_NAME = "construction-values-constructor";
     private static final CommandLineArgument GENERATE_VALUESCONSTRUCTOR = new CommandLineArgument(GENERATE_VALUESCONSTRUCTOR_NAME, format("Generate all-values constructor (automatically enables option '%s').", GENERATE_DEFAULTCONSTRUCTOR_NAME));
-    private static final String GENERATE_COPYCONSTRUCTOR_NAME = "-construction-copy-constructor";
+    private static final String GENERATE_COPYCONSTRUCTOR_NAME = "construction-copy-constructor";
     private static final CommandLineArgument GENERATE_COPYCONSTRUCTOR = new CommandLineArgument(GENERATE_COPYCONSTRUCTOR_NAME, format("Generate copy constructor (automatically enables option '%s').", GENERATE_DEFAULTCONSTRUCTOR_NAME));
-    private static final String GENERATE_VALUESBUILDER_NAME = "-construction-builder";
+    private static final String GENERATE_VALUESBUILDER_NAME = "construction-builder";
     private static final CommandLineArgument GENERATE_VALUESBUILDER = new CommandLineArgument(GENERATE_VALUESBUILDER_NAME, "Generate builder.");
-    private static final String GENERATE_CLONE_NAME = "-construction-clone";
+    private static final String GENERATE_CLONE_NAME = "construction-clone";
     private static final CommandLineArgument GENERATE_CLONE = new CommandLineArgument(GENERATE_CLONE_NAME, format("Generate [%s] method.", CLONE_SIGNATURE));
-    private static final String GENERATE_DEFENSIVECOPIES_NAME = "-construction-defensive-copies";
+    private static final String GENERATE_DEFENSIVECOPIES_NAME = "construction-defensive-copies";
     private static final CommandLineArgument GENERATE_DEFENSIVECOPIES = new CommandLineArgument(GENERATE_DEFENSIVECOPIES_NAME, "Generated code will create defensive copies of the submitted collection/array/cloneable arguments. (Note: No deep copies!)");
-    private static final String HIDE_DEFAULT_FACTORIES_NAME = "-construction-hide-default-factories";
+    private static final String HIDE_DEFAULT_FACTORIES_NAME = "construction-hide-default-factories";
     private static final CommandLineArgument HIDE_DEFAULT_FACTORIES = new CommandLineArgument(HIDE_DEFAULT_FACTORIES_NAME, "Hides default factory methods of object factories. Default: false");
-    private static final String REMOVE_DEFAULT_FACTORIES_NAME = "-construction-remove-default-factories";
+    private static final String REMOVE_DEFAULT_FACTORIES_NAME = "construction-remove-default-factories";
     private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES = new CommandLineArgument(REMOVE_DEFAULT_FACTORIES_NAME, "Removes default factory methods of object factories. Default: false");
 
     @Override
