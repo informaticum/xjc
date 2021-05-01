@@ -16,7 +16,6 @@ import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.Printify.fullName;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
@@ -46,13 +45,10 @@ extends BasePlugin {
     private static final String toString = "toString";
     private static final String TOSTRING_SIGNATURE = format("#%s()", toString);
 
-    private static final String OPTION_NAME = "ITBSG-xjc-boilerplate";
-    private static final String GENERATE_EQUALS_NAME = "boilerplate-equals";
-    private static final CommandLineArgument GENERATE_EQUALS = new CommandLineArgument(GENERATE_EQUALS_NAME, format("Generate [%s] method (automatically enables option '-boilerplate-hashCode').", EQUALS_SIGNATURE));
-    private static final String GENERATE_HASHCODE_NAME = "boilerplate-hashCode";
-    private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument(GENERATE_HASHCODE_NAME, format("Generate [%s] method (automatically enables option '-boilerplate-equals').", HASHCODE_SIGNATURE));
-    private static final String GENERATE_TOSTRING_NAME = "boilerplate-toString";
-    private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument(GENERATE_TOSTRING_NAME, format("Generate [%s] method.", TOSTRING_SIGNATURE));
+    private static final String OPTION_NAME = "informaticum-xjc-boilerplate";
+    private static final CommandLineArgument GENERATE_EQUALS   = new CommandLineArgument("boilerplate-equals",   format("Generate [%s] method (automatically enables option '-boilerplate-hashCode'). Default: false", EQUALS_SIGNATURE));
+    private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument("boilerplate-hashCode", format("Generate [%s] method (automatically enables option '-boilerplate-equals'). Default: false", HASHCODE_SIGNATURE));
+    private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument("boilerplate-toString", format("Generate [%s] method. Default: false", TOSTRING_SIGNATURE));
 
     @Override
     public final Entry<String, String> getOption() {
@@ -76,32 +72,27 @@ extends BasePlugin {
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        this.considerEquals(clazz);
-        this.considerHashCode(clazz);
-        this.considerToString(clazz);
+        GENERATE_EQUALS.doOnActivation(() -> this.generateEquals(clazz));
+        GENERATE_HASHCODE.doOnActivation(() -> this.addHashCode(clazz));
+        GENERATE_TOSTRING.doOnActivation(() -> this.addToString(clazz));
         return true;
     }
 
-    private final void considerEquals(final ClassOutline clazz) {
-        if (!GENERATE_EQUALS.isActivated()) {
-            LOG.trace(SKIP_METHOD, EQUALS_SIGNATURE, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getMethod(clazz, equals, Object.class) != null) {
-            LOG.warn(SKIP_METHOD, EQUALS_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
-        } else {
-            LOG.info(GENERATE_METHOD, EQUALS_SIGNATURE, fullName(clazz));
-            assertThat(getMethod(clazz, equals, Object.class)).as("check undefined method %s", EQUALS_SIGNATURE).isNull();
-            this.generateEquals(clazz);
-            assertThat(getMethod(clazz, equals, Object.class)).as("check generated method %s", EQUALS_SIGNATURE).isNotNull();
-        }
-    }
-
     private final void generateEquals(final ClassOutline clazz) {
-        // 1/3: Create
+        // 1/4: Prepare
+        if (getMethod(clazz, equals, Object.class) != null) {
+            LOG.warn(SKIP_METHOD, EQUALS_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            return;
+        }
+        // 2/4: Create
         final var $Type = clazz.implClass;
         final var $equals = $Type.method(PUBLIC, boolean.class, equals);
-        // 2/3: Annotate
+        // 3/4: JavaDoc/Annotate
+        $equals.javadoc().append("{@inheritDoc}")
+                         .append("")
+                         .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code equals} method</a> compares each field of {@code this} instance with the according field of the {@code other} instance.");
         $equals.annotate(Override.class);
-        // 3/3: Implement (without JavaDoc)
+        // 4/4: Implement
         final var $other = $equals.param(FINAL, this.reference(Object.class), "other");
         $equals.body()._if($other.eq($null))._then()._return(FALSE);
         $equals.body()._if($this.eq($other))._then()._return(TRUE);
@@ -121,26 +112,22 @@ extends BasePlugin {
         $equals.body()._return(comparisons.stream().reduce(JExpression::cand).orElse(TRUE));
     }
 
-    private final void considerHashCode(final ClassOutline clazz) {
-        if (!GENERATE_HASHCODE.isActivated()) {
-            LOG.trace(SKIP_METHOD, HASHCODE_SIGNATURE, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getMethod(clazz, hashCode) != null) {
-            LOG.warn(SKIP_METHOD, HASHCODE_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
-        } else {
-            LOG.info(GENERATE_METHOD, HASHCODE_SIGNATURE, fullName(clazz));
-            assertThat(getMethod(clazz, hashCode)).as("check undefined method %s", HASHCODE_SIGNATURE).isNull();
-            this.addHashCode(clazz);
-            assertThat(getMethod(clazz, hashCode)).as("check generated method %s", HASHCODE_SIGNATURE).isNotNull();
-        }
-    }
-
     private final void addHashCode(final ClassOutline clazz) {
-        // 1/3: Create
+        // 1/4: Prepare
+        if (getMethod(clazz, hashCode) != null) {
+            LOG.warn(SKIP_METHOD, HASHCODE_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            return;
+        }
+        // 2/4: Create
         final var $Type = clazz.implClass;
         final var $hashCode = $Type.method(PUBLIC, int.class, hashCode);
-        // 2/3: Annotate
+        // 3/4: JavaDoc/Annotate
+        $hashCode.javadoc().append("{@inheritDoc}")
+                           .append("")
+                           .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code hashCode} method</a> considers the hash-code of each field of {@code this} instance to compute the overall return result.")
+                           .append("(If there is no field at all, the hash-code of {@code this} instance's {@linkplain #getClass() class} is returned instead.)");
         $hashCode.annotate(Override.class);
-        // 3/3: Implement (without JavaDoc)
+        // 4/4: Implement
         final var $Objects = this.reference(Objects.class);
         final var $hash = $Objects.staticInvoke("hash");
         if (clazz.getSuperClass() != null) {
@@ -152,29 +139,24 @@ extends BasePlugin {
         $hashCode.body()._return($hash.listArgs().length > 0 ? $hash : $this.invoke("getClass").invoke(hashCode));
     }
 
-    private final void considerToString(final ClassOutline clazz) {
-        if (!GENERATE_TOSTRING.isActivated()) {
-            LOG.trace(SKIP_METHOD, TOSTRING_SIGNATURE, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getMethod(clazz, toString) != null) {
-            LOG.warn(SKIP_METHOD, TOSTRING_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
-        } else {
-            LOG.info(GENERATE_METHOD, TOSTRING_SIGNATURE, fullName(clazz));
-            assertThat(getMethod(clazz, toString)).as("check undefined method %s", TOSTRING_SIGNATURE).isNull();
-            this.addToString(clazz);
-            assertThat(getMethod(clazz, toString)).as("check generated method %s", TOSTRING_SIGNATURE).isNotNull();
-        }
-    }
-
     private final void addToString(final ClassOutline clazz) {
-        // 1/3: Create
+        // 1/4: Prepare
+        if (getMethod(clazz, toString) != null) {
+            LOG.warn(SKIP_METHOD, TOSTRING_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            return;
+        }
+        // 2/4: Create
         final var $Type = clazz.implClass;
         final var $toString = $Type.method(PUBLIC, String.class, toString);
-        // 2/3: Annotate
+        // 3/4: JavaDoc/Annotate
+        $toString.javadoc().append("{@inheritDoc}")
+                           .append("")
+                           .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code toString} method</a> returns a human readable list of all fields of {@code this} instance, each mapping to its own string representation.");
         $toString.annotate(Override.class);
-        // 3/3: Implement (without JavaDoc)
+        // 4/4: Implement
         final var $Objects = this.reference(Objects.class);
         final var segments = new ArrayList<JExpression>();
-        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
+        for (final var property : generatedPropertiesOf(clazz).entrySet() /* TODO: Also consider constant fields */) {
             final var attribute = property.getKey();
             final var info = attribute.getPropertyInfo();
             final var $property = property.getValue();
@@ -183,7 +165,6 @@ extends BasePlugin {
         if (clazz.getSuperClass() != null) {
             segments.add(lit("Super: ").plus($super.invoke(toString)));
         }
-        // TODO: InsurantIdType#ROOT in toString()-Ausgabe aufnehmen
         final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg($Type.name() + "[").arg("]");
         $toString.body()._return(segments.stream().reduce($joiner, (partial, segement) -> partial.invoke("add").arg(segement)).invoke(toString));
     }
