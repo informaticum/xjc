@@ -1,6 +1,7 @@
 package de.informaticum.xjc.plugin;
 
 import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import com.sun.tools.xjc.Options;
 
@@ -17,8 +18,8 @@ public class CommandLineArgument {
     }
 
     public CommandLineArgument(final String argument, final String description) {
-        this.argument = argument;
-        this.description = description;
+        this.argument = requireNonNull(argument).startsWith("-") ? argument : "-" + argument;
+        this.description = requireNonNull(description);
         this.activated = false;
     }
 
