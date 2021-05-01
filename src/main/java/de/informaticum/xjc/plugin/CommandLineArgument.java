@@ -47,4 +47,10 @@ public class CommandLineArgument {
         }
     }
 
+    public final void doOnActivation(final Runnable execution) {
+        if (this.activated) {
+            execution.run();
+        }
+    }
+
 }
