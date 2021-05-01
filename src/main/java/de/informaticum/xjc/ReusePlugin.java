@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JFieldVar;
 import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import org.slf4j.Logger;
@@ -18,9 +17,8 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(ReusePlugin.class);
 
-    public static final String OPTION_NAME = "ITBSG-xjc-reuse";
-    private static final String REUSE_QNAMES_NAME = "-reuse-qnames";
-    private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument(REUSE_QNAMES_NAME, "Modify QNames' accessibility to \"public\". Default: false");
+    public static final String OPTION_NAME = "informaticum-xjc-reuse";
+    private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", "Modify QName constants' accessibility to \"public\". Default: false");
 
     @Override
     public final Entry<String, String> getOption() {
@@ -34,18 +32,17 @@ extends BasePlugin {
 
     @Override
     protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        if (REUSE_QNAMES.isActivated()) {
-            final var $QName = this.reference(QName.class);
-            LOG.info("Changing the access modifier of the [{}] fields of [{}].", $QName.name(), fullName($factory));
-            $factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach(ReusePlugin::publicifyField);
-        }
+        REUSE_QNAMES.doOnActivation(() -> this.publicifyQNames($factory));
         return true;
     }
 
-    private static final void publicifyField(final JFieldVar $field) {
-        LOG.debug("Changing the access modifier of field [{}] to [{}].", $field.name(), "public");
-        $field.javadoc().append("In order to allow reusage of this specific QName, it has been modified to be publicly accessible.");
-        $field.mods().setPublic();
+    private final void publicifyQNames(final JDefinedClass $factory) {
+        final var $QName = this.reference(QName.class);
+        $factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach($qName -> {
+            LOG.info("Set accessibility of QName [{}#{}] onto [public].", fullName($factory), $qName);
+            $qName.javadoc().append("In order to allow reusage of this specific QName, <a href=\"https://github.com/informaticum/xjc\">it has gained 'public' access</a>.");
+            $qName.mods().setPublic();
+        });
     }
 
 }
