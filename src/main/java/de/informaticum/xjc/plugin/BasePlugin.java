@@ -1,5 +1,6 @@
 package de.informaticum.xjc.plugin;
 
+import static java.lang.String.format;
 import static org.slf4j.LoggerFactory.getLogger;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.Options;
@@ -54,6 +55,7 @@ implements RunningPlugin, InitialisedOutline {
         this.currentOutline = outline;
         this.currentOptions = options;
         this.currentErrorHandler = errorHandler;
+        this.sayHi();
         try {
             var result = true;
             for (final var pakkage : outline.getAllPackageContexts()) {
@@ -87,6 +89,49 @@ implements RunningPlugin, InitialisedOutline {
                 throw new RuntimeException(any.getMessage(), any);
             }
         }
+    }
+
+    protected void sayHi() {
+        final var HI             = "### Hey JAX-B/JAX-WS user,";
+        final var USING          = "### you are using one of the informaticum's XJC plugins, i.e., the:";
+        final var CURRENT = format("###   - %s (%s),", this.getOption().getKey(), this.getOption().getValue());
+        final var APPRECIATING   = "### If you appreciate it, let me know at:";
+        final var CONTACT        = "###   - mailto:xjc@informaticum.de";
+        final var INPROVING      = "### If you have any improvement or feature suggestion, feel free to add these at:";
+        final var REPOSITORY     = "###   - https://github.com/informaticum/xjc";
+        if (LOG.isInfoEnabled()) {
+            LOG.info(HI);
+            LOG.info(USING);
+            LOG.info(CURRENT);
+            LOG.info(APPRECIATING);
+            LOG.info(CONTACT);
+            LOG.info(INPROVING);
+            LOG.info(REPOSITORY);
+        } else if (LOG.isWarnEnabled()) {
+            LOG.warn(HI);
+            LOG.warn(USING);
+            LOG.warn(CURRENT);
+            LOG.warn(APPRECIATING);
+            LOG.warn(CONTACT);
+            LOG.warn(INPROVING);
+            LOG.warn(REPOSITORY);
+        } else if (LOG.isErrorEnabled()) {
+            LOG.error(HI);
+            LOG.error(USING);
+            LOG.error(CURRENT);
+            LOG.error(APPRECIATING);
+            LOG.error(CONTACT);
+            LOG.error(INPROVING);
+            LOG.error(REPOSITORY);
+        }
+        System.out.println(HI);
+        System.out.println(USING);
+        System.out.println(CURRENT);
+        System.out.println(APPRECIATING);
+        System.out.println(CONTACT);
+        System.out.println(INPROVING);
+        System.out.println(REPOSITORY);
+
     }
 
     protected boolean runPackage(final PackageOutline pakkage)
