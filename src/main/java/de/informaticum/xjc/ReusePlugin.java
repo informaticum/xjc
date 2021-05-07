@@ -39,7 +39,7 @@ extends BasePlugin {
     private final void publicifyQNames(final JDefinedClass $factory) {
         final var $QName = this.reference(QName.class);
         $factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach($qName -> {
-            LOG.info("Set accessibility of QName [{}#{}] onto [public].", fullName($factory), $qName);
+            LOG.info("Set accessibility of QName [{}#{}] onto [public].", fullName($factory), $qName.name());
             $qName.javadoc().append("In order to allow reusage of this specific QName, <a href=\"https://github.com/informaticum/xjc\">it has gained 'public' access</a>.");
             $qName.mods().setPublic();
         });
