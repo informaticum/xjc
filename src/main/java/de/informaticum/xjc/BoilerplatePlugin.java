@@ -87,7 +87,7 @@ extends BasePlugin {
         // 2/4: Create
         final var $Type = clazz.implClass;
         final var $equals = $Type.method(PUBLIC, boolean.class, equals);
-        // 3/4: JavaDoc/Annotate
+        // 3/4: JavaDocument/Annotate
         $equals.javadoc().append("{@inheritDoc}")
                          .append("")
                          .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code equals} method</a> compares each field of {@code this} instance with the according field of the {@code other} instance.");
@@ -121,7 +121,7 @@ extends BasePlugin {
         // 2/4: Create
         final var $Type = clazz.implClass;
         final var $hashCode = $Type.method(PUBLIC, int.class, hashCode);
-        // 3/4: JavaDoc/Annotate
+        // 3/4: JavaDocument/Annotate
         $hashCode.javadoc().append("{@inheritDoc}")
                            .append("")
                            .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code hashCode} method</a> considers the hash-code of each field of {@code this} instance to compute the overall return result.")
@@ -148,7 +148,7 @@ extends BasePlugin {
         // 2/4: Create
         final var $Type = clazz.implClass;
         final var $toString = $Type.method(PUBLIC, String.class, toString);
-        // 3/4: JavaDoc/Annotate
+        // 3/4: JavaDocument/Annotate
         $toString.javadoc().append("{@inheritDoc}")
                            .append("")
                            .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code toString} method</a> returns a human readable list of all fields of {@code this} instance, each mapping to its own string representation.");
