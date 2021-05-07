@@ -72,9 +72,9 @@ extends BasePlugin {
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        GENERATE_EQUALS.doOnActivation(() -> this.generateEquals(clazz));
-        GENERATE_HASHCODE.doOnActivation(() -> this.addHashCode(clazz));
-        GENERATE_TOSTRING.doOnActivation(() -> this.addToString(clazz));
+        GENERATE_EQUALS.doOnActivation(this::generateEquals, clazz);
+        GENERATE_HASHCODE.doOnActivation(this::addHashCode, clazz);
+        GENERATE_TOSTRING.doOnActivation(this::addToString, clazz);
         return true;
     }
 

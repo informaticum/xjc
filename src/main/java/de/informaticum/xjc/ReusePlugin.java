@@ -32,7 +32,7 @@ extends BasePlugin {
 
     @Override
     protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        REUSE_QNAMES.doOnActivation(() -> this.publicifyQNames($factory));
+        REUSE_QNAMES.doOnActivation(this::publicifyQNames, $factory);
         return true;
     }
 
