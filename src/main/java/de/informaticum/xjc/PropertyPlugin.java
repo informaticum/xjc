@@ -92,12 +92,10 @@ extends BasePlugin {
     }
 
     @Override
-    public boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    public final boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {
-        // activate implicit arguments
         FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHTGETTERS);
-        // execute usual process
-        return super.run(outline, options, errorHandler);
+        return true;
     }
 
     @Override

@@ -57,7 +57,7 @@ implements RunningPlugin, InitialisedOutline {
         this.currentErrorHandler = errorHandler;
         this.sayHi();
         try {
-            var result = true;
+            var result = this.prepareRun(outline, options, errorHandler);
             for (final var pakkage : outline.getAllPackageContexts()) {
                 result &= this.runPackage(pakkage);
                 result &= this.runObjectFactory(pakkage.objectFactory());
@@ -132,6 +132,11 @@ implements RunningPlugin, InitialisedOutline {
         System.out.println(INPROVING);
         System.out.println(REPOSITORY);
 
+    }
+
+    protected boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    throws SAXException, Exception {
+        return true;
     }
 
     protected boolean runPackage(final PackageOutline pakkage)

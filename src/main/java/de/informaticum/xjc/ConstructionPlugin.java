@@ -144,15 +144,12 @@ extends BasePlugin {
     }
 
     @Override
-    public boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    public final boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {
-        // activate implicit arguments
         GENERATE_VALUESCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
         GENERATE_COPYCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
-        // mark each class Cloneable, so the generated code is allowed to base on that abilities
         outline.getClasses().forEach(this::considerCloneable);
-        // execute usual process
-        return super.run(outline, options, errorHandler);
+        return true;
     }
 
     @Override

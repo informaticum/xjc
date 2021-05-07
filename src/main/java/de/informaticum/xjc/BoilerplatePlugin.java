@@ -31,7 +31,6 @@ import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import org.slf4j.Logger;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 
 public final class BoilerplatePlugin
 extends BasePlugin {
@@ -61,13 +60,10 @@ extends BasePlugin {
     }
 
     @Override
-    public boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
-    throws SAXException {
-        // activate implicit arguments
+    public boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler) {
         GENERATE_EQUALS.alsoActivate(GENERATE_HASHCODE);
         GENERATE_HASHCODE.alsoActivate(GENERATE_EQUALS);
-        // execute usual process
-        return super.run(outline, options, errorHandler);
+        return true;
     }
 
     @Override
