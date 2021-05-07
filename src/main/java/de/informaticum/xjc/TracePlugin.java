@@ -16,7 +16,7 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(TracePlugin.class);
 
-    public static final String OPTION_NAME = "informaticum-xjc-trace";
+    private static final String OPTION_NAME = "informaticum-xjc-trace";
 
     @Override
     public final Entry<String, String> getOption() {

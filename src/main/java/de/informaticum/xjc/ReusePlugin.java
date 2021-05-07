@@ -17,7 +17,7 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(ReusePlugin.class);
 
-    public static final String OPTION_NAME = "informaticum-xjc-reuse";
+    private static final String OPTION_NAME = "informaticum-xjc-reuse";
     private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", "Modify QName constants' accessibility to \"public\". Default: false");
 
     @Override
