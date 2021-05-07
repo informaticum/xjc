@@ -29,11 +29,12 @@ public enum OptionalAnalysis {
 
     public static final JClass accordingOptionalTypeFor(final JType $type) {
         final var model = $type.owner();
-        if (model.DOUBLE.equals($type.unboxify())) {
+        final var primitive = $type.unboxify();
+        if (model.DOUBLE.equals(primitive)) {
             return model.ref(OptionalDouble.class);
-        } else if (model.INT.equals($type.unboxify())) {
+        } else if (model.INT.equals(primitive)) {
             return model.ref(OptionalInt.class);
-        } else if (model.LONG.equals($type.unboxify())) {
+        } else if (model.LONG.equals(primitive)) {
             return model.ref(OptionalLong.class);
         } else {
             return model.ref(Optional.class).narrow($type.boxify());
