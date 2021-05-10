@@ -102,7 +102,7 @@ implements RunningPlugin, InitialisedOutline {
     protected void sayHi(final Consumer<? super String> sink) {
         sink.accept(       "### Hey JAX-B/JAX-WS user,"                                                       );
         sink.accept(       "### you are using one of the informaticum's XJC plugins, i.e., the:"              );
-        sink.accept(format("###   - %s (%s),", this.getOption().getKey(), this.getOption().getValue())        );
+        sink.accept(format("###   - %s (%s),", this.getOptionName(), this.getOptionDescription())             );
         sink.accept(       "### If you appreciate it, let me know at:"                                        );
         sink.accept(       "###   - mailto:xjc@informaticum.de"                                               );
         sink.accept(       "### If you have any improvement or feature suggestion, feel free to add these at:");

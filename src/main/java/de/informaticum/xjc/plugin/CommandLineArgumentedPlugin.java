@@ -13,19 +13,33 @@ public abstract class CommandLineArgumentedPlugin
 extends Plugin {
 
     /**
-     * Gets the option name to turn on this add-on; And gets the add-on's description. The strong coupling of both
-     * attributes becomes manifest in usage of the the {@link Entry} data structure.
+     * Gets the option name to use for XJC add-on activation; Plus, gets the add-on's description. The strong coupling
+     * of both attributes becomes manifest in the usage of the {@link Entry} data structure.
      *
+     * @return the name and the description of this XJC add-on
      * @see #getOptionName()
+     * @see #getOptionDescription()
      */
     public abstract Entry<String, String> getOption();
 
     /**
      * @implNote The current implementation returns the key attribute of {@link #getOption()}.
+     *
+     * @see #getOption()
+     * @see #getOptionDescription()
      */
     @Override
     public final String getOptionName() {
         return this.getOption().getKey();
+    }
+
+    /**
+     * @return the description of this XJC add-on
+     * @see #getOption()
+     * @see #getOptionName()
+     */
+    public final String getOptionDescription() {
+        return this.getOption().getValue();
     }
 
     /**
@@ -43,16 +57,16 @@ extends Plugin {
         final var pluginArgs = this.getPluginArguments();
         final var width = pluginArgs.stream().mapToInt(arg -> arg.getArgument().length()).max().orElse(this.getOptionName().length());
         final var usage = new StringBuilder();
-        usage.append(format("  %1$s :  %2$s%n", "-" + this.getOptionName(), this.getOption().getValue()));
+        usage.append(format("  %1$s :  %2$s%n", "-" + this.getOptionName(), this.getOptionDescription()));
         pluginArgs.forEach(arg -> usage.append(format("  %1$-" + width + "s :  %2$s%n", arg.getArgument(), arg.getDescription())));
         return usage.toString();
     }
 
     /**
      * @implNote The current implementation parses the arguments and -- if an according argument has been supplied by
-     *           {@link #getPluginArguments()} -- the specific
-     *           {@linkplain CommandLineArgument#parseArgument(Options, String[], int) argument parsing method} will be
-     *           called.
+     *           {@link #getPluginArguments()} -- the
+     *           {@linkplain CommandLineArgument#parseArgument(Options, String[], int) specific argument parsing method}
+     *           will be called.
      */
     @Override
     public int parseArgument(final Options options, final String[] arguments, final int index)
