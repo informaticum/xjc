@@ -20,7 +20,7 @@ extends BasePlugin {
 
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, "Traces all generated sources, mainly intended to enable debugging purposes.");
+        return new SimpleImmutableEntry<>(OPTION_NAME, "Traces/Logs all generated sources, mainly intended to enable debugging purposes.");
     }
 
     @Override
