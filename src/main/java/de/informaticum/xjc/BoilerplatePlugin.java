@@ -80,6 +80,7 @@ extends BasePlugin {
             LOG.warn(SKIP_METHOD, EQUALS_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
+        LOG.info(GENERATE_METHOD, EQUALS_SIGNATURE, fullName(clazz));
         // 2/4: Create
         final var $Type = clazz.implClass;
         final var $equals = $Type.method(PUBLIC, boolean.class, equals);
@@ -114,6 +115,7 @@ extends BasePlugin {
             LOG.warn(SKIP_METHOD, HASHCODE_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
+        LOG.info(GENERATE_METHOD, HASHCODE_SIGNATURE, fullName(clazz));
         // 2/4: Create
         final var $Type = clazz.implClass;
         final var $hashCode = $Type.method(PUBLIC, int.class, hashCode);
@@ -141,6 +143,7 @@ extends BasePlugin {
             LOG.warn(SKIP_METHOD, TOSTRING_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
+        LOG.info(GENERATE_METHOD, TOSTRING_SIGNATURE, fullName(clazz));
         // 2/4: Create
         final var $Type = clazz.implClass;
         final var $toString = $Type.method(PUBLIC, String.class, toString);
