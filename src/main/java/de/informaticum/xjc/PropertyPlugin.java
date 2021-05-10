@@ -127,7 +127,7 @@ extends BasePlugin {
                 final var $factory = accordingDefaultFactoryFor($OriginalType);
                 $straightGetter.body()._return(cond($this.ref($property).eq($null), $factory, $this.ref($property)));
                 // Subsequently (!) remove the original getter method
-                clazz.implClass.methods().remove($getter);
+                $class.methods().remove($getter);
             }
         }
 
@@ -205,7 +205,8 @@ extends BasePlugin {
     private final void removeSetter(final ClassOutline clazz) {
         for (final var $setter : generatedSettersOf(clazz).values()) {
             LOG.info("Remove property setter [{}#{}({})].", fullName(clazz), $setter.name(), $setter.type().fullName());
-            clazz.implClass.methods().remove($setter);
+            final var $class = clazz.implClass;
+            $class.methods().remove($setter);
         }
     }
 

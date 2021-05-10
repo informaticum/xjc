@@ -82,8 +82,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_METHOD, EQUALS_SIGNATURE, fullName(clazz));
         // 2/4: Create
-        final var $Type = clazz.implClass;
-        final var $equals = $Type.method(PUBLIC, boolean.class, equals);
+        final var $class = clazz.implClass;
+        final var $equals = $class.method(PUBLIC, boolean.class, equals);
         // 3/4: JavaDocument/Annotate
         $equals.javadoc().append("{@inheritDoc}")
                          .append("")
@@ -101,7 +101,7 @@ extends BasePlugin {
         final var properties = generatedPropertiesOf(clazz);
         if (!properties.isEmpty()) {
             final var $Objects = this.reference(Objects.class);
-            final var $that = $equals.body().decl(FINAL, $Type, "that", cast($Type, $other));
+            final var $that = $equals.body().decl(FINAL, $class, "that", cast($class, $other));
             for (final var $property : properties.values()) {
                 comparisons.add($Objects.staticInvoke(equals).arg($this.ref($property)).arg($that.ref($property)));
             }
@@ -117,8 +117,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_METHOD, HASHCODE_SIGNATURE, fullName(clazz));
         // 2/4: Create
-        final var $Type = clazz.implClass;
-        final var $hashCode = $Type.method(PUBLIC, int.class, hashCode);
+        final var $class = clazz.implClass;
+        final var $hashCode = $class.method(PUBLIC, int.class, hashCode);
         // 3/4: JavaDocument/Annotate
         $hashCode.javadoc().append("{@inheritDoc}")
                            .append("")
@@ -145,8 +145,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_METHOD, TOSTRING_SIGNATURE, fullName(clazz));
         // 2/4: Create
-        final var $Type = clazz.implClass;
-        final var $toString = $Type.method(PUBLIC, String.class, toString);
+        final var $class = clazz.implClass;
+        final var $toString = $class.method(PUBLIC, String.class, toString);
         // 3/4: JavaDocument/Annotate
         $toString.javadoc().append("{@inheritDoc}")
                            .append("")
@@ -164,7 +164,7 @@ extends BasePlugin {
         if (clazz.getSuperClass() != null) {
             segments.add(lit("Super: ").plus($super.invoke(toString)));
         }
-        final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg($Type.name() + "[").arg("]");
+        final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg($class.name() + "[").arg("]");
         $toString.body()._return(segments.stream().reduce($joiner, (partial, segement) -> partial.invoke("add").arg(segement)).invoke(toString));
     }
 
