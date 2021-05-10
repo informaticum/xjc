@@ -33,13 +33,7 @@ public enum JavaDoc {
 
     public static final String PARAM_WITH_DEFAULT_SINGLE_VALUE = "value for the attribute '%s' (can be {@code null} because an according default value will be used instead)";
 
-    public static final String RETURN_IMMUTABLE_VALUE = "an immutable version of the value of the attribute '%s'";
-
     public static final String RETURN_OPTIONAL_IMMUTABLE_VALUE = "an immutable version of the value of the optional attribute '%s'";
-
-    public static final String RETURN_OPTIONAL_VALUE = "the value of the optional attribute '%s'";
-
-    public static final String RETURN_STRAIGHT_VALUE = "the value of the attribute '%s'";
 
     public static final String THROWS_IAE_BY_NULL = "iff any given value is {@code null} illegally";
 

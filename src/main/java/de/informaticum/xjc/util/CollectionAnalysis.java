@@ -88,7 +88,7 @@ public enum CollectionAnalysis {
         }
     }
 
-    public static final JInvocation accordingImmutableFactoryFor(final JType $type) {
+    public static final JInvocation accordingUnmodifiableViewFactoryFor(final JType $type) {
         final var model = $type.owner();
         final var $Collections = model.ref(Collections.class);
         final var rawType = $type.boxify().erasure();
