@@ -91,6 +91,7 @@ implements RunningPlugin, InitialisedOutline {
     }
 
     protected void sayHi(final Consumer<? super String> sink) {
+        sink.accept(       "#################################################################################");
         sink.accept(       "### Hey JAX-B/JAX-WS user,"                                                       );
         sink.accept(       "### you are using one of the informaticum's XJC plugins, i.e., the:"              );
         sink.accept(format("###   - %s (%s),", this.getOptionName(), this.getOptionDescription())             );
@@ -98,6 +99,7 @@ implements RunningPlugin, InitialisedOutline {
         sink.accept(       "###   - mailto:xjc@informaticum.de"                                               );
         sink.accept(       "### If you have any improvement or feature suggestion, feel free to add these at:");
         sink.accept(       "###   - https://github.com/informaticum/xjc"                                      );
+        sink.accept(       "#################################################################################");
     }
 
     protected boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
