@@ -109,7 +109,7 @@ extends BasePlugin {
         // GENERATE_DEFENSIVECOPIES is used indirectly
         // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.) 
         HIDE_DEFAULTCONSTRUCTOR.doOnActivation(this::hideDefaultConstructor, clazz);
-        HIDE_DEFAULT_FACTORIES.doOnActivation(this::considerHideDefaultFactory, clazz);
+        HIDE_DEFAULT_FACTORIES.doOnActivation(this::hideDefaultFactory, clazz);
         REMOVE_DEFAULT_FACTORIES.doOnActivation(this::removeDefaultFactory, clazz);
         return true;
     }
@@ -414,7 +414,7 @@ extends BasePlugin {
         }
     }
 
-    private final void considerHideDefaultFactory(final ClassOutline clazz) {
+    private final void hideDefaultFactory(final ClassOutline clazz) {
         final var $ObjectFactory = clazz._package().objectFactory();
         final var $factory = getMethod($ObjectFactory, guessFactoryName(clazz));
         if ($factory == null) {
