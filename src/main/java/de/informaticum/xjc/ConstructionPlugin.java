@@ -125,8 +125,7 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $constructor = $class.constructor(PUBLIC);
         // 3/3: Implement (with JavaDoc)
-        $constructor.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>")
-                              .append("In detail, ");
+        $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
         if (clazz.getSuperClass() != null) {
             $constructor.javadoc().append("the default constructor of the super class is called, and then ");
             $constructor.body().invoke("super");
@@ -151,17 +150,15 @@ extends BasePlugin {
         // 2/2: Modify
         final var $constructor = getConstructor(clazz);
         $constructor.mods().setProtected();
-        $constructor.javadoc().append("")
-                              .append("This constructor has been <a href=\"https://github.com/informaticum/xjc\">intentionally set on {@code protected} visibility</a> to be not used anymore.")
-                              .append("Instead in order to create instances of this class, use any of the other constructors");
+        $constructor.javadoc().append(format("%n%nThis constructor has been <a href=\"https://github.com/informaticum/xjc\">intentionally set on {@code protected} visibility</a> to be not used anymore."))
+                              .append(format("%nInstead in order to create instances of this class, use any of the other constructors"));
         final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
         if ($Builder.isPresent()) {
             $constructor.javadoc().append(" or utilise the nested ").append($Builder.get());
         }
-        $constructor.javadoc().append(".")
-                              .append("")
-                              .append("Since JAX-B's reflective instantiation bases on a default constructor, it has not been removed.")
-                              .append("(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)");
+        $constructor.javadoc().append(format(".%n"))
+                              .append(format("%nSince JAX-B's reflective instantiation bases on a default constructor, it has not been removed."))
+                              .append(format("%n(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)"));
     }
 
     private final void generateValuesConstructor(final ClassOutline clazz) {
@@ -179,8 +176,7 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $constructor = $class.constructor(PUBLIC);
         // 3/3: Implement (with JavaDoc)
-        $constructor.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>")
-                              .append("In detail, ");
+        $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
         $constructor.javadoc(/* TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten) */).addThrows(IllegalArgumentException.class).append("iff any given value is {@code null} illegally");
         if (clazz.getSuperClass() != null) {
             $constructor.javadoc().append("the all-values constructor of the super class is called, and then ");
@@ -194,7 +190,7 @@ extends BasePlugin {
             }
         }
         $constructor.javadoc().append("all fields are assigned in succession.")
-                              .append("If any given value is invalid, either the according default value will be assigned (if such value exists) or an according exception will be thrown.");
+                              .append(format("%nIf any given value is invalid, either the according default value will be assigned (if such value exists) or an according exception will be thrown."));
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -274,8 +270,7 @@ extends BasePlugin {
         final var $blueprint = $constructor.param(FINAL, $class, "blueprint");
         // TODO: Null-Check of $blueprint
         $constructor.javadoc().addParam($blueprint).append("the blueprint instance");
-        $constructor.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>")
-                              .append("In detail, ");
+        $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
         if (clazz.getSuperClass() != null) {
             $constructor.javadoc().append("the copy-constructor of the super class is called, and then ");
             $constructor.body().invoke("super").arg($blueprint);
@@ -428,9 +423,8 @@ extends BasePlugin {
             LOG.info("Hide default factory [{}#{}()].", fullName($ObjectFactory), $factory.name());
             $factory.mods().setPrivate();
             $factory.annotate(SuppressWarnings.class).param("value", "unused");
-            $factory.javadoc().append("")
-                              .append("This factory method has been intentionally set on {@code protected} visibility to be not used anymore.")
-                              .append("Instead in order to create instances of this class, use the all-values constructor");
+            $factory.javadoc().append(format("%n%nThis factory method has been intentionally set on {@code protected} visibility to be not used anymore."))
+                              .append(format("%nInstead in order to create instances of this class, use the all-values constructor"));
             final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
             if ($Builder.isPresent()) {
                 $factory.javadoc().append(" or utilise the nested ").append($Builder.get());

@@ -89,9 +89,8 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $equals = $class.method(PUBLIC, boolean.class, equals);
         // 3/4: JavaDocument/Annotate
-        $equals.javadoc().append("{@inheritDoc}")
-                         .append("")
-                         .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code equals} method</a> compares each field of {@code this} instance with the according field of the {@code other} instance.");
+        $equals.javadoc().append(format("{@inheritDoc}%n"))
+                         .append(format("%n@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code equals} method</a> compares each field of {@code this} instance with the according field of the {@code other} instance."));
         $equals.annotate(Override.class);
         // 4/4: Implement
         final var $other = $equals.param(FINAL, this.reference(Object.class), "other");
@@ -124,10 +123,9 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $hashCode = $class.method(PUBLIC, int.class, hashCode);
         // 3/4: JavaDocument/Annotate
-        $hashCode.javadoc().append("{@inheritDoc}")
-                           .append("")
-                           .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code hashCode} method</a> considers the hash-code of each field of {@code this} instance to compute the overall return result.")
-                           .append("(If there is no field at all, the hash-code of {@code this} instance's {@linkplain #getClass() class} is returned instead.)");
+        $hashCode.javadoc().append(format("{@inheritDoc}%n"))
+                           .append(format("%n@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code hashCode} method</a> considers the hash-code of each field of {@code this} instance to compute the overall return result."))
+                           .append(format("%n(If there is no field at all, the hash-code of {@code this} instance's {@linkplain #getClass() class} is returned instead.)"));
         $hashCode.annotate(Override.class);
         // 4/4: Implement
         final var $Objects = this.reference(Objects.class);
@@ -152,9 +150,8 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $toString = $class.method(PUBLIC, String.class, toString);
         // 3/4: JavaDocument/Annotate
-        $toString.javadoc().append("{@inheritDoc}")
-                           .append("")
-                           .append("@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code toString} method</a> returns a human readable list of all fields of {@code this} instance, each mapping to its own string representation.");
+        $toString.javadoc().append(format("{@inheritDoc}%n"))
+                           .append(format("%n@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code toString} method</a> returns a human readable list of all fields of {@code this} instance, each mapping to its own string representation."));
         $toString.annotate(Override.class);
         // 4/4: Implement
         final var $Objects = this.reference(Objects.class);
