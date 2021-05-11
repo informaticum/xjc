@@ -10,22 +10,9 @@ import static com.sun.codemodel.JMod.PROTECTED;
 import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JMod.STATIC;
 import static com.sun.codemodel.JOp.cond;
-import static de.informaticum.xjc.JavaDoc.COPY_CONSTRUCTOR_JAVADOC_FIELDS;
-import static de.informaticum.xjc.JavaDoc.COPY_CONSTRUCTOR_JAVADOC_INTRO;
-import static de.informaticum.xjc.JavaDoc.COPY_CONSTRUCTOR_JAVADOC_SUPER;
-import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_FIELDS;
-import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_INTRO;
-import static de.informaticum.xjc.JavaDoc.DEFAULT_CONSTRUCTOR_JAVADOC_SUPER;
-import static de.informaticum.xjc.JavaDoc.DEFAULT_FIELD_ASSIGNMENT;
-import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_OPTIONAL;
-import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_PRIMITIVE;
-import static de.informaticum.xjc.JavaDoc.PARAM_THAT_IS_REQUIRED;
-import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_MULTI_VALUE;
-import static de.informaticum.xjc.JavaDoc.PARAM_WITH_DEFAULT_SINGLE_VALUE;
-import static de.informaticum.xjc.JavaDoc.THROWS_IAE_BY_NULL;
-import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC_FIELDS;
-import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC_INTRO;
-import static de.informaticum.xjc.JavaDoc.VALUES_CONSTRUCTOR_JAVADOC_SUPER;
+import static de.informaticum.xjc.BoilerplatePlugin.BECAUSE_METHOD_ALREADY_EXISTS;
+import static de.informaticum.xjc.BoilerplatePlugin.GENERATE_METHOD;
+import static de.informaticum.xjc.BoilerplatePlugin.SKIP_METHOD;
 import static de.informaticum.xjc.plugin.TargetCode.$null;
 import static de.informaticum.xjc.plugin.TargetCode.$super;
 import static de.informaticum.xjc.plugin.TargetCode.$this;
@@ -53,7 +40,6 @@ import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
@@ -74,58 +60,25 @@ extends BasePlugin {
 
     private static final Logger LOG = getLogger(ConstructionPlugin.class);
 
-    public static final String ADD_INTERFACE = "Add [{}] interface extension for [{}].";
-    public static final String SKIP_INTERFACE = "Skip [{}] interface extension for [{}] because {}.";
-    public static final String BECAUSE_ALREADY_IMPLEMENTED = "interface is already implemented";
-
-    public static final String GENERATE_CONSTRUCTOR = "Generate {} constructor for [{}].";
-    public static final String SKIP_CONSTRUCTOR = "Skip creation of {} constructor for [{}] because {}.";
-    public static final String BECAUSE_CONSTRUCTOR_ALREADY_EXISTS = "such constructor already exists";
-    public static final String BECAUSE_EFFECTIVELY_SIMILAR = "it is effectively similar to default-constructor";
-
-    private static final String HIDE_DEFAULT_CONSTRUCTOR = "Hide default constructor [{}#{}()].";
-    private static final String SKIP_HIDE_DEFAULT_CONSTRUCTOR = "Skip hiding of default constructor for [{}] because {}.";
-
-    public static final String GENERATE_FACTORY = "Adopt {} constructor for [{}] in according package's ObjectFactory.";
-    public static final String SKIP_FACTORY = "Skip adoption of {} object-factory method for [{}] because {}.";
-    public static final String BECAUSE_ABSTRACT_CLASS = "this class is abstract";
-    public static final String BECAUSE_UNDEFINED_DEFAULT_PENDANT = "according package's ObjectFactory does not contain a pendant default object-factory method for this class";
-    public static final String BECAUSE_UNDEFINED_OBJECT_FACTORY = "there is no according package's ObjectFactory";
-    public static final String BECAUSE_FACTORY_ALREADY_EXISTS = "such object-factory method already exists";
-
-    public static final String GENERATE_BUILDER = "Generate builder for [{}].";
-    public static final String SKIP_BUILDER = "Skip creation of builder for [{}] because {}.";
-
-    private static final String HIDE_DEFAULT_FACTORY = "Hide default factory [{}#{}()].";
-    private static final String SKIP_HIDE_DEFAULT_FACTORY = "Skip removal of default factory method for [{}] because {}.";
-
-    private static final String REMOVE_DEFAULT_FACTORY = "Remove default factory [{}#{}()].";
-    private static final String SKIP_REMOVE_DEFAULT_FACTORY = "Skip removal of default factory method for [{}] because {}.";
-
     private static final String clone = "clone";
     private static final String CLONE_SIGNATURE = format("#%s()", clone);
 
-    private static final String OPTION_NAME = "ITBSG-xjc-construction";
-    private static final String GENERATE_DEFAULTCONSTRUCTOR_NAME = "construction-default-constructor";
-    private static final CommandLineArgument GENERATE_DEFAULTCONSTRUCTOR = new CommandLineArgument(GENERATE_DEFAULTCONSTRUCTOR_NAME, "Generate default constructor.");
-    private static final String HIDE_DEFAULTCONSTRUCTOR_NAME = "construction-hide-default-constructor";
-    private static final CommandLineArgument HIDE_DEFAULTCONSTRUCTOR = new CommandLineArgument(HIDE_DEFAULTCONSTRUCTOR_NAME, "Hides default constructors if such constructor exists. Default: false");
+    private static final String OPTION_NAME = "informaticum-xjc-construction";
+    private static final CommandLineArgument GENERATE_DEFAULTCONSTRUCTOR = new CommandLineArgument("construction-default-constructor",      "Generate default constructor. Default: false");
+    private static final CommandLineArgument HIDE_DEFAULTCONSTRUCTOR     = new CommandLineArgument("construction-hide-default-constructor", "Hides default constructors if such constructor exists. Default: false");
     // TODO: Minimum-value constructor (only required fields without default)
     // TODO: Reduced-value constructor (only required fields)
-    private static final String GENERATE_VALUESCONSTRUCTOR_NAME = "construction-values-constructor";
-    private static final CommandLineArgument GENERATE_VALUESCONSTRUCTOR = new CommandLineArgument(GENERATE_VALUESCONSTRUCTOR_NAME, format("Generate all-values constructor (automatically enables option '%s').", GENERATE_DEFAULTCONSTRUCTOR_NAME));
-    private static final String GENERATE_COPYCONSTRUCTOR_NAME = "construction-copy-constructor";
-    private static final CommandLineArgument GENERATE_COPYCONSTRUCTOR = new CommandLineArgument(GENERATE_COPYCONSTRUCTOR_NAME, format("Generate copy constructor (automatically enables option '%s').", GENERATE_DEFAULTCONSTRUCTOR_NAME));
-    private static final String GENERATE_VALUESBUILDER_NAME = "construction-builder";
-    private static final CommandLineArgument GENERATE_VALUESBUILDER = new CommandLineArgument(GENERATE_VALUESBUILDER_NAME, "Generate builder.");
-    private static final String GENERATE_CLONE_NAME = "construction-clone";
-    private static final CommandLineArgument GENERATE_CLONE = new CommandLineArgument(GENERATE_CLONE_NAME, format("Generate [%s] method.", CLONE_SIGNATURE));
-    private static final String GENERATE_DEFENSIVECOPIES_NAME = "construction-defensive-copies";
-    private static final CommandLineArgument GENERATE_DEFENSIVECOPIES = new CommandLineArgument(GENERATE_DEFENSIVECOPIES_NAME, "Generated code will create defensive copies of the submitted collection/array/cloneable arguments. (Note: No deep copies!)");
-    private static final String HIDE_DEFAULT_FACTORIES_NAME = "construction-hide-default-factories";
-    private static final CommandLineArgument HIDE_DEFAULT_FACTORIES = new CommandLineArgument(HIDE_DEFAULT_FACTORIES_NAME, "Hides default factory methods of object factories. Default: false");
-    private static final String REMOVE_DEFAULT_FACTORIES_NAME = "construction-remove-default-factories";
-    private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES = new CommandLineArgument(REMOVE_DEFAULT_FACTORIES_NAME, "Removes default factory methods of object factories. Default: false");
+    private static final CommandLineArgument GENERATE_VALUESCONSTRUCTOR  = new CommandLineArgument("construction-values-constructor",       "Generate all-values constructor (automatically enables option '-construction-default-constructor'). Default: false");
+    private static final CommandLineArgument GENERATE_COPYCONSTRUCTOR    = new CommandLineArgument("construction-copy-constructor",         "Generate copy constructor (automatically enables option '-construction-default-constructor'). Default: false");
+    private static final CommandLineArgument GENERATE_VALUESBUILDER      = new CommandLineArgument("construction-builder",                  "Generate builder. Default: false");
+    private static final CommandLineArgument GENERATE_CLONE              = new CommandLineArgument("construction-clone",             format("Generate [%s] method. Default: false", CLONE_SIGNATURE));
+    private static final CommandLineArgument GENERATE_DEFENSIVECOPIES    = new CommandLineArgument("construction-defensive-copies",         "Generated code will create defensive copies of the submitted collection/array/cloneable arguments. (Note: No deep copies!) Default: false");
+    private static final CommandLineArgument HIDE_DEFAULT_FACTORIES      = new CommandLineArgument("construction-hide-default-factories",   "Hides default factory methods of object factories. Default: false");
+    private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES    = new CommandLineArgument("construction-remove-default-factories", "Removes default factory methods of object factories. Default: false");
+
+    private static final String GENERATE_CONSTRUCTOR = "Generate {} constructor for [{}].";
+    private static final String SKIP_CONSTRUCTOR = "Skip creation of {} constructor for [{}] because {}.";
+    private static final String BECAUSE_CONSTRUCTOR_ALREADY_EXISTS = "such constructor already exists";
 
     @Override
     public final Entry<String, String> getOption() {
@@ -134,13 +87,7 @@ extends BasePlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR,
-                      GENERATE_VALUESCONSTRUCTOR,
-                      GENERATE_COPYCONSTRUCTOR,
-                      GENERATE_VALUESBUILDER,
-                      GENERATE_CLONE,
-                      GENERATE_DEFENSIVECOPIES,
-                      HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
+        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COPYCONSTRUCTOR, GENERATE_VALUESBUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
     }
 
     @Override
@@ -148,109 +95,95 @@ extends BasePlugin {
     throws SAXException {
         GENERATE_VALUESCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
         GENERATE_COPYCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
-        outline.getClasses().forEach(this::considerCloneable);
+        GENERATE_CLONE.doOnActivation(() -> outline.getClasses().forEach(this::addCloneable));
         return true;
     }
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        this.considerDefaultConstructor(clazz);
-        this.considerValuesConstructor(clazz);
-        this.considerCopyConstructor(clazz);
-        this.considerValuesBuilder(clazz);
-        this.considerClone(clazz);
+        GENERATE_DEFAULTCONSTRUCTOR.doOnActivation(this::generateDefaultConstructor, clazz);
+        GENERATE_VALUESCONSTRUCTOR.doOnActivation(this::generateValuesConstructor, clazz);
+        GENERATE_COPYCONSTRUCTOR.doOnActivation(this::generateCopyConstructor, clazz);
+        GENERATE_VALUESBUILDER.doOnActivation(this::generateValuesBuilder, clazz);
+        GENERATE_CLONE.doOnActivation(this::addClone, clazz);
+        // GENERATE_DEFENSIVECOPIES is used indirectly
         // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.) 
-        this.considerHideDefaultConstructor(clazz);
-        this.considerHideDefaultFactory(clazz);
-        this.considerRemoveDefaultFactory(clazz);
+        HIDE_DEFAULTCONSTRUCTOR.doOnActivation(this::hideDefaultConstructor, clazz);
+        HIDE_DEFAULT_FACTORIES.doOnActivation(this::considerHideDefaultFactory, clazz);
+        REMOVE_DEFAULT_FACTORIES.doOnActivation(this::removeDefaultFactory, clazz);
         return true;
     }
 
-    private final void considerDefaultConstructor(final ClassOutline clazz) {
-        if (!GENERATE_DEFAULTCONSTRUCTOR.isActivated()) {
-            LOG.trace(SKIP_CONSTRUCTOR, "default", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getConstructor(clazz) != null) {
-            LOG.warn(SKIP_CONSTRUCTOR, "default", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
-        } else {
-            LOG.info(GENERATE_CONSTRUCTOR, "default", fullName(clazz));
-            assertThat(getConstructor(clazz)).as("check undefined %s constructor", "default").isNull();
-            this.generateDefaultConstructor(clazz);
-            assertThat(getConstructor(clazz)).as("check generated %s constructor", "default").isNotNull();
-            // TODO: Verify Object-Factory's zero-arguments construction method exists (or create it?)
-        }
-    }
-
     private final void generateDefaultConstructor(final ClassOutline clazz) {
-        // 1/2: Create
-        final var $Type = clazz.implClass;
-        final var $constructor = $Type.constructor(PUBLIC);
-        // 2/2: Implement (with JavaDoc)
-        $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC_INTRO));
+        // 1/3: Prepare
+        if (getConstructor(clazz) != null) {
+            LOG.warn(SKIP_CONSTRUCTOR, "default", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
+            return;
+        }
+        LOG.info(GENERATE_CONSTRUCTOR, "default", fullName(clazz));
+        // 2/3: Create
+        final var $class = clazz.implClass;
+        final var $constructor = $class.constructor(PUBLIC);
+        // 3/3: Implement (with JavaDoc)
+        $constructor.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>")
+                              .append("In detail, ");
         if (clazz.getSuperClass() != null) {
-            $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC_SUPER));
+            $constructor.javadoc().append("the default constructor of the super class is called, and then ");
             $constructor.body().invoke("super");
         }
-        $constructor.javadoc().append(format(DEFAULT_CONSTRUCTOR_JAVADOC_FIELDS));
+        $constructor.javadoc().append("all fields are initialised in succession.");
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
             final var $value = defaultValueFor(attribute).orElse($null);
-            $constructor.javadoc().append(format(DEFAULT_FIELD_ASSIGNMENT, $property.name(), render($value)));
+            $constructor.javadoc().append(format("%n%nThe field {@link #%s} will be initialised with: {@code %s}", $property.name(), render($value)));
             $constructor.body().assign($this.ref($property), $value);
         }
     }
 
-    private final void considerHideDefaultConstructor(final ClassOutline clazz) {
-        if (!HIDE_DEFAULTCONSTRUCTOR.isActivated()) {
-            LOG.trace(SKIP_HIDE_DEFAULT_CONSTRUCTOR, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getConstructor(clazz) == null) {
-            // TODO: Log the absence of the default constructor
-        } else {
-            LOG.info(HIDE_DEFAULT_CONSTRUCTOR, fullName(clazz), fullName(clazz));
-            assertThat(getConstructor(clazz)).isNotNull();
-            this.hideDefaultConstructor(clazz);
-        }
-    }
-
     private final void hideDefaultConstructor(final ClassOutline clazz) {
+        // 1/2: Prepare
+        if (getConstructor(clazz) != null) {
+            LOG.warn("Skip hiding of default constructor for [{}] because such constructor does not exist.", fullName(clazz));
+            return;
+        }
+        LOG.info("Hide default constructor [{}#{}()].", fullName(clazz), fullName(clazz));
+        // 2/2: Modify
         final var $constructor = getConstructor(clazz);
         $constructor.mods().setProtected();
-        $constructor.javadoc().append(format("%n%nThis constructor has been intentionally set on {@code protected} visibility to be not used anymore."))
-                              .append(format("%nInstead in order to create instances of this class, use the all-values constructor"));
+        $constructor.javadoc().append("")
+                              .append("This constructor has been <a href=\"https://github.com/informaticum/xjc\">intentionally set on {@code protected} visibility</a> to be not used anymore.")
+                              .append("Instead in order to create instances of this class, use any of the other constructors");
         final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
         if ($Builder.isPresent()) {
             $constructor.javadoc().append(" or utilise the nested ").append($Builder.get());
         }
-        $constructor.javadoc().append(".");
-        $constructor.javadoc().append(format("%n%nSince JAX-B's reflective instantiation bases on a default constructor, it has not been removed."))
-                              .append(format("(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)"));
+        $constructor.javadoc().append(".")
+                              .append("")
+                              .append("Since JAX-B's reflective instantiation bases on a default constructor, it has not been removed.")
+                              .append("(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)");
     }
 
-    private final void considerValuesConstructor(final ClassOutline clazz) {
-        if (!GENERATE_VALUESCONSTRUCTOR.isActivated()) {
-            LOG.trace(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (superAndGeneratedPropertiesOf(clazz).isEmpty() && GENERATE_DEFAULTCONSTRUCTOR.isActivated()) {
-            LOG.info(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_EFFECTIVELY_SIMILAR);
-        } else if (getConstructor(clazz, superAndGeneratedPropertiesOf(clazz)) != null) {
-            LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
-        } else {
-            LOG.info(GENERATE_CONSTRUCTOR, "all-values", fullName(clazz));
-            assertThat(getConstructor(clazz, superAndGeneratedPropertiesOf(clazz))).as("check undefined %s constructor", "all-values").isNull();
-            final var $constructor = this.generateValuesConstructor(clazz);
-            assertThat(getConstructor(clazz, superAndGeneratedPropertiesOf(clazz))).as("check generated %s constructor", "all-values").isNotNull();
-            // this.considerValuesObjectFactory(clazz, $constructor);
+    private final void generateValuesConstructor(final ClassOutline clazz) {
+        // 1/3: Prepare
+        if (superAndGeneratedPropertiesOf(clazz).isEmpty() && getConstructor(clazz) != null) {
+            LOG.info(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), "it is effectively similar to default-constructor");
+            return;
         }
-    }
-
-    private final JMethod generateValuesConstructor(final ClassOutline clazz) {
-        // 1/2: Create
-        final var $Type = clazz.implClass;
-        final var $constructor = $Type.constructor(PUBLIC);
-        // 2/2: Implement (with JavaDoc)
-        $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC_INTRO));
-        $constructor.javadoc(/* TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten) */).addThrows(IllegalArgumentException.class).append(format(THROWS_IAE_BY_NULL));
+        if (getConstructor(clazz, superAndGeneratedPropertiesOf(clazz)) != null) {
+            LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
+            return;
+        }
+        LOG.info(GENERATE_CONSTRUCTOR, "all-values", fullName(clazz));
+        // 2/3: Create
+        final var $class = clazz.implClass;
+        final var $constructor = $class.constructor(PUBLIC);
+        // 3/3: Implement (with JavaDoc)
+        $constructor.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>")
+                              .append("In detail, ");
+        $constructor.javadoc(/* TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten) */).addThrows(IllegalArgumentException.class).append("iff any given value is {@code null} illegally");
         if (clazz.getSuperClass() != null) {
-            $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC_SUPER));
+            $constructor.javadoc().append("the all-values constructor of the super class is called, and then ");
             final var $super = $constructor.body().invoke("super");
             for (final var property : superAndGeneratedPropertiesOf(clazz.getSuperClass()).entrySet()) {
                 final var attribute = property.getKey();
@@ -260,7 +193,8 @@ extends BasePlugin {
                 $super.arg($parameter);
             }
         }
-        $constructor.javadoc().append(format(VALUES_CONSTRUCTOR_JAVADOC_FIELDS));
+        $constructor.javadoc().append("all fields are assigned in succession.")
+                              .append("If any given value is invalid, either the according default value will be assigned (if such value exists) or an according exception will be thrown.");
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -268,7 +202,6 @@ extends BasePlugin {
             appendParameterJavaDoc($constructor.javadoc(), attribute, $parameter);
             this.accordingAssignment(attribute, $constructor, $property, $parameter);
         }
-        return $constructor;
     }
 
     private static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter) {
@@ -276,14 +209,14 @@ extends BasePlugin {
         final var name = info.getName(true);
         final var $default = defaultValueFor(attribute);
         if ($parameter.type().isPrimitive()) {
-            javadoc.addParam($parameter).append(format(PARAM_THAT_IS_PRIMITIVE, name));
+            javadoc.addParam($parameter).append(format("value for the attribute '%s'", name));
         } else if (isOptional(attribute) && $default.isEmpty()) {
-            javadoc.addParam($parameter).append(format(PARAM_THAT_IS_OPTIONAL, name));
+            javadoc.addParam($parameter).append(format("value for the attribute '%s' (can be {@code null} because attribute is optional)", name));
         } else if (isRequired(attribute) && $default.isEmpty()) {
-            javadoc.addParam($parameter).append(format(PARAM_THAT_IS_REQUIRED, name));
+            javadoc.addParam($parameter).append(format("value for the attribute '%s' (cannot be {@code null} because attribute is required)", name));
         } else {
             assertThat($default).isPresent();
-            javadoc.addParam($parameter).append(format(info.isCollection() ? PARAM_WITH_DEFAULT_MULTI_VALUE : PARAM_WITH_DEFAULT_SINGLE_VALUE, name));
+            javadoc.addParam($parameter).append(format(info.isCollection() ? "value for the attribute '%s' (can be {@code null} because an empty, modifiable list will be used instead)" : "value for the attribute '%s' (can be {@code null} because an according default value will be used instead)", name));
         }
     }
 
@@ -318,7 +251,7 @@ extends BasePlugin {
             } else if ($property.type().isArray()) {
                 return cast($property.type(), $expression.invoke("clone"));
             } else if (this.reference(Cloneable.class).isAssignableFrom($property.type().boxify())) {
-                // TODO (?): Skip cats if "clone()" already returns required type
+                // TODO (?): Skip cast if "clone()" already returns required type
                 return cast($property.type(), $expression.invoke("clone"));
             } else {
                 LOG.debug("Skip defensive copy for [{}] because [{}] is neither Collection, Array, nor Cloneable.", $property.name(), $property.type().boxify().erasure());
@@ -327,146 +260,60 @@ extends BasePlugin {
         return $expression;
     }
 
-    private final void considerValuesObjectFactory(final ClassOutline clazz, final JMethod $constructor) {
-        assertThat(GENERATE_VALUESCONSTRUCTOR.isActivated()).isTrue();
-        if (clazz._package().objectFactory() == null) {
-            LOG.error(SKIP_FACTORY, "all-values", fullName(clazz), BECAUSE_UNDEFINED_OBJECT_FACTORY);
-        } else if (clazz.implClass.isAbstract()) {
-            LOG.info(SKIP_FACTORY, "all-values", fullName(clazz), BECAUSE_ABSTRACT_CLASS);
-        } else if (getMethod(clazz._package().objectFactory(), guessFactoryName(clazz)) == null) {
-            LOG.error(SKIP_FACTORY, "all-values", fullName(clazz), BECAUSE_UNDEFINED_DEFAULT_PENDANT);
-        } else {
-            LOG.info(GENERATE_FACTORY, "all-values", fullName(clazz));
-            assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz), $constructor.listParamTypes())).as("check undefined %s factory method", "all-values").isNull();
-            this.generateValuesObjectFactory(clazz._package().objectFactory(), clazz, $constructor);
-            assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz), $constructor.listParamTypes())).as("check generated %s factory method", "all-values").isNotNull();
-        }
-    }
-
-    private final void generateValuesObjectFactory(final JDefinedClass $objectFactory, final ClassOutline clazz, final JMethod $constructor) {
-        // 1/2: Create
-        final var $defaultFactory = getMethod($objectFactory, guessFactoryName(clazz));
-        final var $valuesFactory = $objectFactory.method($defaultFactory.mods().getValue(), $defaultFactory.type(), $defaultFactory.name());
-        // 2/2: Implement (with JavaDoc)
-        $valuesFactory.javadoc().addAll($defaultFactory.javadoc());
-        // TODO: Re-throw declared exceptions of constructor
-        // TODO: @return-JavaDoc?!
-        final var $Type = clazz.implClass;
-        final var $instantiation = _new($Type);
-        for (final var $constructorParameter : $constructor.listParams()) {
-            final var $factoryParameter = $valuesFactory.param(FINAL, $constructorParameter.type(), $constructorParameter.name());
-            $valuesFactory.javadoc(/* TODO: Generate JavaDoc similar to all-values constructor */).addParam($factoryParameter).append("see all-values constructor of ").append($Type);
-            $instantiation.arg($factoryParameter);
-        }
-        $valuesFactory.body()._return($instantiation);
-    }
-
-    private final void considerCopyConstructor(final ClassOutline clazz) {
-        if (!GENERATE_COPYCONSTRUCTOR.isActivated()) {
-            LOG.trace(SKIP_CONSTRUCTOR, "copy", fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getConstructor(clazz, clazz.implClass) != null) {
+    private final void generateCopyConstructor(final ClassOutline clazz) {
+        // 1/3: Prepare
+        if (getConstructor(clazz, clazz.implClass) != null) {
             LOG.warn(SKIP_CONSTRUCTOR, "copy", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
-        } else {
-            LOG.info(GENERATE_CONSTRUCTOR, "copy", fullName(clazz));
-            assertThat(getConstructor(clazz, clazz.implClass)).as("check undefined %s constructor", "copy").isNull();
-            final var $constructor = this.generateCopyConstructor(clazz);
-            assertThat(getConstructor(clazz, clazz.implClass)).as("check generated %s constructor", "copy").isNotNull();
-            // this.considerCopyObjectFactory(clazz, $constructor);
+            return;
         }
-    }
-
-    private final JMethod generateCopyConstructor(final ClassOutline clazz) {
-        // 1/2: Create
-        final var $Type = clazz.implClass;
-        final var $constructor = $Type.constructor(PUBLIC);
-        // 2/2: Implement (with JavaDoc)
-        final var $blueprint = $constructor.param(FINAL, $Type, "blueprint");
+        LOG.info(GENERATE_CONSTRUCTOR, "copy", fullName(clazz));
+        // 2/3: Create
+        final var $class = clazz.implClass;
+        final var $constructor = $class.constructor(PUBLIC);
+        // 3/3: Implement (with JavaDoc)
+        final var $blueprint = $constructor.param(FINAL, $class, "blueprint");
         // TODO: Null-Check of $blueprint
         $constructor.javadoc().addParam($blueprint).append("the blueprint instance");
-        $constructor.javadoc().append(format(COPY_CONSTRUCTOR_JAVADOC_INTRO));
+        $constructor.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>")
+                              .append("In detail, ");
         if (clazz.getSuperClass() != null) {
-            $constructor.javadoc().append(format(COPY_CONSTRUCTOR_JAVADOC_SUPER));
+            $constructor.javadoc().append("the copy-constructor of the super class is called, and then ");
             $constructor.body().invoke("super").arg($blueprint);
         }
-        $constructor.javadoc().append(format(COPY_CONSTRUCTOR_JAVADOC_FIELDS));
+        $constructor.javadoc().append("all fields are assigned in succession.");
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
             $constructor.body().assign($this.ref($property), this.potentialDefensiveCopy(attribute, $property, $blueprint.ref($property)));
         }
-        return $constructor;
-    }
-
-    private final void considerCopyObjectFactory(final ClassOutline clazz, final JMethod $constructor) {
-        assertThat(GENERATE_COPYCONSTRUCTOR.isActivated()).isTrue();
-        if (clazz._package().objectFactory() == null) {
-            LOG.error(SKIP_FACTORY, "copy", fullName(clazz), BECAUSE_UNDEFINED_OBJECT_FACTORY);
-        } else if (clazz.implClass.isAbstract()) {
-            LOG.info(SKIP_FACTORY, "copy", fullName(clazz), BECAUSE_ABSTRACT_CLASS);
-        } else if (getMethod(clazz._package().objectFactory(), guessFactoryName(clazz)) == null) {
-            LOG.error(SKIP_FACTORY, "copy", fullName(clazz), BECAUSE_UNDEFINED_DEFAULT_PENDANT);
-        } else {
-            LOG.info(GENERATE_FACTORY, "copy", fullName(clazz));
-            assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz), clazz.implClass)).as("check undefined %s factory method", "copy").isNull();
-            this.generateCopyObjectFactory(clazz._package().objectFactory(), clazz, $constructor);
-            assertThat(getMethod(clazz._package().objectFactory(), guessFactoryName(clazz), clazz.implClass)).as("check generated %s factory method", "copy").isNotNull();
-        }
-    }
-
-    private final void generateCopyObjectFactory(final JDefinedClass $objectFactory, final ClassOutline clazz, final JMethod $constructor) {
-        // 1/2: Create
-        final var $defaultFactory = getMethod($objectFactory, guessFactoryName(clazz));
-        final var copyFactory = $objectFactory.method($defaultFactory.mods().getValue(), $defaultFactory.type(), $defaultFactory.name());
-        // 2/2: Implement (with JavaDoc)
-        copyFactory.javadoc().addAll($defaultFactory.javadoc());
-        final var $Type = clazz.implClass;
-        final var $blueprint = copyFactory.param(FINAL, $Type, "blueprint");
-        // TODO: Null-Check of $blueprint
-        copyFactory.javadoc(/* TODO: Generate JavaDoc similar to all-values constructor */).addParam($blueprint).append("the blueprint instance, see copy constructor of ").append($Type);
-        copyFactory.body()._return(_new($Type).arg($blueprint));
-    }
-
-    private final void considerCloneable(final ClassOutline clazz) {
-        if (!GENERATE_CLONE.isActivated()) {
-            LOG.trace(SKIP_INTERFACE, Cloneable.class, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)) {
-            LOG.warn(SKIP_INTERFACE, Cloneable.class, fullName(clazz), BECAUSE_ALREADY_IMPLEMENTED);
-        } else {
-            LOG.info(ADD_INTERFACE, Cloneable.class, fullName(clazz));
-            assertThat(this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)).isFalse();
-            this.addCloneable(clazz);
-            assertThat(this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)).isTrue();
-        }
     }
 
     private final void addCloneable(final ClassOutline clazz) {
-        // 1/1: Implement
-        final var $Type = clazz.implClass;
-        $Type._implements(Cloneable.class);
-    }
-
-    private final void considerClone(final ClassOutline clazz) {
-        if (!GENERATE_CLONE.isActivated()) {
-            LOG.trace(SKIP_METHOD, CLONE_SIGNATURE, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else if (getMethod(clazz, clone) != null) {
-            LOG.warn(SKIP_METHOD, CLONE_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
-        } else {
-            LOG.info(GENERATE_METHOD, CLONE_SIGNATURE, fullName(clazz));
-            assertThat(this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)).isTrue();
-            assertThat(getMethod(clazz, clone)).as("check undefined method %s", CLONE_SIGNATURE).isNull();
-            this.addClone(clazz);
-            assertThat(this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)).isTrue();
-            assertThat(getMethod(clazz, clone)).as("check generated method %s", CLONE_SIGNATURE).isNotNull();
+        // 1/2: Prepare
+        if (this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)) {
+            LOG.warn("Skip [{}] interface extension for [{}] because interface is already implemented.", Cloneable.class, fullName(clazz));
+            return;
         }
+        LOG.info("Add [{}] interface extension for [{}].", Cloneable.class, fullName(clazz));
+        // 2/2: Implement
+        final var $class = clazz.implClass;
+        $class._implements(Cloneable.class);
     }
 
     private final void addClone(final ClassOutline clazz) {
-        // 1/3: Create
-        final var $Type = clazz.implClass;
-        final var $clone = $Type.method(PUBLIC, $Type, clone);
-        // 2/3: Annotate
+        // 1/4: Prepare
+        if (getMethod(clazz, clone) != null) {
+            LOG.warn(SKIP_METHOD, CLONE_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            return;
+        }
+        assertThat(this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)).isTrue();
+        LOG.info(GENERATE_METHOD, CLONE_SIGNATURE, fullName(clazz));
+        // 2/4: Create
+        final var $class = clazz.implClass;
+        final var $clone = $class.method(PUBLIC, $class, clone);
+        // 3/4: Annotate
         $clone.annotate(Override.class);
-        // 3/3: Implement (with JavaDoc)
+        // 4/4: Implement (with JavaDoc)
         final JBlock $body;
         if (clazz.getSuperClass() == null) {
             final var $try = $clone.body()._try();
@@ -478,7 +325,7 @@ extends BasePlugin {
         } else {
             $body = $clone.body();
         }
-        final var $reproduction = $body.decl(FINAL, $Type, "reproduction", cast($Type, $super.invoke("clone")));
+        final var $reproduction = $body.decl(FINAL, $class, "reproduction", cast($class, $super.invoke("clone")));
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -487,17 +334,9 @@ extends BasePlugin {
         $body._return($reproduction);
     }
 
-    private final void considerValuesBuilder(final ClassOutline clazz) {
-        if (!GENERATE_VALUESBUILDER.isActivated()) {
-            LOG.trace(SKIP_BUILDER, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
-        } else {
-            // TODO: LOG.warn(SKIP_BUILDER, "default", fullName(clazz), BECAUSE_BUILDER_EXISTS);
-            LOG.info(GENERATE_BUILDER, fullName(clazz));
-            this.generateValuesBuilder(clazz);
-        }
-    }
-
     private final JClass generateValuesBuilder(final ClassOutline clazz) {
+        // TODO: Skip if Builder already exists
+        LOG.info("Generate builder for [{}].", fullName(clazz));
         final var $clazz = clazz.implClass;
         try {
             final var isAbstract = $clazz.isAbstract();
@@ -506,7 +345,7 @@ extends BasePlugin {
             // 1/2: Create
             final var $Builder = $clazz._class(builderModifiers, "Builder", ClassType.CLASS);
             // 2/2: Implement (with JavaDoc)
-            $Builder.javadoc().append("Builder for (enclosing) class ").append($clazz).append(".");
+            $Builder.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Builder</a> for (enclosing) class ").append($clazz).append(".");
             // (a) "toBuilder()" in XSDClass
             final var $toBuilder = $clazz.method(builderModifiers & ~STATIC, $Builder, "toBuilder");
             $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" instance with all properties initialised with the current values of {@code this} instance");
@@ -581,51 +420,35 @@ extends BasePlugin {
     }
 
     private final void considerHideDefaultFactory(final ClassOutline clazz) {
-        if (!HIDE_DEFAULT_FACTORIES.isActivated()) {
-            LOG.trace(SKIP_HIDE_DEFAULT_FACTORY, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+        final var $ObjectFactory = clazz._package().objectFactory();
+        final var $factory = getMethod($ObjectFactory, guessFactoryName(clazz));
+        if ($factory == null) {
+            //
         } else {
-            final var $objectFactory = clazz._package().objectFactory();
-            final var $factory = getMethod($objectFactory, guessFactoryName(clazz));
-            if ($factory == null) {
-                //
-            } else {
-                LOG.info(HIDE_DEFAULT_FACTORY, fullName($objectFactory), $factory.name());
-                this.hideDefaultFactory($objectFactory, $factory, clazz);
-                // TODO: assert private modifier
+            LOG.info("Hide default factory [{}#{}()].", fullName($ObjectFactory), $factory.name());
+            $factory.mods().setPrivate();
+            $factory.annotate(SuppressWarnings.class).param("value", "unused");
+            $factory.javadoc().append("")
+                              .append("This factory method has been intentionally set on {@code protected} visibility to be not used anymore.")
+                              .append("Instead in order to create instances of this class, use the all-values constructor");
+            final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
+            if ($Builder.isPresent()) {
+                $factory.javadoc().append(" or utilise the nested ").append($Builder.get());
             }
+            $factory.javadoc().append(".");
         }
     }
 
-    private final void hideDefaultFactory(final JDefinedClass $objectFactory, final JMethod $factory, final ClassOutline clazz) {
-        $factory.mods().setPrivate();
-        $factory.annotate(SuppressWarnings.class).param("value", "unused");
-        $factory.javadoc().append(format("%n%nThis factory method has been intentionally set on {@code protected} visibility to be not used anymore."))
-                          .append(format("%nInstead in order to create instances of this class, use the all-values constructor"));
-        final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
-        if ($Builder.isPresent()) {
-            $factory.javadoc().append(" or utilise the nested ").append($Builder.get());
-        }
-        $factory.javadoc().append(".");
-    }
-
-    private final void considerRemoveDefaultFactory(final ClassOutline clazz) {
-        if (!REMOVE_DEFAULT_FACTORIES.isActivated()) {
-            LOG.trace(SKIP_REMOVE_DEFAULT_FACTORY, fullName(clazz), BECAUSE_OPTION_IS_DISABLED);
+    private final void removeDefaultFactory(final ClassOutline clazz) {
+        final var $objectFactory = clazz._package().objectFactory();
+        final var $factory = getMethod($objectFactory, guessFactoryName(clazz));
+        if ($factory == null) {
+            //
         } else {
-            final var $objectFactory = clazz._package().objectFactory();
-            final var $factory = getMethod($objectFactory, guessFactoryName(clazz));
-            if ($factory == null) {
-                //
-            } else {
-                LOG.info(REMOVE_DEFAULT_FACTORY, fullName($objectFactory), $factory.name());
-                this.removeDefaultFactory($objectFactory, $factory);
-                assertThat(getMethod($objectFactory, guessFactoryName(clazz))).isNull();
-            }
+            LOG.info("Remove default factory [{}#{}()].", fullName($objectFactory), $factory.name());
+            $objectFactory.methods().remove($factory);
+            assertThat(getMethod($objectFactory, guessFactoryName(clazz))).isNull();
         }
-    }
-
-    private final void removeDefaultFactory(final JDefinedClass $objectFactory, final JMethod $factory) {
-        $objectFactory.methods().remove($factory);
     }
 
 }
