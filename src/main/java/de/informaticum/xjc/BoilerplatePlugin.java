@@ -49,6 +49,10 @@ extends BasePlugin {
     private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument("boilerplate-hashCode", format("Generate [%s] method (automatically enables option '-boilerplate-equals'). Default: false", HASHCODE_SIGNATURE));
     private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument("boilerplate-toString", format("Generate [%s] method. Default: false", TOSTRING_SIGNATURE));
 
+    protected static final String GENERATE_METHOD = "Generate [{}] method for [{}].";
+    protected static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
+    protected static final String BECAUSE_METHOD_ALREADY_EXISTS = "such method already exists";
+
     @Override
     public final Entry<String, String> getOption() {
         return new SimpleImmutableEntry<>(OPTION_NAME, "Generates common boilerplate code.");
