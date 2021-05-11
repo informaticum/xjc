@@ -142,7 +142,7 @@ extends BasePlugin {
 
     private final void hideDefaultConstructor(final ClassOutline clazz) {
         // 1/2: Prepare
-        if (getConstructor(clazz) != null) {
+        if (getConstructor(clazz) == null) {
             LOG.warn("Skip hiding of default constructor for [{}] because such constructor does not exist.", fullName(clazz));
             return;
         }
