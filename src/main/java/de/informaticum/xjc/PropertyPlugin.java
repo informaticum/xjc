@@ -88,14 +88,14 @@ extends BasePlugin {
 
     private final void setFieldsPrivate(final ClassOutline clazz) {
         for (final var $property : generatedPropertiesOf(clazz).values()) {
-            LOG.info("Set accessibility of property [{}#{}] onto [private].", fullName(clazz), $property);
+            LOG.info("Set accessibility of property [{}#{}] onto [private].", fullName(clazz), $property.name());
             $property.mods().setPrivate();
         }
     }
 
     private final void setFieldsFinal(final ClassOutline clazz) {
         for (final var $property : generatedPropertiesOf(clazz).values()) {
-            LOG.info("Set mutability of property [{}#{}] onto [final].", fullName(clazz), $property);
+            LOG.info("Set mutability of property [{}#{}] onto [final].", fullName(clazz), $property.name());
             $property.mods().setFinal(true);
         }
     }
@@ -204,7 +204,7 @@ extends BasePlugin {
 
     private final void removeSetter(final ClassOutline clazz) {
         for (final var $setter : generatedSettersOf(clazz).values()) {
-            LOG.info("Remove property setter [{}#{}({})].", fullName(clazz), $setter.name(), $setter.type().fullName());
+            LOG.info("Remove property setter [{}#{}(...)].", fullName(clazz), $setter.name());
             final var $class = clazz.implClass;
             $class.methods().remove($setter);
         }

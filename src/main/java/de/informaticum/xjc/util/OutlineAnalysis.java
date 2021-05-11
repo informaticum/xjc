@@ -228,7 +228,7 @@ public enum OutlineAnalysis {
                 assertThat(setter.type()).isEqualTo(clazz.implClass.owner().VOID);
                 setters.put(attribute, setter);
             } else {
-                LOG.error("There is no setter method [{}] for property {} of class [{}].", setterName, $property.name(), clazz.implClass.fullName());
+                LOG.error("There is no setter method [{}] for property [{}] of class [{}].", setterName, $property.name(), clazz.implClass.fullName());
             }
         }
         return setters;
