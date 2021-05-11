@@ -189,10 +189,10 @@ extends BasePlugin {
                 // 3/3: Implement
                 final var $delegation = $this.invoke($getter);
                 if ($OriginalType.isPrimitive()) {
-                    $optionalGetter.body()._return($OptionalType.staticInvoke("of").arg($delegation));
+                    $optionalGetter.body()._return($OptionalType.erasure().staticInvoke("of").arg($delegation));
                 } else {
                     final var $value = $optionalGetter.body().decl(FINAL, $OriginalType, "value", $delegation);
-                    $optionalGetter.body()._return(cond($value.eq($null), $OptionalType.staticInvoke("empty"), $OptionalType.staticInvoke("of").arg($value)));
+                    $optionalGetter.body()._return(cond($value.eq($null), $OptionalType.erasure().staticInvoke("empty"), $OptionalType.erasure().staticInvoke("of").arg($value)));
                 }
                 // Subsequently (!) modify the original getter method
                 $getter.mods().setPrivate();
