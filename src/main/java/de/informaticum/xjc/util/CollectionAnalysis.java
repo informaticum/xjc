@@ -29,7 +29,7 @@ public enum CollectionAnalysis {
 
     public static final Class<?>[] DIAMOND = new Class<?>[0];
 
-    private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing factory method has been modified ;-(";
+    private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing constructor/factory-method has been modified ;-(";
 
     public static final boolean isCollectionMethod(final JMethod $method) {
         final var model = $method.type().owner();
@@ -62,10 +62,24 @@ public enum CollectionAnalysis {
     }
 
     public static final JInvocation accordingDefaultFactoryFor(final JType $type) {
-        try {
-            // default constructors and copy constructors are named similarly ;-)
-            return accordingCopyFactoryFor($type);
-        } catch (final IllegalArgumentException illegal) {
+        final var model = $type.owner();
+        final var rawType = $type.boxify().erasure();
+        if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
+            assertThat(new TreeSet<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
+            return _new(model.ref(TreeSet.class).narrow(DIAMOND));
+        } else if (model.ref(SortedSet.class).isAssignableFrom(rawType)) {
+            assertThat(new TreeSet<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
+            return _new(model.ref(TreeSet.class).narrow(DIAMOND));
+        } else if (model.ref(Set.class).isAssignableFrom(rawType)) {
+            assertThat(new HashSet<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
+            return _new(model.ref(HashSet.class).narrow(DIAMOND));
+        } else if (model.ref(List.class).isAssignableFrom(rawType)) {
+            assertThat(new ArrayList<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
+            return _new(model.ref(ArrayList.class).narrow(DIAMOND));
+        } else if (model.ref(Collection.class).isAssignableFrom(rawType)) {
+            assertThat(new ArrayList<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
+            return _new(model.ref(ArrayList.class).narrow(DIAMOND));
+        } else {
             throw new IllegalArgumentException("There is no default-collection factory for type " + $type);
         }
     }
@@ -74,14 +88,19 @@ public enum CollectionAnalysis {
         final var model = $type.owner();
         final var rawType = $type.boxify().erasure();
         if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
+            assertThat(new TreeSet<>(emptySortedSet())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(TreeSet.class).narrow(DIAMOND));
         } else if (model.ref(SortedSet.class).isAssignableFrom(rawType)) {
+            assertThat(new TreeSet<>(emptySortedSet())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(TreeSet.class).narrow(DIAMOND));
         } else if (model.ref(Set.class).isAssignableFrom(rawType)) {
+            assertThat(new HashSet<>(emptySet())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(HashSet.class).narrow(DIAMOND));
         } else if (model.ref(List.class).isAssignableFrom(rawType)) {
+            assertThat(new ArrayList<>(emptyList())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(ArrayList.class).narrow(DIAMOND));
         } else if (model.ref(Collection.class).isAssignableFrom(rawType)) {
+            assertThat(new ArrayList<>(emptyList())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(ArrayList.class).narrow(DIAMOND));
         } else {
             throw new IllegalArgumentException("There is no copy-collection factory for type " + $type);
