@@ -4,9 +4,9 @@ import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.plugin.TargetCode.$null;
 import static de.informaticum.xjc.plugin.TargetCode.$this;
-import static de.informaticum.xjc.util.CollectionAnalysis.accordingDefaultFactoryFor;
-import static de.informaticum.xjc.util.CollectionAnalysis.accordingEmptyFactoryFor;
-import static de.informaticum.xjc.util.CollectionAnalysis.accordingUnmodifiableViewFactoryFor;
+import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
+import static de.informaticum.xjc.util.CollectionAnalysis.emptyInstanceOf;
+import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.accordingOptionalTypeFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
@@ -124,8 +124,8 @@ extends BasePlugin {
                                          .append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> does not assign the field with a default value in case of an actual null value.");
                 $straightGetter.javadoc().addReturn().append(format("the value of the attribute '%s'", info.getName(true)));
                 // 3/3: Implement
-                final var $factory = accordingDefaultFactoryFor($OriginalType);
-                $straightGetter.body()._return(cond($this.ref($property).eq($null), $factory, $this.ref($property)));
+                final var $default = defaultInstanceOf($OriginalType);
+                $straightGetter.body()._return(cond($this.ref($property).eq($null), $default, $this.ref($property)));
                 // Subsequently (!) remove the original getter method
                 $class.methods().remove($getter);
             }
@@ -152,8 +152,8 @@ extends BasePlugin {
                 $unmodifiableGetter.javadoc().append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> returns an unmodifiable view of the current value.");
                 $unmodifiableGetter.javadoc().addReturn().append(format("an unmodifiable view of the value of the attribute '%s'", info.getName(true)));
                 // 3/3: Implement
-                final var $empty = accordingEmptyFactoryFor($OriginalType);
-                final var $factory = accordingUnmodifiableViewFactoryFor($OriginalType);
+                final var $empty = emptyInstanceOf($OriginalType);
+                final var $factory = unmodifiableViewFactoryFor($OriginalType);
                 final var $delegation = $this.invoke($getter);
                 final var $value = $unmodifiableGetter.body().decl(FINAL, $OriginalType, "value", $delegation);
                 $unmodifiableGetter.body()._return(cond($value.invoke("isEmpty"), $empty, $factory.arg($value)));

@@ -20,24 +20,46 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 
+/**
+ * Util class (technically a non-instantiable enum container) to provide some helper functions according to
+ * {@link Collection} types.
+ */
 public enum CollectionAnalysis {
     ;
 
+    /**
+     * This is the specific array of {@link Class} to use for creating the diamond operator expression when calling
+     * {@link JClass#narrow(Class...)}.
+     */
     public static final Class<?>[] DIAMOND = new Class<?>[0];
 
     private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing constructor/factory-method has been modified ;-(";
 
+    /**
+     * @param $method
+     *            the method to analyse
+     * @return {@code true} iff the give method's return type is assignable to {@link Collection}
+     */
     public static final boolean isCollectionMethod(final JMethod $method) {
         final var model = $method.type().owner();
         final var raw = $method.type().erasure().boxify();
         return model.ref(Collection.class).isAssignableFrom(raw);
     }
 
-    public static final JInvocation accordingEmptyFactoryFor(final JType $type) {
+    /**
+     * @param $type
+     *            the collection type to analyse
+     * @return the according invocation code to create an unmodifiable empty instance of the given type
+     * @throws IllegalArgumentException
+     *             iff there is no empty-collection instance of the given type
+     */
+    public static final JInvocation emptyInstanceOf(final JType $type)
+    throws IllegalArgumentException {
         final var model = $type.owner();
         final var $Collections = model.ref(Collections.class);
         final var rawType = $type.boxify().erasure();
@@ -57,11 +79,19 @@ public enum CollectionAnalysis {
             assertThat(emptyList()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("emptyList");
         } else {
-            throw new IllegalArgumentException("There is no empty-collection factory for type " + $type);
+            throw new IllegalArgumentException("There is no empty-collection instance of type " + $type);
         }
     }
 
-    public static final JInvocation accordingDefaultFactoryFor(final JType $type) {
+    /**
+     * @param $type
+     *            the collection type to analyse
+     * @return the according invocation code to create a modifiable default instance of the given type
+     * @throws IllegalArgumentException
+     *             iff there is no default-collection instance of the given type
+     */
+    public static final JInvocation defaultInstanceOf(final JType $type)
+    throws IllegalArgumentException {
         final var model = $type.owner();
         final var rawType = $type.boxify().erasure();
         if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
@@ -80,11 +110,19 @@ public enum CollectionAnalysis {
             assertThat(new ArrayList<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(ArrayList.class).narrow(DIAMOND));
         } else {
-            throw new IllegalArgumentException("There is no default-collection factory for type " + $type);
+            throw new IllegalArgumentException("There is no default-collection instance of type " + $type);
         }
     }
 
-    public static final JInvocation accordingCopyFactoryFor(final JType $type) {
+    /**
+     * @param $type
+     *            the collection type to analyse
+     * @return the according invocation code to create a factory for a modifiable copy instance of the given type
+     * @throws IllegalArgumentException
+     *             if there is no copy-collection factory for the given type
+     */
+    public static final JInvocation copyFactoryFor(final JType $type)
+    throws IllegalArgumentException {
         final var model = $type.owner();
         final var rawType = $type.boxify().erasure();
         if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
@@ -107,7 +145,15 @@ public enum CollectionAnalysis {
         }
     }
 
-    public static final JInvocation accordingUnmodifiableViewFactoryFor(final JType $type) {
+    /**
+     * @param $type
+     *            the collection type to analyse
+     * @return the according invocation code to create a factory for an unmodifiable view instance of the given type
+     * @throws IllegalArgumentException
+     *             if there is no unmodifiable-view-collection factory for the given type
+     */
+    public static final JInvocation unmodifiableViewFactoryFor(final JType $type)
+    throws IllegalArgumentException {
         final var model = $type.owner();
         final var $Collections = model.ref(Collections.class);
         final var rawType = $type.boxify().erasure();
@@ -127,7 +173,7 @@ public enum CollectionAnalysis {
             assertThat(unmodifiableCollection(emptyList())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("unmodifiableCollection");
         } else {
-            throw new IllegalArgumentException("There is no unmodifiable-collection factory for type " + $type);
+            throw new IllegalArgumentException("There is no unmodifiable-view-collection factory for type " + $type);
         }
     }
 

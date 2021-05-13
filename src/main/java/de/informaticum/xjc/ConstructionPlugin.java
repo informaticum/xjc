@@ -16,7 +16,7 @@ import static de.informaticum.xjc.BoilerplatePlugin.SKIP_METHOD;
 import static de.informaticum.xjc.plugin.TargetCode.$null;
 import static de.informaticum.xjc.plugin.TargetCode.$super;
 import static de.informaticum.xjc.plugin.TargetCode.$this;
-import static de.informaticum.xjc.util.CollectionAnalysis.accordingCopyFactoryFor;
+import static de.informaticum.xjc.util.CollectionAnalysis.copyFactoryFor;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getConstructor;
@@ -243,7 +243,7 @@ extends BasePlugin {
             // TODO: use copy-constructor if exits
             if (attribute.getPropertyInfo().isCollection()) {
                 // TODO: Cloning the collection's elements
-                return accordingCopyFactoryFor($property.type()).arg($expression);
+                return copyFactoryFor($property.type()).arg($expression);
             } else if ($property.type().isArray()) {
                 return cast($property.type(), $expression.invoke("clone"));
             } else if (this.reference(Cloneable.class).isAssignableFrom($property.type().boxify())) {

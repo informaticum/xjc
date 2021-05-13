@@ -2,7 +2,7 @@ package de.informaticum.xjc.util;
 
 import static com.sun.codemodel.JExpr.FALSE;
 import static com.sun.codemodel.JExpr.lit;
-import static de.informaticum.xjc.util.CollectionAnalysis.accordingDefaultFactoryFor;
+import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Optional;
 import com.sun.codemodel.JExpression;
@@ -35,7 +35,7 @@ public enum DefaultAnalysis {
         if (raw.equals(codeModel.INT))     return Optional.of(lit(0));
         if (raw.equals(codeModel.LONG))    return Optional.of(lit(0L));
         if (raw.equals(codeModel.SHORT))   return Optional.of(lit(0));        
-        if (property.isCollection()) return Optional.of(accordingDefaultFactoryFor(field.getRawType()));
+        if (property.isCollection())       return Optional.of(defaultInstanceOf(field.getRawType()));
         return Optional.empty();
     }
 
