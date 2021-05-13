@@ -9,12 +9,38 @@ import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.outline.FieldOutline;
 import org.slf4j.Logger;
 
+/**
+ * Util class (technically a non-instantiable enum container) to provide some helper functions according to default
+ * value expressions.
+ */
 public enum DefaultAnalysis {
     ;
 
     private static final Logger LOG = getLogger(DefaultAnalysis.class);
 
-    /* see: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html */
+    /**
+     * Returns the the default value for the given field if such value exists. In detail, this means (in order):
+     * <dl>
+     * <dt>for any XSD attribute with a given lexical value</dt>
+     * <dd>{@linkplain com.sun.tools.xjc.model.CDefaultValue#compute(com.sun.tools.xjc.outline.Outline) the according
+     * Java expression} is chosen if it can be computed,</dd>
+     * <dt>for any primitive type</dt>
+     * <dd><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">the according Java default
+     * value</a> is chosen,</dd>
+     * <dt>for any known collection type</dt>
+     * <dd>{@linkplain CollectionAnalysis#defaultInstanceOf(com.sun.codemodel.JType) the according default instance} is
+     * chosen,</dd>
+     * <dt>in any other cases</dt>
+     * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
+     * </dl>
+     *
+     * @param field
+     *            the field to analyse
+     * @return an {@link Optional} holding the default value for the given field if such value exists; the
+     *         {@linkplain Optional#empty() empty Optional} otherwise
+     * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials ::
+     *      Primitive Data Types</a>
+     */
     public static final Optional<JExpression> defaultValueFor(final FieldOutline field) {
         final var outline = field.parent().parent();
         final var property = field.getPropertyInfo();
