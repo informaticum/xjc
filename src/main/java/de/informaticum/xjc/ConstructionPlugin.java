@@ -24,7 +24,7 @@ import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedPropertiesOf;
-import static de.informaticum.xjc.util.Printify.fullName;
+import static de.informaticum.xjc.util.Printify.fullNameOf;
 import static de.informaticum.xjc.util.Printify.render;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessFactoryName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessWitherName;
@@ -117,10 +117,10 @@ extends BasePlugin {
     private final void generateDefaultConstructor(final ClassOutline clazz) {
         // 1/3: Prepare
         if (getConstructor(clazz) != null) {
-            LOG.warn(SKIP_CONSTRUCTOR, "default", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
+            LOG.warn(SKIP_CONSTRUCTOR, "default", fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_CONSTRUCTOR, "default", fullName(clazz));
+        LOG.info(GENERATE_CONSTRUCTOR, "default", fullNameOf(clazz));
         // 2/3: Create
         final var $class = clazz.implClass;
         final var $constructor = $class.constructor(PUBLIC);
@@ -143,10 +143,10 @@ extends BasePlugin {
     private final void hideDefaultConstructor(final ClassOutline clazz) {
         // 1/2: Prepare
         if (getConstructor(clazz) == null) {
-            LOG.warn("Skip hiding of default constructor for [{}] because such constructor does not exist.", fullName(clazz));
+            LOG.warn("Skip hiding of default constructor for [{}] because such constructor does not exist.", fullNameOf(clazz));
             return;
         }
-        LOG.info("Hide default constructor [{}#{}()].", fullName(clazz), fullName(clazz));
+        LOG.info("Hide default constructor [{}#{}()].", fullNameOf(clazz), fullNameOf(clazz));
         // 2/2: Modify
         final var $constructor = getConstructor(clazz);
         $constructor.mods().setProtected();
@@ -164,14 +164,14 @@ extends BasePlugin {
     private final void generateValuesConstructor(final ClassOutline clazz) {
         // 1/3: Prepare
         if (superAndGeneratedPropertiesOf(clazz).isEmpty() && getConstructor(clazz) != null) {
-            LOG.info(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), "it is effectively similar to default-constructor");
+            LOG.info(SKIP_CONSTRUCTOR, "all-values", fullNameOf(clazz), "it is effectively similar to default-constructor");
             return;
         }
         if (getConstructor(clazz, superAndGeneratedPropertiesOf(clazz)) != null) {
-            LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
+            LOG.warn(SKIP_CONSTRUCTOR, "all-values", fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_CONSTRUCTOR, "all-values", fullName(clazz));
+        LOG.info(GENERATE_CONSTRUCTOR, "all-values", fullNameOf(clazz));
         // 2/3: Create
         final var $class = clazz.implClass;
         final var $constructor = $class.constructor(PUBLIC);
@@ -259,10 +259,10 @@ extends BasePlugin {
     private final void generateCopyConstructor(final ClassOutline clazz) {
         // 1/3: Prepare
         if (getConstructor(clazz, clazz.implClass) != null) {
-            LOG.warn(SKIP_CONSTRUCTOR, "copy", fullName(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
+            LOG.warn(SKIP_CONSTRUCTOR, "copy", fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_CONSTRUCTOR, "copy", fullName(clazz));
+        LOG.info(GENERATE_CONSTRUCTOR, "copy", fullNameOf(clazz));
         // 2/3: Create
         final var $class = clazz.implClass;
         final var $constructor = $class.constructor(PUBLIC);
@@ -286,10 +286,10 @@ extends BasePlugin {
     private final void addCloneable(final ClassOutline clazz) {
         // 1/2: Prepare
         if (this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)) {
-            LOG.warn("Skip [{}] interface extension for [{}] because interface is already implemented.", Cloneable.class, fullName(clazz));
+            LOG.warn("Skip [{}] interface extension for [{}] because interface is already implemented.", Cloneable.class, fullNameOf(clazz));
             return;
         }
-        LOG.info("Add [{}] interface extension for [{}].", Cloneable.class, fullName(clazz));
+        LOG.info("Add [{}] interface extension for [{}].", Cloneable.class, fullNameOf(clazz));
         // 2/2: Implement
         final var $class = clazz.implClass;
         $class._implements(Cloneable.class);
@@ -298,11 +298,11 @@ extends BasePlugin {
     private final void addClone(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, clone) != null) {
-            LOG.warn(SKIP_METHOD, CLONE_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            LOG.warn(SKIP_METHOD, CLONE_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
         assertThat(this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)).isTrue();
-        LOG.info(GENERATE_METHOD, CLONE_SIGNATURE, fullName(clazz));
+        LOG.info(GENERATE_METHOD, CLONE_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
         final var $class = clazz.implClass;
         final var $clone = $class.method(PUBLIC, $class, clone);
@@ -331,7 +331,7 @@ extends BasePlugin {
 
     private final JClass generateValuesBuilder(final ClassOutline clazz) {
         // TODO: Skip if Builder already exists
-        LOG.info("Generate builder for [{}].", fullName(clazz));
+        LOG.info("Generate builder for [{}].", fullNameOf(clazz));
         final var $clazz = clazz.implClass;
         try {
             final var isAbstract = $clazz.isAbstract();
@@ -420,7 +420,7 @@ extends BasePlugin {
         if ($factory == null) {
             //
         } else {
-            LOG.info("Hide default factory [{}#{}()].", fullName($ObjectFactory), $factory.name());
+            LOG.info("Hide default factory [{}#{}()].", fullNameOf($ObjectFactory), $factory.name());
             $factory.mods().setPrivate();
             $factory.annotate(SuppressWarnings.class).param("value", "unused");
             $factory.javadoc().append(format("%n%nThis factory method has been intentionally set on {@code protected} visibility to be not used anymore."))
@@ -439,7 +439,7 @@ extends BasePlugin {
         if ($factory == null) {
             //
         } else {
-            LOG.info("Remove default factory [{}#{}()].", fullName($objectFactory), $factory.name());
+            LOG.info("Remove default factory [{}#{}()].", fullNameOf($objectFactory), $factory.name());
             $objectFactory.methods().remove($factory);
             assertThat(getMethod($objectFactory, guessFactoryName(clazz))).isNull();
         }

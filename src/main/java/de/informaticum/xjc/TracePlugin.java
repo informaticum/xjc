@@ -1,6 +1,6 @@
 package de.informaticum.xjc;
 
-import static de.informaticum.xjc.util.Printify.fullName;
+import static de.informaticum.xjc.util.Printify.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
@@ -25,25 +25,25 @@ extends BasePlugin {
 
     @Override
     protected final boolean runPackage(final PackageOutline pakkage) {
-        LOG.trace("Current Package is [{}].", fullName(pakkage));
+        LOG.trace("Current Package is [{}].", fullNameOf(pakkage));
         return true;
     }
 
     @Override
     protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        LOG.trace("Current Object-Factory is [{}].", fullName($factory));
+        LOG.trace("Current Object-Factory is [{}].", fullNameOf($factory));
         return true;
     }
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        LOG.trace("Current Class is [{}].", fullName(clazz));
+        LOG.trace("Current Class is [{}].", fullNameOf(clazz));
         return true;
     }
 
     @Override
     protected final boolean runEnum(final EnumOutline enumeration) {
-        LOG.trace("Current Enum is [{}].", fullName(enumeration));
+        LOG.trace("Current Enum is [{}].", fullNameOf(enumeration));
         return true;
     }
 

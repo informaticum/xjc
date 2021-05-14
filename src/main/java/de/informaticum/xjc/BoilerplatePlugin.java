@@ -13,7 +13,7 @@ import static de.informaticum.xjc.plugin.TargetCode.$super;
 import static de.informaticum.xjc.plugin.TargetCode.$this;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
-import static de.informaticum.xjc.util.Printify.fullName;
+import static de.informaticum.xjc.util.Printify.fullNameOf;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -81,10 +81,10 @@ extends BasePlugin {
     private final void generateEquals(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, equals, Object.class) != null) {
-            LOG.warn(SKIP_METHOD, EQUALS_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            LOG.warn(SKIP_METHOD, EQUALS_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_METHOD, EQUALS_SIGNATURE, fullName(clazz));
+        LOG.info(GENERATE_METHOD, EQUALS_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
         final var $class = clazz.implClass;
         final var $equals = $class.method(PUBLIC, boolean.class, equals);
@@ -115,10 +115,10 @@ extends BasePlugin {
     private final void addHashCode(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, hashCode) != null) {
-            LOG.warn(SKIP_METHOD, HASHCODE_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            LOG.warn(SKIP_METHOD, HASHCODE_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_METHOD, HASHCODE_SIGNATURE, fullName(clazz));
+        LOG.info(GENERATE_METHOD, HASHCODE_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
         final var $class = clazz.implClass;
         final var $hashCode = $class.method(PUBLIC, int.class, hashCode);
@@ -142,10 +142,10 @@ extends BasePlugin {
     private final void addToString(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, toString) != null) {
-            LOG.warn(SKIP_METHOD, TOSTRING_SIGNATURE, fullName(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            LOG.warn(SKIP_METHOD, TOSTRING_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_METHOD, TOSTRING_SIGNATURE, fullName(clazz));
+        LOG.info(GENERATE_METHOD, TOSTRING_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
         final var $class = clazz.implClass;
         final var $toString = $class.method(PUBLIC, String.class, toString);

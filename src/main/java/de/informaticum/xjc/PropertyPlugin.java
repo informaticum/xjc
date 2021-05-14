@@ -13,7 +13,7 @@ import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedSettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
-import static de.informaticum.xjc.util.Printify.fullName;
+import static de.informaticum.xjc.util.Printify.fullNameOf;
 import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,14 +88,14 @@ extends BasePlugin {
 
     private final void setFieldsPrivate(final ClassOutline clazz) {
         for (final var $property : generatedPropertiesOf(clazz).values()) {
-            LOG.info("Set accessibility of property [{}#{}] onto [private].", fullName(clazz), $property.name());
+            LOG.info("Set accessibility of property [{}#{}] onto [private].", fullNameOf(clazz), $property.name());
             $property.mods().setPrivate();
         }
     }
 
     private final void setFieldsFinal(final ClassOutline clazz) {
         for (final var $property : generatedPropertiesOf(clazz).values()) {
-            LOG.info("Set mutability of property [{}#{}] onto [final].", fullName(clazz), $property.name());
+            LOG.info("Set mutability of property [{}#{}] onto [final].", fullNameOf(clazz), $property.name());
             $property.mods().setFinal(true);
         }
     }
@@ -108,10 +108,10 @@ extends BasePlugin {
             final var $getter = getter.getValue();
             if (!property.getPropertyInfo().isCollection()) {
                 assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
-                LOG.debug("Skip creation of straight getter for [{}#{}()] because attribute is not a collection type.", fullName(clazz), $getter.name());
+                LOG.debug("Skip creation of straight getter for [{}#{}()] because attribute is not a collection type.", fullNameOf(clazz), $getter.name());
             } else {
                 assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
-                LOG.info("Replace original implementation body [{}#{}()] with a similar but straight version.", fullName(clazz), $getter.name());
+                LOG.info("Replace original implementation body [{}#{}()] with a similar but straight version.", fullNameOf(clazz), $getter.name());
                 final var $property = properties.get(property);
                 final var $class = clazz.implClass;
                 final var info = property.getPropertyInfo();
@@ -139,10 +139,10 @@ extends BasePlugin {
             final var $getter = getter.getValue();
             if (!attribute.getPropertyInfo().isCollection()) {
                 assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
-                LOG.debug("Skip creation of unmodifiable view getter for [{}#{}()] because attribute is not a collection type.", fullName(clazz), $getter.name());
+                LOG.debug("Skip creation of unmodifiable view getter for [{}#{}()] because attribute is not a collection type.", fullNameOf(clazz), $getter.name());
             } else {
                 assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
-                LOG.info("Replace return value of [{}#{}()] with an according unmodifiable view version.", fullName(clazz), $getter.name());
+                LOG.info("Replace return value of [{}#{}()] with an according unmodifiable view version.", fullNameOf(clazz), $getter.name());
                 final var $class = clazz.implClass;
                 final var info = attribute.getPropertyInfo();
                 final var $OriginalType = $getter.type();
@@ -170,13 +170,13 @@ extends BasePlugin {
             final var attribute = getter.getKey();
             final var $getter = getter.getValue();
             if (isRequired(attribute)) {
-                LOG.debug("Skip creation of optional getter for [{}#{}()] because attribute is required.", fullName(clazz), $getter.name());
+                LOG.debug("Skip creation of optional getter for [{}#{}()] because attribute is required.", fullNameOf(clazz), $getter.name());
             } else if (attribute.getPropertyInfo().isCollection()) {
-                LOG.debug("Skip creation of optional getter for [{}#{}()] because attribute is a collection (and, thus, will be represented by an empty collection if missing).", fullName(clazz), $getter.name());
+                LOG.debug("Skip creation of optional getter for [{}#{}()] because attribute is a collection (and, thus, will be represented by an empty collection if missing).", fullNameOf(clazz), $getter.name());
             } else if (isOptionalMethod($getter)) {
-                LOG.warn("Skip creation of optional getter for [{}#{}()] because such method already exists.", fullName(clazz), $getter.name());
+                LOG.warn("Skip creation of optional getter for [{}#{}()] because such method already exists.", fullNameOf(clazz), $getter.name());
             } else {
-                LOG.info("Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type.", fullName(clazz), $getter.name());
+                LOG.info("Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type.", fullNameOf(clazz), $getter.name());
                 final var $class = clazz.implClass;
                 final var info = attribute.getPropertyInfo();
                 final var $OriginalType = $getter.type();
@@ -204,7 +204,7 @@ extends BasePlugin {
 
     private final void removeSetter(final ClassOutline clazz) {
         for (final var $setter : generatedSettersOf(clazz).values()) {
-            LOG.info("Remove property setter [{}#{}(...)].", fullName(clazz), $setter.name());
+            LOG.info("Remove property setter [{}#{}(...)].", fullNameOf(clazz), $setter.name());
             final var $class = clazz.implClass;
             $class.methods().remove($setter);
         }

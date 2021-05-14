@@ -1,6 +1,6 @@
 package de.informaticum.xjc.plugin;
 
-import static de.informaticum.xjc.util.Printify.fullName;
+import static de.informaticum.xjc.util.Printify.fullNameOf;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,7 +69,7 @@ public class CommandLineArgument {
         if (this.activated) {
             execution.accept(pakkage);
         } else {
-            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullName(pakkage));
+            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullNameOf(pakkage));
         }
     }
 
@@ -77,7 +77,7 @@ public class CommandLineArgument {
         if (this.activated) {
             execution.accept($factory);
         } else {
-            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullName($factory));
+            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullNameOf($factory));
         }
     }
 
@@ -85,7 +85,7 @@ public class CommandLineArgument {
         if (this.activated) {
             execution.accept(clazz);
         } else {
-            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullName(clazz));
+            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullNameOf(clazz));
         }
     }
 
@@ -93,7 +93,7 @@ public class CommandLineArgument {
         if (this.activated) {
             execution.accept(enumeration);
         } else {
-            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullName(enumeration));
+            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullNameOf(enumeration));
         }
     }
 
