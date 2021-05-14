@@ -242,7 +242,7 @@ extends BasePlugin {
         if (GENERATE_DEFENSIVECOPIES.isActivated()) {
             // TODO: use copy-constructor if exits
             if (attribute.getPropertyInfo().isCollection()) {
-                // TODO: Cloning the collection's elements
+                // TODO: Cloning the collection's elements (a.k.a. deep clone)
                 return copyFactoryFor($property.type()).arg($expression);
             } else if ($property.type().isArray()) {
                 return cast($property.type(), $expression.invoke("clone"));
