@@ -1,6 +1,6 @@
 package de.informaticum.xjc.util;
 
-import static com.sun.tools.xjc.generator.bean.field.XjcPropertySpy.spyGetterName;
+import static de.informaticum.xjc.util.XjcPropertyGuesser.guessGetterName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -201,7 +201,7 @@ public enum OutlineAnalysis {
         for (final var properties : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = properties.getKey();
             final var $property = properties.getValue();
-            final var getterName = spyGetterName(attribute);
+            final var getterName = guessGetterName(attribute);
             final var getter = getMethod(clazz, getterName);
             if (getter != null) {
                 assertThat(getter.type().boxify()).isEqualTo($property.type().boxify());
