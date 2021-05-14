@@ -7,7 +7,7 @@ import static de.informaticum.xjc.plugin.TargetCode.$this;
 import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
-import static de.informaticum.xjc.util.OptionalAnalysis.accordingOptionalTypeFor;
+import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
@@ -181,7 +181,7 @@ extends BasePlugin {
                 final var info = attribute.getPropertyInfo();
                 final var $OriginalType = $getter.type();
                 // 1/3: Create
-                final var $OptionalType = accordingOptionalTypeFor($OriginalType);
+                final var $OptionalType = optionalTypeFor($OriginalType);
                 final var $optionalGetter = $class.method($getter.mods().getValue(), $OptionalType, $getter.name());
                 // 2/3: JavaDocument
                 $optionalGetter.javadoc().append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> returns an optional view of the current value.");
