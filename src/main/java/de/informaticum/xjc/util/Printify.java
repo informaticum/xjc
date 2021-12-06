@@ -4,9 +4,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JGenerable;
-import com.sun.codemodel.JType;
-import com.sun.tools.xjc.outline.CustomizableOutline;
-import com.sun.tools.xjc.outline.PackageOutline;
 
 /**
  * Util class (technically a non-instantiable enum container) to provide some helper functions according to the
@@ -14,33 +11,6 @@ import com.sun.tools.xjc.outline.PackageOutline;
  */
 public enum Printify {
     ;
-
-    /**
-     * @param pakkage
-     *            the requested package
-     * @return the fully-qualified name of the given package
-     */
-    public static final String fullNameOf(final PackageOutline pakkage) {
-        return pakkage._package().name();
-    }
-
-    /**
-     * @param type
-     *            the requested type
-     * @return the fully-qualified name of the given type
-     */
-    public static final String fullNameOf(final CustomizableOutline type) {
-        return fullNameOf(type.getImplClass());
-    }
-
-    /**
-     * @param $type
-     *            the requested type
-     * @return the fully-qualified name of the given type
-     */
-    public static final String fullNameOf(final JType $type) {
-        return $type.fullName();
-    }
 
     /**
      * @param $component

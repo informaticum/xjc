@@ -1,6 +1,6 @@
 package de.informaticum.xjc;
 
-import static de.informaticum.xjc.util.Printify.fullNameOf;
+import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
@@ -31,7 +31,7 @@ extends BasePlugin {
 
     @Override
     protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        LOG.trace("Current Object-Factory is [{}].", fullNameOf($factory));
+        LOG.trace("Current Object-Factory is [{}].", $factory.fullName());
         return true;
     }
 

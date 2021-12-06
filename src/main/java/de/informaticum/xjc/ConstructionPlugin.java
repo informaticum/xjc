@@ -16,15 +16,16 @@ import static de.informaticum.xjc.BoilerplatePlugin.SKIP_METHOD;
 import static de.informaticum.xjc.plugin.TargetCode.$null;
 import static de.informaticum.xjc.plugin.TargetCode.$super;
 import static de.informaticum.xjc.plugin.TargetCode.$this;
+import static de.informaticum.xjc.util.CodeModelAnalysis.getMethod;
 import static de.informaticum.xjc.util.CollectionAnalysis.copyFactoryFor;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
+import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getConstructor;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedPropertiesOf;
-import static de.informaticum.xjc.util.Printify.fullNameOf;
 import static de.informaticum.xjc.util.Printify.render;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessFactoryName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessWitherName;
@@ -107,7 +108,7 @@ extends BasePlugin {
         GENERATE_VALUESBUILDER.doOnActivation(this::generateValuesBuilder, clazz);
         GENERATE_CLONE.doOnActivation(this::addClone, clazz);
         // GENERATE_DEFENSIVECOPIES is used indirectly
-        // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.) 
+        // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.)
         HIDE_DEFAULTCONSTRUCTOR.doOnActivation(this::hideDefaultConstructor, clazz);
         HIDE_DEFAULT_FACTORIES.doOnActivation(this::hideDefaultFactory, clazz);
         REMOVE_DEFAULT_FACTORIES.doOnActivation(this::removeDefaultFactory, clazz);
@@ -420,7 +421,7 @@ extends BasePlugin {
         if ($factory == null) {
             //
         } else {
-            LOG.info("Hide default factory [{}#{}()].", fullNameOf($ObjectFactory), $factory.name());
+            LOG.info("Hide default factory [{}#{}()].", $ObjectFactory.fullName(), $factory.name());
             $factory.mods().setPrivate();
             $factory.annotate(SuppressWarnings.class).param("value", "unused");
             $factory.javadoc().append(format("%n%nThis factory method has been intentionally set on {@code protected} visibility to be not used anymore."))
@@ -439,7 +440,7 @@ extends BasePlugin {
         if ($factory == null) {
             //
         } else {
-            LOG.info("Remove default factory [{}#{}()].", fullNameOf($objectFactory), $factory.name());
+            LOG.info("Remove default factory [{}#{}()].", $objectFactory.fullName(), $factory.name());
             $objectFactory.methods().remove($factory);
             assertThat(getMethod($objectFactory, guessFactoryName(clazz))).isNull();
         }

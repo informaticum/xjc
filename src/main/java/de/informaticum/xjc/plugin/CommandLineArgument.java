@@ -1,6 +1,6 @@
 package de.informaticum.xjc.plugin;
 
-import static de.informaticum.xjc.util.Printify.fullNameOf;
+import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,7 +77,7 @@ public class CommandLineArgument {
         if (this.activated) {
             execution.accept($factory);
         } else {
-            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, fullNameOf($factory));
+            LOG.trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.argument, $factory.fullName());
         }
     }
 

@@ -2,15 +2,10 @@ package de.informaticum.xjc.util;
 
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessGetterName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
-import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
-import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
@@ -19,7 +14,9 @@ import com.sun.tools.xjc.model.CElementPropertyInfo;
 import com.sun.tools.xjc.model.CReferencePropertyInfo;
 import com.sun.tools.xjc.model.CValuePropertyInfo;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
+import com.sun.tools.xjc.outline.PackageOutline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +24,24 @@ public enum OutlineAnalysis {
     ;
 
     private static final Logger LOG = LoggerFactory.getLogger(OutlineAnalysis.class);
+
+    /**
+     * @param pakkage
+     *            the requested package
+     * @return the fully-qualified name of the given package
+     */
+    public static final String fullNameOf(final PackageOutline pakkage) {
+        return pakkage._package().name();
+    }
+
+    /**
+     * @param type
+     *            the requested type
+     * @return the fully-qualified name of the given type
+     */
+    public static final String fullNameOf(final CustomizableOutline type) {
+        return type.getImplClass().fullName();
+    }
 
     public static final boolean isRequired(final FieldOutline attribute) {
         final var property = attribute.getPropertyInfo();
@@ -120,76 +135,37 @@ public enum OutlineAnalysis {
     }
 
     public static final JMethod getConstructor(final ClassOutline clazz) {
-        return getConstructor(clazz.implClass, emptyList());
+        return CodeModelAnalysis.getConstructor(clazz.implClass);
     }
 
     public static final JMethod getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
-        return getConstructor(clazz.implClass, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
+        return CodeModelAnalysis.getConstructor(clazz.implClass, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
     public static final JMethod getConstructor(final ClassOutline clazz, final JType... argumentTypes) {
-        return getConstructor(clazz.implClass, asList(argumentTypes));
-    }
-
-    public static final JMethod getConstructor(final ClassOutline clazz, final List<? extends JType> argumentTypes) {
-        return getConstructor(clazz.implClass, argumentTypes);
-    }
-
-    public static final JMethod getConstructor(final JDefinedClass $clazz) {
-        return getConstructor($clazz, emptyList());
-    }
-
-    public static final JMethod getConstructor(final JDefinedClass $clazz, final JType... argumentTypes) {
-        return getConstructor($clazz, asList(argumentTypes));
-    }
-
-    public static final JMethod getConstructor(final JDefinedClass $clazz, final List<? extends JType> argumentTypes) {
-        final var $constructor = $clazz.getConstructor(argumentTypes.toArray(JType[]::new));
-        if ($constructor != null) {
-            return $constructor;
-        } else {
-            final var rawTypes = argumentTypes.stream().map(JType::erasure).toArray(JType[]::new);
-            return $clazz.getConstructor(rawTypes);
-        }
+        return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
     }
 
     public static final JMethod getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
-        final var argumentTypes = properties.values().stream().map(JFieldVar::type).collect(toList());
-        return getConstructor(clazz.implClass, argumentTypes);
+        final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
+        return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
     }
 
     public static final JMethod getMethod(final ClassOutline clazz, final String name) {
-        return getMethod(clazz.implClass, name, emptyList());
+        return CodeModelAnalysis.getMethod(clazz.implClass, name);
     }
 
     public static final JMethod getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
-        return getMethod(clazz.implClass, name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).collect(toList()));
+        return CodeModelAnalysis.getMethod(clazz.implClass, name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
     public static final JMethod getMethod(final ClassOutline clazz, final String name, final JType... argumentTypes) {
-        return getMethod(clazz.implClass, name, asList(argumentTypes));
+        return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
     }
 
-    public static final JMethod getMethod(final ClassOutline clazz, final String name, final List<? extends JType> argumentTypes) {
-        return getMethod(clazz.implClass, name, argumentTypes);
-    }
-
-    public static final JMethod getMethod(final JDefinedClass $clazz, final String name) {
-        return getMethod($clazz, name, emptyList());
-    }
-
-    public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final JType... argumentTypes) {
-        return getMethod($clazz, name, asList(argumentTypes));
-    }
-
-    public static final JMethod getMethod(final JDefinedClass $clazz, final String name, final List<? extends JType> argumentTypes) {
-        final var $method = $clazz.getMethod(name, argumentTypes.toArray(JType[]::new));
-        if ($method != null) {
-            return $method;
-        } else {
-            final var rawTypes = argumentTypes.stream().map(JType::erasure).toArray(JType[]::new);
-            return $clazz.getMethod(name, rawTypes);
-        }
+    public static final JMethod getMethod(final ClassOutline clazz, final String name, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
+        final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
+        return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
     }
 
     /**
@@ -223,7 +199,7 @@ public enum OutlineAnalysis {
             final var attribute = properties.getKey();
             final var $property = properties.getValue();
             final var setterName = guessSetterName(attribute);
-            final var setter = getMethod(clazz.implClass, setterName, $property.type());
+            final var setter = getMethod(clazz, setterName, $property.type());
             if (setter != null) {
                 assertThat(setter.type()).isEqualTo(clazz.implClass.owner().VOID);
                 setters.put(attribute, setter);
