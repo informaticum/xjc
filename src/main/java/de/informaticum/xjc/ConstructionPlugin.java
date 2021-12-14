@@ -164,7 +164,7 @@ extends BasePlugin {
 
     private final void generateValuesConstructor(final ClassOutline clazz) {
         // 1/3: Prepare
-        if (superAndGeneratedPropertiesOf(clazz).isEmpty() && getConstructor(clazz) != null) {
+        if (superAndGeneratedPropertiesOf(clazz).isEmpty() && (getConstructor(clazz) != null)) {
             LOG.info(SKIP_CONSTRUCTOR, "all-values", fullNameOf(clazz), "it is effectively similar to default-constructor");
             return;
         }

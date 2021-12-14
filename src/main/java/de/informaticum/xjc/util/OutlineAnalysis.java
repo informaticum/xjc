@@ -82,7 +82,7 @@ public enum OutlineAnalysis {
             }
             properties.put(outline, $property);
         }
-        if (clazz.implClass.fields().size() - properties.size() != 0) {
+        if ((clazz.implClass.fields().size() - properties.size()) != 0) {
             final var noncaused = new HashMap<>(clazz.implClass.fields());
             noncaused.values().removeAll(properties.values());
             LOG.warn("Class [{}] contains fields that are not caused by declared properties: {}", clazz.implClass.fullName(), noncaused.keySet());
