@@ -17,11 +17,12 @@ extends BasePlugin {
     private static final Logger LOG = getLogger(ReusePlugin.class);
 
     private static final String OPTION_NAME = "informaticum-xjc-reuse";
+    private static final String OPTION_DESC = "Widens and/or lessens the usage of the generated XJC-API elements.";
     private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", "Modify QName constants' accessibility to [public]. Default: false");
 
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, "Widens and/or lessens the usage of the generated XJC-API elements.");
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
     }
 
     @Override

@@ -65,6 +65,7 @@ extends BasePlugin {
     private static final String CLONE_SIGNATURE = format("#%s()", clone);
 
     private static final String OPTION_NAME = "informaticum-xjc-construction";
+    private static final String OPTION_DESC = "Generates construction code, i.e., constructors, builders, clones.";
     private static final CommandLineArgument GENERATE_DEFAULTCONSTRUCTOR = new CommandLineArgument("construction-default-constructor",      "Generate default constructor. Default: false");
     // TODO: Do not hide if similar to (empty) values-constructor
     private static final CommandLineArgument HIDE_DEFAULTCONSTRUCTOR     = new CommandLineArgument("construction-hide-default-constructor", "Hides default constructors if such constructor exists. Default: false");
@@ -85,7 +86,7 @@ extends BasePlugin {
 
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, "Generates construction code, i.e., constructors, builders, clones.");
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
     }
 
     @Override

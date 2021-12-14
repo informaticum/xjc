@@ -39,6 +39,7 @@ extends BasePlugin {
     private static final Logger LOG = getLogger(PropertyPlugin.class);
 
     private static final String OPTION_NAME = "informaticum-xjc-properties";
+    private static final String OPTION_DESC = "Refactors the code of type fields (i.e., origin field, according getter or setter).";
     private static final CommandLineArgument PRIVATE_FIELDS                = new CommandLineArgument("properties-private-fields",       "Modifies the visibility of the generated fields onto 'private'. Default: false");
     private static final CommandLineArgument FINAL_FIELDS                  = new CommandLineArgument("properties-final-fields",         "Modifies the generated fields onto 'final' (automatically enables option '-properties-straight-getters'). Default: false");
     private static final CommandLineArgument GENERATE_STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",     "Refactor collection fields' getter methods with immediate return statement, i.e., without previous implicit field assigment in case of an actual 'null' value. Default: false");
@@ -48,7 +49,7 @@ extends BasePlugin {
 
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, "Refactors the code of type fields (i.e., origin field, according getter or setter).");
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
     }
 
     @Override

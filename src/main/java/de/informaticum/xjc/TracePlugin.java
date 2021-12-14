@@ -17,10 +17,11 @@ extends BasePlugin {
     private static final Logger LOG = getLogger(TracePlugin.class);
 
     private static final String OPTION_NAME = "informaticum-xjc-trace";
+    private static final String OPTION_DESC = "Traces/Logs all generated sources, mainly intended to enable debugging purposes.";
 
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, "Traces/Logs all generated sources, mainly intended to enable debugging purposes.");
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
     }
 
     @Override

@@ -45,6 +45,7 @@ extends BasePlugin {
     private static final String TOSTRING_SIGNATURE = format("#%s()", toString);
 
     private static final String OPTION_NAME = "informaticum-xjc-boilerplate";
+    private static final String OPTION_DESC = "Generates common boilerplate code.";
     private static final CommandLineArgument GENERATE_EQUALS   = new CommandLineArgument("boilerplate-equals",   format("Generate [%s] method (automatically enables option '-boilerplate-hashCode'). Default: false", EQUALS_SIGNATURE));
     private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument("boilerplate-hashCode", format("Generate [%s] method (automatically enables option '-boilerplate-equals'). Default: false", HASHCODE_SIGNATURE));
     private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument("boilerplate-toString", format("Generate [%s] method. Default: false", TOSTRING_SIGNATURE));
@@ -55,7 +56,7 @@ extends BasePlugin {
 
     @Override
     public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, "Generates common boilerplate code.");
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
     }
 
     @Override
