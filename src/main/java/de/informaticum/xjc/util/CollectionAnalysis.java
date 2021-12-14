@@ -34,7 +34,7 @@ public enum CollectionAnalysis {
     /**
      * This is the specific array of {@link Class} to use for creating the diamond operator expression when calling {@link JClass#narrow(Class...)}.
      */
-    public static final Class<?>[] DIAMOND = new Class<?>[0];
+    public static final Class<?>[] DIAMOND = {};
 
     private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing constructor/factory-method has been modified ;-(";
 
