@@ -5,6 +5,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.function.Consumer;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.Outline;
@@ -39,6 +40,12 @@ implements RunningPlugin, InitialisedOutline {
     @Override
     public final ErrorHandler errorHandler() {
         return this.currentErrorHandler != null ? this.currentErrorHandler : RunningPlugin.super.errorHandler();
+    }
+
+    @Override
+    public void postProcessModel(final Model model, final ErrorHandler errorHandler) {
+        super.postProcessModel(model, errorHandler);
+        // TODO: consider model manipulation ...
     }
 
     @Override
