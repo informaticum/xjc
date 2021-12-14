@@ -7,6 +7,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Optional;
 import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.outline.FieldOutline;
+import de.informaticum.xjc.plugin.CommandLineArgument;
 import org.slf4j.Logger;
 
 /**
@@ -32,10 +33,37 @@ public enum DefaultAnalysis {
      *
      * @param field
      *            the field to analyse
+     * @param initCollections
+     *            either not {@link CommandLineArgument#isActivated() activated} to initialise collection types with {@code null} or {@link CommandLineArgument#isActivated()
+     *            activated} to initialise with the according empty instance
      * @return an {@link Optional} holding the default value for the given field if such value exists; the {@linkplain Optional#empty() empty Optional} otherwise
      * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
      */
-    public static final Optional<JExpression> defaultValueFor(final FieldOutline field) {
+    public static final Optional<JExpression> defaultValueFor(final FieldOutline field, final CommandLineArgument initCollections) {
+        return defaultValueFor(field, initCollections.isActivated());
+    }
+
+    /**
+     * Returns the the default value for the given field if such value exists. In detail, this means (in order):
+     * <dl>
+     * <dt>for any XSD attribute with a given lexical value</dt>
+     * <dd>{@linkplain com.sun.tools.xjc.model.CDefaultValue#compute(com.sun.tools.xjc.outline.Outline) the according Java expression} is chosen if it can be computed,</dd>
+     * <dt>for any primitive type</dt>
+     * <dd><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">the according Java default value</a> is chosen,</dd>
+     * <dt>for any known collection type</dt>
+     * <dd>{@linkplain CollectionAnalysis#defaultInstanceOf(com.sun.codemodel.JType) the according default instance} is chosen,</dd>
+     * <dt>in any other cases</dt>
+     * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
+     * </dl>
+     *
+     * @param field
+     *            the field to analyse
+     * @param initCollections
+     *            either {@code false} to initialise collection types with {@code null} or {@code true} to initialise with the according empty instance
+     * @return an {@link Optional} holding the default value for the given field if such value exists; the {@linkplain Optional#empty() empty Optional} otherwise
+     * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
+     */
+    public static final Optional<JExpression> defaultValueFor(final FieldOutline field, final boolean initCollections) {
         final var outline = field.parent().parent();
         final var property = field.getPropertyInfo();
         if (property.defaultValue != null) {
@@ -55,7 +83,7 @@ public enum DefaultAnalysis {
         if (raw.equals(codeModel.INT))     return Optional.of(lit(0));
         if (raw.equals(codeModel.LONG))    return Optional.of(lit(0L));
         if (raw.equals(codeModel.SHORT))   return Optional.of(lit(0));        
-        if (property.isCollection())       return Optional.of(defaultInstanceOf(field.getRawType()));
+        if (property.isCollection())       return initCollections ? Optional.of(defaultInstanceOf(field.getRawType())) : Optional.empty();
         return Optional.empty();
     }
 

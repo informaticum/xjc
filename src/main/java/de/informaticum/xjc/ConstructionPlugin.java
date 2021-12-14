@@ -70,6 +70,7 @@ extends BasePlugin {
     // TODO: Minimum-value constructor (only required fields without default)
     // TODO: Reduced-value constructor (only required fields)
     private static final CommandLineArgument GENERATE_VALUESCONSTRUCTOR  = new CommandLineArgument("construction-values-constructor",       "Generate all-values constructor (automatically enables option '-construction-default-constructor'). Default: false");
+    private static final CommandLineArgument GENERATE_COLLECTIONINIT     = new CommandLineArgument("construction-initialise-collections",   "Each time a collection initialisation statement is generated, the value will not be 'null' but the empty collection instance. Default: false");
     private static final CommandLineArgument GENERATE_COPYCONSTRUCTOR    = new CommandLineArgument("construction-copy-constructor",         "Generate copy constructor (automatically enables option '-construction-default-constructor'). Default: false");
     private static final CommandLineArgument GENERATE_BUILDER            = new CommandLineArgument("construction-builder",                  "Generate builder. Default: false");
     private static final CommandLineArgument GENERATE_CLONE              = new CommandLineArgument("construction-clone",             format("Generate [%s] method. Default: false", CLONE_SIGNATURE));
@@ -88,7 +89,7 @@ extends BasePlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COPYCONSTRUCTOR, GENERATE_BUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
+        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COLLECTIONINIT, GENERATE_COPYCONSTRUCTOR, GENERATE_BUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
     }
 
     @Override
@@ -135,7 +136,7 @@ extends BasePlugin {
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
-            final var $value = defaultValueFor(attribute).orElse($null);
+            final var $value = defaultValueFor(attribute, GENERATE_COLLECTIONINIT).orElse($null);
             $constructor.javadoc().append(format("%n%nThe field {@link #%s} will be initialised with: {@code %s}", $property.name(), render($value)));
             $constructor.body().assign($this.ref($property), $value);
         }
@@ -204,7 +205,7 @@ extends BasePlugin {
     private static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter) {
         final var info = attribute.getPropertyInfo();
         final var name = info.getName(true);
-        final var $default = defaultValueFor(attribute);
+        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
         if ($parameter.type().isPrimitive()) {
             javadoc.addParam($parameter).append(format("value for the attribute '%s'", name));
         } else if (isOptional(attribute) && $default.isEmpty()) {
@@ -218,7 +219,7 @@ extends BasePlugin {
     }
 
     private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $expression) {
-        final var $default = defaultValueFor(attribute);
+        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
         if ($property.type().isPrimitive()) {
             $method.body().assign($this.ref($property), $expression);
         } else if (isOptional(attribute) && $default.isEmpty()) {
@@ -399,7 +400,7 @@ extends BasePlugin {
             for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
                 final var attribute = blueprintProperty.getKey();
                 final var $blueprintProperty = blueprintProperty.getValue();
-                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute).orElse($null));
+                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute, GENERATE_COLLECTIONINIT).orElse($null));
                 this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty));
                 final var $wither = $Builder.method(PUBLIC | (isFinal ? FINAL : NONE), $Builder, guessWitherName(attribute));
                 final var $parameter = $wither.param(FINAL, $builderProperty.type(), $builderProperty.name());

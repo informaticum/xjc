@@ -124,6 +124,7 @@ extends BasePlugin {
                                          .append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> does not assign the field with a default value in case of an actual null value.");
                 $straightGetter.javadoc().addReturn().append(format("the value of the attribute '%s'", info.getName(true)));
                 // 3/3: Implement
+                // TODO: Refactor similar to the Constructor/Builder-Refactoring?
                 final var $default = defaultInstanceOf($OriginalType);
                 $straightGetter.body()._return(cond($this.ref($property).eq($null), $default, $this.ref($property)));
                 // Subsequently (!) remove the original getter method
