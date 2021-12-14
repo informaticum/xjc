@@ -60,11 +60,11 @@ extends BasePlugin {
     public void onActivated(final Options options)
     throws BadCommandLineException {
         // TODO: Create and set custom field renderer factory with immediate result similar to the following generator code
-        // final var originFieldRendererFactory = options.getFieldRendererFactory();
-        // options.setFieldRendererFactory(originFieldRendererFactory, this);
+        //       > final var originFieldRendererFactory = options.getFieldRendererFactory();
+        //       > options.setFieldRendererFactory(originFieldRendererFactory, this);
         // TODO: Create and set custom name converter?
-        // final var originNameConverter = options.getNameConverter();
-        // options.setNameConverter(originNameConverter, this);
+        //       > final var originNameConverter = options.getNameConverter();
+        //       > options.setNameConverter(originNameConverter, this);
         super.onActivated(options);
     }
 

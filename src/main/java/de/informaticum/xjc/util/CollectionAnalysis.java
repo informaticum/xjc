@@ -26,15 +26,13 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 
 /**
- * Util class (technically a non-instantiable enum container) to provide some helper functions according to
- * {@link Collection} types.
+ * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@link Collection} types.
  */
 public enum CollectionAnalysis {
     ;
 
     /**
-     * This is the specific array of {@link Class} to use for creating the diamond operator expression when calling
-     * {@link JClass#narrow(Class...)}.
+     * This is the specific array of {@link Class} to use for creating the diamond operator expression when calling {@link JClass#narrow(Class...)}.
      */
     public static final Class<?>[] DIAMOND = new Class<?>[0];
 

@@ -10,8 +10,7 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 
 /**
- * Util class (technically a non-instantiable enum container) to provide some helper functions according to
- * {@link Optional} types.
+ * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@link Optional} types.
  */
 public enum OptionalAnalysis {
     ;
@@ -21,8 +20,7 @@ public enum OptionalAnalysis {
     /**
      * @param $method
      *            the method to analyse
-     * @return {@code true} iff the give method's return type is assignable to {@link OptionalDouble},
-     *         {@link OptionalInt}, {@link OptionalLong}, or {@link Optional}
+     * @return {@code true} iff the give method's return type is assignable to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional}
      */
     public static final boolean isOptionalMethod(final JMethod $method) {
         final var model = $method.type().owner();
@@ -43,9 +41,8 @@ public enum OptionalAnalysis {
     /**
      * @param $type
      *            the type to analyse
-     * @return the according optional type (i.e., {@link JClass} of either {@link OptionalDouble} for
-     *         {@code double}/{@link Double} type, {@link OptionalInt} for {@code int}/{@link Integer} type,
-     *         {@link OptionalLong} for {@code long}/{@link Long} type, or {@link Optional} in any other case)
+     * @return the according optional type (i.e., {@link JClass} of either {@link OptionalDouble} for {@code double}/{@link Double} type, {@link OptionalInt} for
+     *         {@code int}/{@link Integer} type, {@link OptionalLong} for {@code long}/{@link Long} type, or {@link Optional} in any other case)
      */
     public static final JClass optionalTypeFor(final JType $type) {
         final var model = $type.owner();

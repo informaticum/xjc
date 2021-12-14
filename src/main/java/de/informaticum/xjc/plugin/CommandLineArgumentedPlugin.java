@@ -13,8 +13,8 @@ public abstract class CommandLineArgumentedPlugin
 extends Plugin {
 
     /**
-     * Gets the option name to use for XJC add-on activation; Plus, gets the add-on's description. The strong coupling
-     * of both attributes becomes manifest in the usage of the {@link Entry} data structure.
+     * Gets the option name to use for XJC add-on activation; Plus, gets the add-on's description. The strong coupling of both attributes becomes manifest in the usage of the
+     * {@link Entry} data structure.
      *
      * @return the name and the description of this XJC add-on
      * @see #getOptionName()
@@ -43,8 +43,7 @@ extends Plugin {
     }
 
     /**
-     * Is there any plug-in argument? Just return all of them here and you will get
-     * {@linkplain #parseArgument(Options, String[], int) a default argument parsing} for free.
+     * Is there any plug-in argument? Just return all of them here and you will get {@linkplain #parseArgument(Options, String[], int) a default argument parsing} for free.
      *
      * @return all plug-in's command line arguments
      */
@@ -63,10 +62,8 @@ extends Plugin {
     }
 
     /**
-     * @implNote The current implementation parses the arguments and -- if an according argument has been supplied by
-     *           {@link #getPluginArguments()} -- the
-     *           {@linkplain CommandLineArgument#parseArgument(Options, String[], int) specific argument parsing method}
-     *           will be called.
+     * @implNote The current implementation parses the arguments and -- if an according argument has been supplied by {@link #getPluginArguments()} -- the
+     *           {@linkplain CommandLineArgument#parseArgument(Options, String[], int) specific argument parsing method} will be called.
      */
     @Override
     public int parseArgument(final Options options, final String[] arguments, final int index)

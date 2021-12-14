@@ -410,8 +410,9 @@ extends BasePlugin {
             }
             return $Builder;
         } catch (final JClassAlreadyExistsException alreadyExists) {
-            return stream($clazz.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst()
-            .orElseThrow(() -> new RuntimeException("Nested class 'Builder' already exists but cannot be found!", alreadyExists));
+            return stream($clazz.listClasses()).filter(nested -> "Builder".equals(nested.name()))
+                                               .findFirst()
+                                               .orElseThrow(() -> new RuntimeException("Nested class 'Builder' already exists but cannot be found!", alreadyExists));
         }
     }
 
