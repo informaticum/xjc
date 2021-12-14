@@ -71,7 +71,7 @@ extends BasePlugin {
     // TODO: Reduced-value constructor (only required fields)
     private static final CommandLineArgument GENERATE_VALUESCONSTRUCTOR  = new CommandLineArgument("construction-values-constructor",       "Generate all-values constructor (automatically enables option '-construction-default-constructor'). Default: false");
     private static final CommandLineArgument GENERATE_COPYCONSTRUCTOR    = new CommandLineArgument("construction-copy-constructor",         "Generate copy constructor (automatically enables option '-construction-default-constructor'). Default: false");
-    private static final CommandLineArgument GENERATE_VALUESBUILDER      = new CommandLineArgument("construction-builder",                  "Generate builder. Default: false");
+    private static final CommandLineArgument GENERATE_BUILDER            = new CommandLineArgument("construction-builder",                  "Generate builder. Default: false");
     private static final CommandLineArgument GENERATE_CLONE              = new CommandLineArgument("construction-clone",             format("Generate [%s] method. Default: false", CLONE_SIGNATURE));
     private static final CommandLineArgument GENERATE_DEFENSIVECOPIES    = new CommandLineArgument("construction-defensive-copies",         "Generated code will create defensive copies of the submitted collection/array/cloneable arguments. (Note: No deep copies!) Default: false");
     private static final CommandLineArgument HIDE_DEFAULT_FACTORIES      = new CommandLineArgument("construction-hide-default-factories",   "Hides default factory methods of object factories. Default: false");
@@ -88,7 +88,7 @@ extends BasePlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COPYCONSTRUCTOR, GENERATE_VALUESBUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
+        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_COPYCONSTRUCTOR, GENERATE_BUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
     }
 
     @Override
@@ -105,7 +105,7 @@ extends BasePlugin {
         GENERATE_DEFAULTCONSTRUCTOR.doOnActivation(this::generateDefaultConstructor, clazz);
         GENERATE_VALUESCONSTRUCTOR.doOnActivation(this::generateValuesConstructor, clazz);
         GENERATE_COPYCONSTRUCTOR.doOnActivation(this::generateCopyConstructor, clazz);
-        GENERATE_VALUESBUILDER.doOnActivation(this::generateValuesBuilder, clazz);
+        GENERATE_BUILDER.doOnActivation(this::generateBuilder, clazz);
         GENERATE_CLONE.doOnActivation(this::addClone, clazz);
         // GENERATE_DEFENSIVECOPIES is used indirectly
         // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.)
@@ -330,7 +330,7 @@ extends BasePlugin {
         $body._return($reproduction);
     }
 
-    private final JClass generateValuesBuilder(final ClassOutline clazz) {
+    private final JClass generateBuilder(final ClassOutline clazz) {
         // TODO: Skip if Builder already exists
         LOG.info("Generate builder for [{}].", fullNameOf(clazz));
         final var $clazz = clazz.implClass;
@@ -357,7 +357,7 @@ extends BasePlugin {
             final var $build = $Builder.method(builderModifiers & ~STATIC, $clazz, "build");
             $build.javadoc().addReturn().append("a new instance of ").append($clazz);
             if (clazz.getSuperClass() != null) {
-                $Builder._extends(this.generateValuesBuilder(clazz.getSuperClass()));
+                $Builder._extends(this.generateBuilder(clazz.getSuperClass()));
                 // (a) "toBuilder()" in XSDClass
                 $toBuilder.annotate(Override.class);
                 // (b) "Builder()" in Builder
