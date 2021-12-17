@@ -25,17 +25,17 @@ In case you are using Maven and the CXF plugin, the configuration is:
   <artifactId>cxf-codegen-plugin</artifactId>
   <version>${current-cxf-version}</version>
   <dependencies>
-  <dependency>
-    <groupId>de.informaticum.xjc</groupId>
-    <artifactId>xjc-plugins</artifactId>
-    <version>${current-project-version}</version>
-  </dependency>
-  <dependency>
-    <groupId>ch.qos.logback</groupId>
-    <artifactId>logback-classic</artifactId>
-    <version>${current-logback-version}</version>
-  </dependency>
-  [...]
+    <dependency>
+      <groupId>de.informaticum.xjc</groupId>
+      <artifactId>xjc-plugins</artifactId>
+      <version>${current-project-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${current-logback-version}</version>
+    </dependency>
+    [...]
   </dependencies>
   <executions>
     <execution>
@@ -94,17 +94,17 @@ is:
   <artifactId>cxf-codegen-plugin</artifactId>
   <version>${current-cxf-version}</version>
   <dependencies>
-  <dependency>
-    <groupId>de.informaticum.xjc</groupId>
-    <artifactId>xjc-plugins</artifactId>
-    <version>${current-project-version}</version>
-  </dependency>
-  <dependency>
-    <groupId>ch.qos.logback</groupId>
-    <artifactId>logback-classic</artifactId>
-    <version>${current-logback-version}</version>
-  </dependency>
-  [...]
+    <dependency>
+      <groupId>de.informaticum.xjc</groupId>
+      <artifactId>xjc-plugins</artifactId>
+      <version>${current-project-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${current-logback-version}</version>
+    </dependency>
+    [...]
   </dependencies>
   <executions>
     <execution>
