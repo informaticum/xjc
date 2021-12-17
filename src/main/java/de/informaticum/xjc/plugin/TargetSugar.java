@@ -5,7 +5,8 @@ import static com.sun.codemodel.JExpr._super;
 import static com.sun.codemodel.JExpr._this;
 import com.sun.codemodel.JExpression;
 
-public abstract class TargetCode {
+public enum TargetSugar {
+    ;
 
     public static final JExpression $super = _super();
 

@@ -2,8 +2,8 @@ package de.informaticum.xjc;
 
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JOp.cond;
-import static de.informaticum.xjc.plugin.TargetCode.$null;
-import static de.informaticum.xjc.plugin.TargetCode.$this;
+import static de.informaticum.xjc.plugin.TargetSugar.$null;
+import static de.informaticum.xjc.plugin.TargetSugar.$this;
 import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
