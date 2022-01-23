@@ -7,7 +7,7 @@
 
   <groupId>de.informaticum.xjc</groupId>
   <artifactId>xjc-plugins</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
 
   <properties>
       <!-- Project Properties -->
@@ -16,7 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Dependency Versions -->
-    <version.apache-codegen>3.4.3</version.apache-codegen>
+    <version.apache-codegen>3.5.0</version.apache-codegen>
   </properties>
 
   <dependencyManagement>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.16.1</version>
+      <version>3.22.0</version>
     </dependency>
   </dependencies>
 
