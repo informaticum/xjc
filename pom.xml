@@ -99,6 +99,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
+        <!--
+         ! Do not use 3.2.0. This version has a bug when analysing dependencies:
+         !   - https://issues.apache.org/jira/browse/MDEP-753
+         !-->
         <version>3.1.2</version>
         <configuration>
           <failOnWarning>false</failOnWarning>
@@ -123,7 +127,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M3</version>
+        <version>3.0.0</version>
         <executions>
           <execution>
             <id>enforce-uptodate-maven</id>
@@ -173,7 +177,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.1</version>
         <configuration>
           <tags>
             <tag><name>apiNote</name><placement>a</placement><head>API Note:</head></tag>
@@ -289,7 +293,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.2</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
