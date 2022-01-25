@@ -8,7 +8,6 @@ import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.ConstructionPlugin.appendParameterJavaDoc;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
-import static de.informaticum.xjc.plugin.TargetSugar.$void;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
 import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
@@ -245,7 +244,7 @@ extends BasePlugin {
                 final var setterName = guessSetterName(attribute);
                 if (getMethod(clazz, setterName, $property.type()) == null) {
                     LOG.info("Generate setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
-                    final var $setter = $class.method(PUBLIC | FINAL, $void, setterName);
+                    final var $setter = $class.method(PUBLIC | FINAL, clazz.implClass.owner().VOID, setterName);
                     final var $parameter = $setter.param(FINAL, $property.type(), $property.name());
                     final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
                     if ($parameter.type().isPrimitive()) {
