@@ -68,7 +68,6 @@ extends BasePlugin {
     private static final String OPTION_NAME = "informaticum-xjc-construction";
     private static final String OPTION_DESC = "Generates construction code, i.e., constructors, builders, clones.";
     private static final CommandLineArgument GENERATE_DEFAULTCONSTRUCTOR = new CommandLineArgument("construction-default-constructor",      "Generate default constructor. Default: false");
-    // TODO: Do not hide if similar to (empty) values-constructor
     private static final CommandLineArgument HIDE_DEFAULTCONSTRUCTOR     = new CommandLineArgument("construction-hide-default-constructor", "Hides default constructors if such constructor exists. Default: false");
     // TODO: Minimum-value constructor (only required fields without default)
     // TODO: Reduced-value constructor (only required fields)
@@ -149,6 +148,9 @@ extends BasePlugin {
         // 1/2: Prepare
         if (getConstructor(clazz) == null) {
             LOG.warn("Skip hiding of default constructor for [{}] because such constructor does not exist.", fullNameOf(clazz));
+            return;
+        } else if (GENERATE_VALUESCONSTRUCTOR.isActivated() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
+            LOG.warn("Skip hiding of default constructor for [{}] because it is similar to the all-values constructor.", fullNameOf(clazz));
             return;
         }
         LOG.info("Hide default constructor [{}#{}()].", fullNameOf(clazz), fullNameOf(clazz));
