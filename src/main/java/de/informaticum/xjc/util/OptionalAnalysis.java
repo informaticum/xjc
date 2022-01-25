@@ -66,4 +66,23 @@ public enum OptionalAnalysis {
         }
     }
 
+    /**
+     * @param $type
+     *            the type to analyse
+     * @return {@code true} iff the give type is assignable to {@link OptionalDouble}, {@link OptionalInt}, or {@link OptionalLong}
+     */
+    public static final boolean isPrimitiveOptional(final JType $type) {
+        final var model = $type.owner();
+        final var raw = $type.erasure();
+        if (model.ref(OptionalDouble.class).equals(raw)) {
+            return true;
+        } else if (model.ref(OptionalInt.class).equals(raw)) {
+            return true;
+        } else if (model.ref(OptionalLong.class).equals(raw)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
