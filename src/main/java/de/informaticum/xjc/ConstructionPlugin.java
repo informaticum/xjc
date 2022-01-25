@@ -37,6 +37,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
@@ -205,9 +206,13 @@ extends BasePlugin {
     }
 
     private static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter) {
+        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
+        appendParameterJavaDoc(javadoc, attribute, $parameter, $default);
+    }
+
+    static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter, final Optional<JExpression> $default) {
         final var info = attribute.getPropertyInfo();
         final var name = info.getName(true);
-        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
         if ($parameter.type().isPrimitive()) {
             javadoc.addParam($parameter).append(format("value for the attribute '%s'", name));
         } else if (isOptional(attribute) && $default.isEmpty()) {
@@ -216,7 +221,7 @@ extends BasePlugin {
             javadoc.addParam($parameter).append(format("value for the attribute '%s' (cannot be {@code null} because attribute is required)", name));
         } else {
             assertThat($default).isPresent();
-            javadoc.addParam($parameter).append(format(info.isCollection() ? "value for the attribute '%s' (can be {@code null} because an empty, modifiable list will be used instead)" : "value for the attribute '%s' (can be {@code null} because an according default value will be used instead)", name));
+            javadoc.addParam($parameter).append(format(info.isCollection() ? "value for the attribute '%s' (can be {@code null} because an empty, modifiable collection will be used instead)" : "value for the attribute '%s' (can be {@code null} because an according default value will be used instead)", name));
         }
     }
 

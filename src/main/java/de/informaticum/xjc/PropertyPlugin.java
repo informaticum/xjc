@@ -1,19 +1,28 @@
 package de.informaticum.xjc;
 
+import static com.sun.codemodel.JExpr._new;
+import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JMod.FINAL;
+import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JOp.cond;
+import static de.informaticum.xjc.ConstructionPlugin.appendParameterJavaDoc;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
+import static de.informaticum.xjc.plugin.TargetSugar.$void;
 import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
+import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedSettersOf;
+import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
+import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
+import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,12 +49,14 @@ extends BasePlugin {
 
     private static final String OPTION_NAME = "informaticum-xjc-properties";
     private static final String OPTION_DESC = "Refactors the code of type fields (i.e., origin field, according getter or setter).";
-    private static final CommandLineArgument PRIVATE_FIELDS                = new CommandLineArgument("properties-private-fields",       "Modifies the visibility of the generated fields onto 'private'. Default: false");
-    private static final CommandLineArgument FINAL_FIELDS                  = new CommandLineArgument("properties-final-fields",         "Modifies the generated fields onto 'final' (automatically enables option '-properties-straight-getters'). Default: false");
-    private static final CommandLineArgument GENERATE_STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",     "Refactor collection fields' getter methods with immediate return statement, i.e., without previous implicit field assigment in case of an actual 'null' value. Default: false");
-    private static final CommandLineArgument GENERATE_UNMODIFIABLE_GETTERS = new CommandLineArgument("properties-unmodifiable-getters", "Replace return value for collection fields' getter methods with an unmodifiable view. Default: false");
-    private static final CommandLineArgument GENERATE_OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",     "Replace return type [T] of non-required non-collection fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false");
-    private static final CommandLineArgument REMOVE_SETTERS                = new CommandLineArgument("properties-remove-setters",       "Removes the property setters. Default: false");
+    private static final CommandLineArgument PRIVATE_FIELDS                = new CommandLineArgument("properties-private-fields",         "Modifies the visibility of the generated fields onto 'private'. Default: false");
+    private static final CommandLineArgument FINAL_FIELDS                  = new CommandLineArgument("properties-final-fields",           "Modifies the generated fields onto 'final' (automatically enables option '-properties-straight-getters'). Default: false");
+    private static final CommandLineArgument GENERATE_STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",       "Refactor collection fields' getter methods with immediate return statement, i.e., without previous implicit field assigment in case of an actual 'null' value. Default: false");
+    private static final CommandLineArgument GENERATE_UNMODIFIABLE_GETTERS = new CommandLineArgument("properties-unmodifiable-getters",   "Replace return value for collection fields' getter methods with an unmodifiable view. Default: false");
+    private static final CommandLineArgument GENERATE_OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       "Replace return type [T] of non-required non-collection fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false");
+    private static final CommandLineArgument GENERATE_COLLECTION_SETTERS   = new CommandLineArgument("properties-collection-setters",     "Generates setter methods for collection fields. Default: false");
+    private static final CommandLineArgument GENERATE_COLLECTIONINIT       = new CommandLineArgument("properties-initialise-collections", "Each time a collection initialisation statement is generated, the value will not be 'null' but the empty collection instance. Default: false");
+    private static final CommandLineArgument REMOVE_SETTERS                = new CommandLineArgument("properties-remove-setters",         "Removes the property setters. Default: false");
 
     @Override
     public final Entry<String, String> getOption() {
@@ -54,7 +65,7 @@ extends BasePlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return Arrays.asList(PRIVATE_FIELDS, FINAL_FIELDS, GENERATE_STRAIGHT_GETTERS, GENERATE_UNMODIFIABLE_GETTERS, GENERATE_OPTIONAL_GETTERS, REMOVE_SETTERS);
+        return Arrays.asList(PRIVATE_FIELDS, FINAL_FIELDS, GENERATE_STRAIGHT_GETTERS, GENERATE_UNMODIFIABLE_GETTERS, GENERATE_OPTIONAL_GETTERS, GENERATE_COLLECTION_SETTERS, GENERATE_COLLECTIONINIT, REMOVE_SETTERS);
     }
 
     @Override
@@ -73,6 +84,7 @@ extends BasePlugin {
     public final boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {
         FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHT_GETTERS);
+        // TODO: (1) GENERATE_COLLECTION_SETTERS disables REMOVE_SETTERS or (2) abort execution or (3) let it happen (generate and remove immediately)?
         return true;
     }
 
@@ -83,6 +95,7 @@ extends BasePlugin {
         GENERATE_STRAIGHT_GETTERS.doOnActivation(this::generateStraightGetter, clazz);
         GENERATE_UNMODIFIABLE_GETTERS.doOnActivation(this::generateUnmodifiableGetter, clazz);
         GENERATE_OPTIONAL_GETTERS.doOnActivation(this::generateOptionalGetter, clazz);
+        GENERATE_COLLECTION_SETTERS.doOnActivation(this::addCollectionSetter, clazz);
         REMOVE_SETTERS.doOnActivation(this::removeSetter, clazz);
         return true;
     }
@@ -200,6 +213,44 @@ extends BasePlugin {
                 $getter.mods().setPrivate();
                 $getter.mods().setFinal(true);
                 $getter.name("_nonoptional_" + $getter.name());
+            }
+        }
+    }
+
+    private final void addCollectionSetter(final ClassOutline clazz) {
+        final var properties = generatedPropertiesOf(clazz);
+        for (final var property : properties.entrySet()) {
+            final var attribute = property.getKey();
+            final var attributeInfo = attribute.getPropertyInfo();
+            if (attributeInfo.isCollection()) {
+                // TODO: All "$class = clazz.implClass" --> "$Class = clazz.implClass"
+                final var $class = clazz.implClass;
+                final var $property = properties.get(attribute);
+                final var setterName = guessSetterName(attribute);
+                if (getMethod(clazz, setterName, $property.type()) == null) {
+                    LOG.info("Generate setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
+                    final var $setter = $class.method(PUBLIC | FINAL, $void, setterName);
+                    final var $parameter = $setter.param(FINAL, $property.type(), $property.name());
+                    final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
+                    if ($parameter.type().isPrimitive()) {
+                        $setter.body().assign($this.ref($property), $parameter);
+                    } else if (isOptional(attribute) && $default.isEmpty()) {
+                        $setter.body().assign($this.ref($property), $parameter);
+                    } else if (isRequired(attribute) && $default.isEmpty()) {
+                        $setter._throws(IllegalArgumentException.class);
+                        final var $condition = $setter.body()._if($parameter.eq($null));
+                        $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
+                        $condition._else().assign($this.ref($property), $parameter);
+                        $setter.javadoc().addThrows(IllegalArgumentException.class).append("iff the given value is {@code null} illegally");
+                    } else {
+                        assertThat($default).isPresent();
+                        $setter.body().assign($this.ref($property), cond($parameter.eq($null), $default.get(), $parameter));
+                    }
+                    $setter.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Sets the value of the attribute {@link #%1$s}</a>.", $property.name()));
+                    appendParameterJavaDoc($setter.javadoc(), attribute, $parameter, $default);
+                } else {
+                    LOG.error("Unexpectedly. there is already a setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
+                }
             }
         }
     }
