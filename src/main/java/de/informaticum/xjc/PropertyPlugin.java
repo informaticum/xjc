@@ -5,7 +5,7 @@ import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
 import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
-import static de.informaticum.xjc.util.CollectionAnalysis.emptyInstanceOf;
+import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
@@ -154,7 +154,7 @@ extends BasePlugin {
                 $unmodifiableGetter.javadoc().append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> returns an unmodifiable view of the current value.");
                 $unmodifiableGetter.javadoc().addReturn().append(format("an unmodifiable view of the value of the attribute '%s'", info.getName(true)));
                 // 3/3: Implement
-                final var $empty = emptyInstanceOf($OriginalType);
+                final var $empty = emptyImmutableInstanceOf($OriginalType);
                 final var $factory = unmodifiableViewFactoryFor($OriginalType);
                 final var $delegation = $this.invoke($getter);
                 final var $value = $unmodifiableGetter.body().decl(FINAL, $OriginalType, "value", $delegation);

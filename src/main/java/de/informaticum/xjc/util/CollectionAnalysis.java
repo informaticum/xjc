@@ -56,7 +56,7 @@ public enum CollectionAnalysis {
      * @throws IllegalArgumentException
      *             iff there is no empty-collection instance of the given type
      */
-    public static final JInvocation emptyInstanceOf(final JType $type)
+    public static final JInvocation emptyImmutableInstanceOf(final JType $type)
     throws IllegalArgumentException {
         final var model = $type.owner();
         final var $Collections = model.ref(Collections.class);
