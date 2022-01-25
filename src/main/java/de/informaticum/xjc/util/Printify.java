@@ -23,4 +23,18 @@ public enum Printify {
         return out.toString();
     }
 
+    /**
+     * Implodes a format string. In detail, this method shrinks all space-character sequences, removes space-character after newline-marker, finally {@linkplain String#trim()
+     * trims} the string.
+     *
+     * @param format
+     *            the origin format string
+     * @return the imploded string
+     */
+    public static final String implode(final String format) {
+        return format.replaceAll(" +", " ")
+                     .replace("%n ", "%n")
+                     .trim();
+    }
+
 }

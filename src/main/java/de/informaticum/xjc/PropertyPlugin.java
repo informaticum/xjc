@@ -9,11 +9,14 @@ import static de.informaticum.xjc.ConstructionPlugin.appendParameterJavaDoc;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
 import static de.informaticum.xjc.plugin.TargetSugar.$void;
+import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
 import static de.informaticum.xjc.util.CollectionAnalysis.defaultInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
+import static de.informaticum.xjc.util.CollectionAnalysis.isCollectionMethod;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
+import static de.informaticum.xjc.util.OptionalAnalysis.isPrimitiveOptional;
 import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
@@ -22,6 +25,8 @@ import static de.informaticum.xjc.util.OutlineAnalysis.generatedSettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
+import static de.informaticum.xjc.util.Printify.implode;
+import static de.informaticum.xjc.util.Printify.render;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.lang.String.format;
 import static java.util.function.Predicate.not;
@@ -31,6 +36,7 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -50,13 +56,32 @@ extends BasePlugin {
     private static final String OPTION_NAME = "informaticum-xjc-properties";
     private static final String OPTION_DESC = "Refactors the code of type fields (i.e., origin field, according getter or setter).";
     private static final CommandLineArgument PRIVATE_FIELDS                = new CommandLineArgument("properties-private-fields",         "Modifies the visibility of the generated fields onto 'private'. Default: false");
-    private static final CommandLineArgument FINAL_FIELDS                  = new CommandLineArgument("properties-final-fields",           "Modifies the generated fields onto 'final' (automatically enables option '-properties-straight-getters'). Default: false");
+    private static final CommandLineArgument FINAL_FIELDS                  = new CommandLineArgument("properties-final-fields",           "Modifies the generated fields onto 'final'. Default: false");
     private static final CommandLineArgument GENERATE_STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",       "Refactor collection fields' getter methods with immediate return statement, i.e., without previous implicit field assigment in case of an actual 'null' value. Default: false");
     private static final CommandLineArgument GENERATE_UNMODIFIABLE_GETTERS = new CommandLineArgument("properties-unmodifiable-getters",   "Replace return value for collection fields' getter methods with an unmodifiable view. Default: false");
-    private static final CommandLineArgument GENERATE_OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       "Replace return type [T] of non-required non-collection fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false");
+    private static final CommandLineArgument GENERATE_OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       "Replace return type [T] of optional fields' getter methods with [OptionalDouble]/[OptionalInt]/[OptionalLong]/[Optional<T>]. Default: false");
     private static final CommandLineArgument GENERATE_COLLECTION_SETTERS   = new CommandLineArgument("properties-collection-setters",     "Generates setter methods for collection fields. Default: false");
     private static final CommandLineArgument GENERATE_COLLECTIONINIT       = new CommandLineArgument("properties-initialise-collections", "Each time a collection initialisation statement is generated, the value will not be 'null' but the empty collection instance. Default: false");
     private static final CommandLineArgument REMOVE_SETTERS                = new CommandLineArgument("properties-remove-setters",         "Removes the property setters. Default: false");
+
+    private static final String STRAIGHT_VALUE_JAVADOC_MESSAGE                   = implode("This method returns                         the value of the                     attribute {@link #%1$s}; plus notably%n<ul>%n<li>this method neither checks for {@code null} value nor it returns an alternative value,</li>%n                        <li>hence, your business code either must handle {@code null} values appropriately or must ensure valid (non-{@code null}-attributed) instances at all time (even if unmarshalled from unknown, untrustworthy XML sources).</li>%n                                         </ul>");
+    private static final String STRAIGHT_DEFAULTED_VALUE_JAVADOC_MESSAGE         = implode("This method returns                         the value of the                     attribute {@link #%1$s}; plus notably%n<ul>%n<li>if the current value is {@code null}, the                 default value {@code %2$s} will be returned instead.</li>%n                                                                                                                                                                                                                                                                           </ul>");
+    private static final String STRAIGHT_COLLECTION_JAVADOC_MESSAGE              = implode("This method returns                         the value of the          collection attribute {@link #%1$s}; plus notably%n<ul>%n<li>if the current value is {@code null}, an                          empty {@link %2$s} will be returned instead,</li>%n                                                                                                                                            <li>in particular, the empty {@link %2$s} is not a live {@link %2$s} anymore and cannot be utilised to add/remove items!</li>%n</ul>");
+    private static final String UNMODIFIABLE_COLLECTION_JAVADOC_MESSAGE          = implode("This method returns an unmodifiable view of the value of the          collection attribute {@link #%1$s}; plus notably%n<ul>%n<li>if the current value is {@code null}, an             unmodifiable empty {@link %2$s} will be returned instead,</li>%n                                                                                                                                            <li>in particular, either unmodifiable view                                      cannot be utilised to add/remove items!</li>%n</ul>");
+    private static final String OPTIONAL_VALUE_JAVADOC_MESSAGE                   = implode("This method returns                         the value of the optional            attribute {@link #%1$s}; plus notably%n<ul>%n<li>if the current value is {@code null}, an {@linkplain %2$s#empty() empty        %2$s} will be returned instead.</li>%n                                                                                                                                                                                                                                                                           </ul>");
+    private static final String OPTIONAL_COLLECTION_JAVADOC_MESSAGE              = implode("This method returns                         the value of the optional collection attribute {@link #%1$s}; plus notably%n<ul>%n<li>if the current value is {@code null}, an {@linkplain %2$s#empty() empty        %2$s} will be returned instead,</li>%n<li>if the current value is not {@code null}, a non-empty {@link %2$s} (holding that value) will be returned,</li>%n                        <li>in particular, the empty {@link %2$s}                                        cannot be utilised to add/remove items!</li>%n</ul>");
+    private static final String OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_MESSAGE = implode("This method returns an unmodifiable view of the value of the optional collection attribute {@link #%1$s}; plus notably%n<ul>%n<li>if the current value is {@code null}, an {@linkplain %2$s#empty() empty        %2$s} will be returned instead,</li>%n<li>if the current value is not {@code null}, a non-empty {@link %2$s} (holding an unmodifiable view of that value) will be returned,</li>%n<li>in particular, the    unmodifiable view                                      cannot be utilised to add/remove items!</li>%n</ul>");
+
+    private static final String STRAIGHT_VALUE_JAVADOC_SUMMARY                   = implode("                                            the value of the                     attribute {@link #%1$s}                                                                                                                                                    ");
+    private static final String STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY         = implode("                                            the value of the                     attribute {@link #%1$s}%n(or                                                                                             {@code %2$s} if the current value is {@code null})");
+    private static final String STRAIGHT_COLLECTION_JAVADOC_SUMMARY              = implode("                                            the value of the          collection attribute {@link #%1$s}%n(or                                                                                       empty {@link %2$s} if the current value is {@code null})");
+    private static final String UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY          = implode("                    an unmodifiable view of the value of the          collection attribute {@link #%1$s}%n(or                                                                          unmodifiable empty {@link %2$s} if the current value is {@code null})");
+    private static final String OPTIONAL_VALUE_JAVADOC_SUMMARY                   = implode("                                            the value of the optional            attribute {@link #%1$s}%n(or                                                              {@linkplain %2$s#empty() empty        %2$s} if the current value is {@code null})");
+    private static final String OPTIONAL_COLLECTION_JAVADOC_SUMMARY              = implode("                                            the value of the optional collection attribute {@link #%1$s}%n(or                                                              {@linkplain %2$s#empty() empty        %2$s} if the current value is {@code null})");
+    private static final String OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY = implode("                    an unmodifiable view of the value of the optional collection attribute {@link #%1$s}%n(or                                                              {@linkplain %2$s#empty() empty        %2$s} if the current value is {@code null})");
+
+    private static final String JAVADOC_PREFIX = "%1$s%n%n<p><em>Please note</em>: This method <a href=\"https://github.com/informaticum/xjc\">has been refactored by the informaticum's XJC plugins</a> during the JAXB/XJC code generating process.%n%n<p>For your information, the former description was:%n<blockquote>%n";
+    private static final String JAVADOC_SUFFIX = "%n</blockquote>";
 
     @Override
     public final Entry<String, String> getOption() {
@@ -83,7 +108,8 @@ extends BasePlugin {
     @Override
     public final boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {
-        FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHT_GETTERS);
+        // TODO: FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHT_GETTERS or GENERATE_UNMODIFIABLE_GETTERS or GENERATE_OPTIONAL_GETTERS ? );
+        // TODO: Consider GENERATE_UNMODIFIABLE_GETTERS.alsoActivate(FINAL_FIELDS); ?
         // TODO: (1) GENERATE_COLLECTION_SETTERS disables REMOVE_SETTERS or (2) abort execution or (3) let it happen (generate and remove immediately)?
         return true;
     }
@@ -92,9 +118,7 @@ extends BasePlugin {
     protected final boolean runClass(final ClassOutline clazz) {
         PRIVATE_FIELDS.doOnActivation(this::setFieldsPrivate, clazz);
         FINAL_FIELDS.doOnActivation(this::setFieldsFinal, clazz);
-        GENERATE_STRAIGHT_GETTERS.doOnActivation(this::generateStraightGetter, clazz);
-        GENERATE_UNMODIFIABLE_GETTERS.doOnActivation(this::generateUnmodifiableGetter, clazz);
-        GENERATE_OPTIONAL_GETTERS.doOnActivation(this::generateOptionalGetter, clazz);
+        GENERATE_STRAIGHT_GETTERS.or(GENERATE_UNMODIFIABLE_GETTERS).or(GENERATE_OPTIONAL_GETTERS).doOnActivation(this::refactorGetter, clazz);
         GENERATE_COLLECTION_SETTERS.doOnActivation(this::addCollectionSetter, clazz);
         REMOVE_SETTERS.doOnActivation(this::removeSetter, clazz);
         return true;
@@ -114,105 +138,97 @@ extends BasePlugin {
         }
     }
 
-    private final void generateStraightGetter(final ClassOutline clazz) {
+    private final void refactorGetter(final ClassOutline clazz) {
         final var properties = generatedPropertiesOf(clazz);
         for (final var getter : generatedGettersOf(clazz).entrySet()) {
-            final var property = getter.getKey();
-            assertThat(properties).containsKey(property);
-            final var $getter = getter.getValue();
-            if (!property.getPropertyInfo().isCollection()) {
-                assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
-                LOG.debug("Skip creation of straight getter for [{}#{}()] because attribute is not a collection type.", fullNameOf(clazz), $getter.name());
-            } else {
-                assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
-                LOG.info("Replace original implementation body [{}#{}()] with a similar but straight version.", fullNameOf(clazz), $getter.name());
-                final var $property = properties.get(property);
-                final var $class = clazz.implClass;
-                final var info = property.getPropertyInfo();
-                final var $OriginalType = $getter.type();
-                // 1/3: Create
-                final var $straightGetter = $class.method($getter.mods().getValue(), $OriginalType, $getter.name());
-                // 2/3: JavaDocument
-                $straightGetter.javadoc().addAll($getter.javadoc());
-                $straightGetter.javadoc().append("")
-                                         .append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> does not assign the field with a default value in case of an actual null value.");
-                $straightGetter.javadoc().addReturn().append(format("the value of the attribute '%s'", info.getName(true)));
-                // 3/3: Implement
-                // TODO: Refactor similar to the Constructor/Builder-Refactoring?
-                final var $default = defaultInstanceOf($OriginalType);
-                $straightGetter.body()._return(cond($this.ref($property).eq($null), $default, $this.ref($property)));
-                // Subsequently (!) remove the original getter method
-                $class.methods().remove($getter);
-            }
-        }
-
-    }
-
-    private final void generateUnmodifiableGetter(final ClassOutline clazz) {
-        for (final var getter : generatedGettersOf(clazz).entrySet()) {
             final var attribute = getter.getKey();
+            final var attributeInfo = attribute.getPropertyInfo();
+            assertThat(properties).containsKey(attribute);
+            final var $property = properties.get(attribute);
             final var $getter = getter.getValue();
-            if (!attribute.getPropertyInfo().isCollection()) {
-                assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
-                LOG.debug("Skip creation of unmodifiable view getter for [{}#{}()] because attribute is not a collection type.", fullNameOf(clazz), $getter.name());
-            } else {
-                assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
-                LOG.info("Replace return value of [{}#{}()] with an according unmodifiable view version.", fullNameOf(clazz), $getter.name());
-                final var $class = clazz.implClass;
-                final var info = attribute.getPropertyInfo();
-                final var $OriginalType = $getter.type();
-                // 1/3: Create
-                final var $unmodifiableGetter = $class.method($getter.mods().getValue(), $OriginalType, $getter.name());
-                // 2/3: JavaDocument
-                $unmodifiableGetter.javadoc().append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> returns an unmodifiable view of the current value.");
-                $unmodifiableGetter.javadoc().addReturn().append(format("an unmodifiable view of the value of the attribute '%s'", info.getName(true)));
-                // 3/3: Implement
-                final var $empty = emptyImmutableInstanceOf($OriginalType);
-                final var $factory = unmodifiableViewFactoryFor($OriginalType);
-                final var $delegation = $this.invoke($getter);
-                final var $value = $unmodifiableGetter.body().decl(FINAL, $OriginalType, "value", $delegation);
-                $unmodifiableGetter.body()._return(cond($value.invoke("isEmpty"), $empty, $factory.arg($value)));
-                // Subsequently (!) modify the original getter method
-                $getter.mods().setPrivate();
-                $getter.mods().setFinal(true);
-                $getter.name("_mutable_" + $getter.name());
-            }
-        }
-    }
+            final var $ReturnType = $getter.type();
+            final var $OptionalType = optionalTypeFor($ReturnType);
 
-    private final void generateOptionalGetter(final ClassOutline clazz) {
-        for (final var getter : generatedGettersOf(clazz).entrySet()) {
-            final var attribute = getter.getKey();
-            final var $getter = getter.getValue();
-            if (isRequired(attribute)) {
-                LOG.debug("Skip creation of optional getter for [{}#{}()] because attribute is required.", fullNameOf(clazz), $getter.name());
-            } else if (attribute.getPropertyInfo().isCollection()) {
-                LOG.debug("Skip creation of optional getter for [{}#{}()] because attribute is a collection (and, thus, will be represented by an empty collection if missing).", fullNameOf(clazz), $getter.name());
-            } else if (isOptionalMethod($getter)) {
-                LOG.warn("Skip creation of optional getter for [{}#{}()] because such method already exists.", fullNameOf(clazz), $getter.name());
-            } else {
-                LOG.info("Replace return type X of [{}#{}()] with an according OptionalDouble, OptionalInt, OptionalLong, or Optional<X> type.", fullNameOf(clazz), $getter.name());
-                final var $class = clazz.implClass;
-                final var info = attribute.getPropertyInfo();
-                final var $OriginalType = $getter.type();
-                // 1/3: Create
-                final var $OptionalType = optionalTypeFor($OriginalType);
-                final var $optionalGetter = $class.method($getter.mods().getValue(), $OptionalType, $getter.name());
-                // 2/3: JavaDocument
-                $optionalGetter.javadoc().append("@implNote In opposite to the origin getter implementation, <a href=\"https://github.com/informaticum/xjc\">this implementation</a> returns an optional view of the current value.");
-                $optionalGetter.javadoc().addReturn().append(format("the value of the optional attribute '%s'", info.getName(true)));
-                // 3/3: Implement
-                final var $delegation = $this.invoke($getter);
-                if ($OriginalType.isPrimitive()) {
-                    $optionalGetter.body()._return($OptionalType.erasure().staticInvoke("of").arg($delegation));
+            final String javadocMsg;
+            final String javadocRet;
+            final JExpression $statement;
+            if (attributeInfo.isCollection()) {
+                assertThat(attributeInfo.defaultValue).isNull();
+                assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
+                assertThat(isOptionalMethod($getter)).isFalse();
+                assertThat($ReturnType.isPrimitive()).isFalse();
+                assertThat($ReturnType.isReference()).isTrue();
+                if (GENERATE_OPTIONAL_GETTERS.isActivated() && isOptional(attribute) && GENERATE_UNMODIFIABLE_GETTERS.isActivated()) {
+                    LOG.debug("Refactor [{}#{}()]: Optional<X> container and unmodifiable view", fullNameOf(clazz), $getter.name());
+                    javadocMsg = format(OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_MESSAGE, $property.name(), $OptionalType.erasure().name());
+                    javadocRet = format(OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY, $property.name(), $OptionalType.erasure().name());
+                    $statement = $OptionalType.erasure().staticInvoke("ofNullable").arg(cond($this.ref($property).eq($null), $null, unmodifiableViewFactoryFor($ReturnType).arg($this.ref($property))));
+                    $getter.type($OptionalType);
+                } else if (GENERATE_OPTIONAL_GETTERS.isActivated() && isOptional(attribute) && GENERATE_UNMODIFIABLE_GETTERS.isNotActivated()) {
+                    LOG.debug("Refactor [{}#{}()]: Optional<X> container", fullNameOf(clazz), $getter.name());
+                    javadocMsg = format(OPTIONAL_COLLECTION_JAVADOC_MESSAGE, $property.name(), $OptionalType.erasure().name());
+                    javadocRet = format(OPTIONAL_COLLECTION_JAVADOC_SUMMARY, $property.name(), $OptionalType.erasure().name());
+                    $statement = $OptionalType.erasure().staticInvoke("ofNullable").arg($this.ref($property));
+                    $getter.type($OptionalType);
+                } else if (GENERATE_UNMODIFIABLE_GETTERS.isActivated()) {
+                    LOG.debug("Refactor [{}#{}()]: unmodifiable view", fullNameOf(clazz), $getter.name());
+                    javadocMsg = format(UNMODIFIABLE_COLLECTION_JAVADOC_MESSAGE, $property.name(), $ReturnType.erasure().name());
+                    javadocRet = format(UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY, $property.name(), $ReturnType.erasure().name());
+                    $statement = cond($this.ref($property).eq($null), emptyImmutableInstanceOf($ReturnType), unmodifiableViewFactoryFor($ReturnType).arg($this.ref($property)));
+                } else if (GENERATE_STRAIGHT_GETTERS.isActivated()) {
+                    LOG.debug("Refactor [{}#{}()]: empty collection if 'null'", fullNameOf(clazz), $getter.name());
+                    javadocMsg = format(STRAIGHT_COLLECTION_JAVADOC_MESSAGE, $property.name(), $ReturnType.erasure().name());
+                    javadocRet = format(STRAIGHT_COLLECTION_JAVADOC_SUMMARY, $property.name(), $ReturnType.erasure().name());
+                    $statement = cond($this.ref($property).eq($null), defaultInstanceOf($ReturnType), $this.ref($property));
                 } else {
-                    final var $value = $optionalGetter.body().decl(FINAL, $OriginalType, "value", $delegation);
-                    $optionalGetter.body()._return(cond($value.eq($null), $OptionalType.erasure().staticInvoke("empty"), $OptionalType.erasure().staticInvoke("of").arg($value)));
+                    // TODO: Handle that edge case? (no options is activated at all, or GENERATE_OPTIONAL_GETTERS but required attribute)
+                    javadocMsg = null;
+                    javadocRet = null;
+                    $statement = null;
                 }
-                // Subsequently (!) modify the original getter method
-                $getter.mods().setPrivate();
-                $getter.mods().setFinal(true);
-                $getter.name("_nonoptional_" + $getter.name());
+            } else {
+                assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
+                final var $default = defaultValueFor(attribute, isCollectionMethod($getter));
+                if (GENERATE_STRAIGHT_GETTERS.isActivated() && $property.type().isReference() && $default.isPresent()) {
+                    LOG.debug("Refactor [{}#{}()]: default value if 'null'", fullNameOf(clazz), $getter.name());
+                    javadocMsg = format(STRAIGHT_DEFAULTED_VALUE_JAVADOC_MESSAGE, $property.name(), render($default.get()));
+                    javadocRet = format(STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY, $property.name(), render($default.get()));
+                    $statement = cond($this.ref($property).eq($null), $default.get(), $this.ref($property));
+                } else if (GENERATE_OPTIONAL_GETTERS.isActivated() && isOptional(attribute) && !isOptionalMethod($getter)) {
+                    LOG.debug("Refactor [{}#{}()]: OptionalDouble, OptionalInt, OptionalLong, or Optional<X> container", fullNameOf(clazz), $getter.name());
+                    javadocMsg = format(OPTIONAL_VALUE_JAVADOC_MESSAGE, $property.name(), $OptionalType.erasure().name());
+                    javadocRet = format(OPTIONAL_VALUE_JAVADOC_SUMMARY, $property.name(), $OptionalType.erasure().name());
+                    if ($property.type().isPrimitive()) {
+                        $statement = $OptionalType.erasure().staticInvoke("of").arg($this.ref($property));
+                    } else if (isPrimitiveOptional($OptionalType)) {
+                        $statement = cond($this.ref($property).eq($null), $OptionalType.erasure().staticInvoke("empty"), $OptionalType.erasure().staticInvoke("of").arg($this.ref($property)));
+                    } else {
+                        $statement = $OptionalType.erasure().staticInvoke("ofNullable").arg($this.ref($property));
+                    }
+                    $getter.type($OptionalType);
+                } else if (GENERATE_STRAIGHT_GETTERS.isActivated()) {
+                    LOG.debug("Refactor [{}#{}()]: immediate value return", fullNameOf(clazz), $getter.name());
+                    javadocMsg = format(STRAIGHT_VALUE_JAVADOC_MESSAGE, $property.name()); 
+                    javadocRet = format(STRAIGHT_VALUE_JAVADOC_SUMMARY, $property.name());
+                    $statement = $this.ref($property);
+                } else {
+                    // TODO: Any further case to deal with?
+                    javadocMsg = null;
+                    javadocRet = null;
+                    $statement = null;
+                }
+            }
+            if (javadocMsg != null) {
+                $getter.javadoc().add(0, format(JAVADOC_PREFIX, javadocMsg));
+                $getter.javadoc().append(format(JAVADOC_SUFFIX));
+            }
+            if (javadocRet != null) {
+                $getter.javadoc().addReturn().clear();
+                $getter.javadoc().addReturn().append(javadocRet);
+            }
+            if ($statement != null) {
+                eraseBody($getter);
+                $getter.body()._return($statement);
             }
         }
     }
