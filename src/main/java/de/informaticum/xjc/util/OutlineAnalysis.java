@@ -1,5 +1,6 @@
 package de.informaticum.xjc.util;
 
+import static de.informaticum.xjc.plugin.TargetSugar.$void;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessGetterName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.stream;
@@ -195,7 +196,7 @@ public enum OutlineAnalysis {
             final var setterName = guessSetterName(attribute);
             final var setter = getMethod(clazz, setterName, $property.type());
             if (setter != null) {
-                assertThat(setter.type()).isEqualTo(clazz.implClass.owner().VOID);
+                assertThat(setter.type()).isEqualTo($void);
                 setters.put(attribute, setter);
             } else {
                 LOG.error("There is no setter method [{}] for property [{}] of class [{}].", setterName, $property.name(), clazz.implClass.fullName());
