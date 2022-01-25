@@ -17,6 +17,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Dependency Versions -->
     <version.apache-codegen>3.5.0</version.apache-codegen>
+    <version.assertj>3.22.0</version.assertj>
   </properties>
 
   <dependencyManagement>
@@ -60,7 +61,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.22.0</version>
+      <version>${version.assertj}</version>
     </dependency>
   </dependencies>
 
