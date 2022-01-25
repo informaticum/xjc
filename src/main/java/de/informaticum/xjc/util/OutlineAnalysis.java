@@ -198,8 +198,10 @@ public enum OutlineAnalysis {
             if (setter != null) {
                 assertThat(setter.type()).isEqualTo($void);
                 setters.put(attribute, setter);
+            } else if (attribute.getPropertyInfo().isCollection()) {
+                LOG.info("Expectedly, there is no setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
             } else {
-                LOG.error("There is no setter method [{}] for property [{}] of class [{}].", setterName, $property.name(), clazz.implClass.fullName());
+                LOG.error("Unexpectedly, there is no setter method [{}#{}({})] for property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
             }
         }
         return setters;
