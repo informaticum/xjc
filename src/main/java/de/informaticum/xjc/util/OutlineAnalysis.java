@@ -6,6 +6,7 @@ import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.function.Predicate;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
@@ -128,6 +129,19 @@ public enum OutlineAnalysis {
         final var properties = superAndDeclaredPropertiesOf(clazz);
         properties.entrySet().removeIf(property -> property.getValue() == null);
         return properties;
+    }
+
+    /**
+     * @param all
+     *            a map of all values so far
+     * @param filter
+     *            the filter to apply
+     * @return a map of all values that satisfy the filter predicate
+     */
+    public static final <K, T extends LinkedHashMap<? extends K, ?>> T filter(final T all, final Predicate<? super K> filter)  {
+        // TODO: Is there anything we can reuse instead of providing this custom filter function?
+        all.entrySet().removeIf(e -> filter.negate().test(e.getKey()));
+        return all;
     }
 
     public static final JMethod getConstructor(final ClassOutline clazz) {
