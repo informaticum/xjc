@@ -56,18 +56,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         this.currentErrorHandler = errorHandler;
         this.sayHi();
         try {
-            var result = this.prepareRun(outline, options, errorHandler);
-            for (final var pakkage : outline.getAllPackageContexts()) {
-                result &= this.runPackage(pakkage);
-                result &= this.runObjectFactory(pakkage.objectFactory());
-            }
-            for (final var clazz : outline.getClasses()) {
-                result &= this.runClass(clazz);
-            }
-            for (final var enumeration : outline.getEnums()) {
-                result &= this.runEnum(enumeration);
-            }
-            return result;
+            return this.run();
         } catch (final RuntimeException any) {
             LOG.error("Plugin cannot recover from error.", any);
             try {
@@ -107,6 +96,22 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         sink.accept(       "### If you have any improvement or feature suggestion, feel free to add these at:");
         sink.accept(       "###   - https://github.com/informaticum/xjc"                                      );
         sink.accept(       "#################################################################################");
+    }
+
+    private final boolean run()
+    throws SAXException, Exception {
+        var result = this.prepareRun();
+        for (final var pakkage : this.currentOutline.getAllPackageContexts()) {
+            result &= this.runPackage(pakkage);
+            result &= this.runObjectFactory(pakkage.objectFactory());
+        }
+        for (final var clazz : this.currentOutline.getClasses()) {
+            result &= this.runClass(clazz);
+        }
+        for (final var enumeration : this.currentOutline.getEnums()) {
+            result &= this.runEnum(enumeration);
+        }
+        return result;
     }
 
     protected boolean prepareRun()
