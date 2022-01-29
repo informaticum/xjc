@@ -54,8 +54,8 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         this.currentOutline = outline;
         this.currentOptions = options;
         this.currentErrorHandler = errorHandler;
-        this.sayHi();
         try {
+            this.sayHi();
             return this.run();
         } catch (final RuntimeException any) {
             LOG.error("Plugin cannot recover from error.", any);
