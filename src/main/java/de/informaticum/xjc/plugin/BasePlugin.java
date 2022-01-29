@@ -17,7 +17,7 @@ import org.xml.sax.SAXParseException;
 
 public abstract class BasePlugin
 extends CommandLineArgumentedPlugin
-implements RunningPlugin, InitialisedOutline {
+implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
 
     private static final Logger LOG = getLogger(BasePlugin.class);
 
@@ -29,17 +29,17 @@ implements RunningPlugin, InitialisedOutline {
 
     @Override
     public final Outline outline() {
-        return this.currentOutline != null ? this.currentOutline : RunningPlugin.super.outline();
+        return this.currentOutline != null ? this.currentOutline : InitialisedOutline.super.outline();
     }
 
     @Override
     public final Options options() {
-        return this.currentOptions != null ? this.currentOptions : RunningPlugin.super.options();
+        return this.currentOptions != null ? this.currentOptions : InitialisedOptions.super.options();
     }
 
     @Override
     public final ErrorHandler errorHandler() {
-        return this.currentErrorHandler != null ? this.currentErrorHandler : RunningPlugin.super.errorHandler();
+        return this.currentErrorHandler != null ? this.currentErrorHandler : InitialisedErrorHandler.super.errorHandler();
     }
 
     @Override
