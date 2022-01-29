@@ -20,7 +20,7 @@ extends Plugin {
      * @see #getOptionName()
      * @see #getOptionDescription()
      */
-    public abstract Entry<String, String> getOption();
+    public abstract Entry<? extends CharSequence, ? extends CharSequence> getOption();
 
     /**
      * @implNote The current implementation returns the key attribute of {@link #getOption()}.
@@ -30,7 +30,7 @@ extends Plugin {
      */
     @Override
     public final String getOptionName() {
-        return this.getOption().getKey();
+        return this.getOption().getKey().toString();
     }
 
     /**
@@ -39,7 +39,7 @@ extends Plugin {
      * @see #getOptionName()
      */
     public final String getOptionDescription() {
-        return this.getOption().getValue();
+        return this.getOption().getValue().toString();
     }
 
     /**
@@ -47,7 +47,7 @@ extends Plugin {
      *
      * @return all plug-in's command line arguments
      */
-    public List<CommandLineArgument> getPluginArguments() {
+    public List<? extends CommandLineArgument> getPluginArguments() {
         return emptyList();
     }
 
