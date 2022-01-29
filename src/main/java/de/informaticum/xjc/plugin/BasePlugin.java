@@ -57,25 +57,19 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         try {
             this.sayHi();
             return this.run();
-        } catch (final RuntimeException any) {
-            LOG.error("Plugin cannot recover from error.", any);
-            try {
-                final var failure = new SAXParseException(any.getMessage(), null, any);
-                errorHandler.fatalError(failure);
-            } catch (final RuntimeException ignore) {}
-            throw any;
         } catch (final SAXException any) {
             LOG.error("Plugin cannot recover from error.", any);
             throw any;
+        } catch (final RuntimeException any) {
+            LOG.error("Plugin cannot recover from error.", any);
+            try { errorHandler.fatalError(new SAXParseException(any.getMessage(), null, any)); }
+            catch (final RuntimeException ignore) { any.addSuppressed(ignore); }
+            throw any;
         } catch (final Exception any) {
             LOG.error("Plugin cannot recover from error.", any);
-            try {
-                final var failure = new SAXParseException(any.getMessage(), null, any);
-                errorHandler.fatalError(failure);
-                throw failure;
-            } catch (final RuntimeException ignore) {
-                throw new RuntimeException(any.getMessage(), any);
-            }
+            try { errorHandler.fatalError(new SAXParseException(any.getMessage(), null, any)); }
+            catch (final RuntimeException ignore) { any.addSuppressed(ignore); }
+            throw new RuntimeException(any.getMessage(), any);
         }
     }
 
