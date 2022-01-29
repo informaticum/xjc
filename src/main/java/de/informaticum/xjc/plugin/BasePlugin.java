@@ -109,7 +109,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         sink.accept(       "#################################################################################");
     }
 
-    protected boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    protected boolean prepareRun()
     throws SAXException, Exception {
         return true;
     }

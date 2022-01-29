@@ -39,12 +39,10 @@ import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.Outline;
 import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.util.CollectionAnalysis;
 import org.slf4j.Logger;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
 public class PropertyPlugin
@@ -105,7 +103,7 @@ extends BasePlugin {
     }
 
     @Override
-    public final boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    public final boolean prepareRun()
     throws SAXException {
         // TODO: FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHT_GETTERS or GENERATE_UNMODIFIABLE_GETTERS or GENERATE_OPTIONAL_GETTERS ? );
         // TODO: Consider GENERATE_UNMODIFIABLE_GETTERS.alsoActivate(FINAL_FIELDS); ?

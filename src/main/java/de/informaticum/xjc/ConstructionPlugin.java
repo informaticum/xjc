@@ -49,15 +49,12 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JVar;
-import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
-import com.sun.tools.xjc.outline.Outline;
 import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
 public class ConstructionPlugin
@@ -97,12 +94,12 @@ extends BasePlugin {
     }
 
     @Override
-    public final boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    public final boolean prepareRun()
     throws SAXException {
         GENERATE_VALUESCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
         GENERATE_BASICCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
         GENERATE_COPYCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
-        GENERATE_CLONE.doOnActivation(() -> outline.getClasses().forEach(this::addCloneable));
+        GENERATE_CLONE.doOnActivation(() -> this.outline().getClasses().forEach(this::addCloneable));
         return true;
     }
 

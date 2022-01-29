@@ -24,13 +24,10 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
-import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.Outline;
 import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import org.slf4j.Logger;
-import org.xml.sax.ErrorHandler;
 
 public final class BoilerplatePlugin
 extends BasePlugin {
@@ -65,7 +62,7 @@ extends BasePlugin {
     }
 
     @Override
-    public boolean prepareRun(final Outline outline, final Options options, final ErrorHandler errorHandler) {
+    public boolean prepareRun() {
         GENERATE_EQUALS.alsoActivate(GENERATE_HASHCODE);
         GENERATE_HASHCODE.alsoActivate(GENERATE_EQUALS);
         return true;
