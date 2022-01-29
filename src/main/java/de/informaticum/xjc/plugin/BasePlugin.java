@@ -82,7 +82,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
 
     protected void sayHi(final Consumer<? super String> sink) {
         sink.accept(       "#################################################################################");
-        sink.accept(       "### Hey JAX-B/JAX-WS user,"                                                       );
+        sink.accept(       "### Hey JAXB/JAX-WS user,"                                                        );
         sink.accept(       "### you are using one of the informaticum's XJC plugins, i.e., the:"              );
         sink.accept(format("###   - %s (%s),", this.getOptionName(), this.getOptionDescription())             );
         sink.accept(       "### If you appreciate it, let me know at:"                                        );
