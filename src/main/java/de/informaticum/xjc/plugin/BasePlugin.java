@@ -49,7 +49,7 @@ implements RunningPlugin, InitialisedOutline {
     }
 
     @Override
-    public boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
+    public final boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {
         this.currentOutline = outline;
         this.currentOptions = options;

@@ -34,7 +34,7 @@ implements XjcOption {
         return this.activated;
     }
 
-    public int parseArgument(final Options options, final String[] arguments, final int index) {
+    public final int parseArgument(final Options options, final String[] arguments, final int index) {
         assertThat(this.argument).isEqualTo(arguments[index]);
         this.activated = true;
         return 1;

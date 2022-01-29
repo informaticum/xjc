@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 
-public class FooPlugin
+public final class FooPlugin
 extends BasePlugin {
 
     @Override
@@ -16,7 +16,7 @@ extends BasePlugin {
     }
 
     @Override
-    public List<CommandLineArgument> getPluginArguments() {
+    public final List<CommandLineArgument> getPluginArguments() {
         return asList(
             new CommandLineArgument("a", "Some a information. Default: a"),
             new CommandLineArgument("bb", "Some bb information. Default: bb")

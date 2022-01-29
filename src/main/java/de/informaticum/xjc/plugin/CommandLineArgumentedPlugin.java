@@ -66,7 +66,7 @@ extends Plugin {
      *           {@linkplain CommandLineArgument#parseArgument(Options, String[], int) specific argument parsing method} will be called.
      */
     @Override
-    public int parseArgument(final Options options, final String[] arguments, final int index)
+    public final int parseArgument(final Options options, final String[] arguments, final int index)
     throws BadCommandLineException, IOException {
         final var possiblyMatchedArgument = this.getPluginArguments().stream().filter(arg -> arg.getArgument().equals(arguments[index])).findFirst();
         return possiblyMatchedArgument.map(arg -> arg.parseArgument(options, arguments, index)).orElse(0);
