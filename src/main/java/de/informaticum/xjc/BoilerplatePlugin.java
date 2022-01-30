@@ -9,6 +9,15 @@ import static com.sun.codemodel.JOp.not;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$super;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
+import static de.informaticum.xjc.resources.BoilerplatePluginMessages.EQUALS_IMPLNOTE;
+import static de.informaticum.xjc.resources.BoilerplatePluginMessages.GENERATE_EQUALS_DESCRIPTION;
+import static de.informaticum.xjc.resources.BoilerplatePluginMessages.GENERATE_HASHCODE_DESCRIPTION;
+import static de.informaticum.xjc.resources.BoilerplatePluginMessages.GENERATE_TOSTRING_DESCRIPTION;
+import static de.informaticum.xjc.resources.BoilerplatePluginMessages.HASHCODE_IMPLNOTE;
+import static de.informaticum.xjc.resources.BoilerplatePluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.resources.BoilerplatePluginMessages.TOSTRING_IMPLNOTE;
+import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
+import static de.informaticum.xjc.util.CodeRetrofit.javadocInheritdoc;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
@@ -31,6 +40,9 @@ public final class BoilerplatePlugin
 extends BasePlugin {
 
     private static final Logger LOG = getLogger(BoilerplatePlugin.class);
+    protected static final String GENERATE_METHOD = "Generate [{}] method for [{}].";
+    protected static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
+    protected static final String BECAUSE_METHOD_ALREADY_EXISTS = "such method already exists";
 
     private static final String equals = "equals";
     private static final String EQUALS_SIGNATURE = format("#%s(Object)", equals);
@@ -40,18 +52,13 @@ extends BasePlugin {
     private static final String TOSTRING_SIGNATURE = format("#%s()", toString);
 
     private static final String OPTION_NAME = "informaticum-xjc-boilerplate";
-    private static final String OPTION_DESC = "Generates common boilerplate code.";
-    private static final CommandLineArgument GENERATE_EQUALS   = new CommandLineArgument("boilerplate-equals",   format("Generate [%s] method (automatically enables option '-boilerplate-hashCode'). Default: false", EQUALS_SIGNATURE));
-    private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument("boilerplate-hashCode", format("Generate [%s] method (automatically enables option '-boilerplate-equals'). Default: false", HASHCODE_SIGNATURE));
-    private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument("boilerplate-toString", format("Generate [%s] method. Default: false", TOSTRING_SIGNATURE));
-
-    protected static final String GENERATE_METHOD = "Generate [{}] method for [{}].";
-    protected static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
-    protected static final String BECAUSE_METHOD_ALREADY_EXISTS = "such method already exists";
+    private static final CommandLineArgument GENERATE_EQUALS   = new CommandLineArgument("boilerplate-equals",   GENERATE_EQUALS_DESCRIPTION  .apply(EQUALS_SIGNATURE,   "-boilerplate-hashCode"));
+    private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument("boilerplate-hashCode", GENERATE_HASHCODE_DESCRIPTION.apply(HASHCODE_SIGNATURE, "-boilerplate-equals"));
+    private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument("boilerplate-toString", GENERATE_TOSTRING_DESCRIPTION.apply(TOSTRING_SIGNATURE));
 
     @Override
-    public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
+    public final Entry<String, CharSequence> getOption() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
     }
 
     @Override
@@ -60,7 +67,7 @@ extends BasePlugin {
     }
 
     @Override
-    public boolean prepareRun() {
+    public final boolean prepareRun() {
         GENERATE_EQUALS.alsoActivate(GENERATE_HASHCODE);
         GENERATE_HASHCODE.alsoActivate(GENERATE_EQUALS);
         return true;
@@ -85,8 +92,8 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $equals = $class.method(PUBLIC, boolean.class, equals);
         // 3/4: JavaDocument/Annotate
-        $equals.javadoc().append(format("{@inheritDoc}%n"))
-                         .append(format("%n@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code equals} method</a> compares each field of {@code this} instance with the according field of the {@code other} instance."));
+        javadocInheritdoc($equals.javadoc());
+        javadocAppendSection($equals.javadoc(), EQUALS_IMPLNOTE);
         $equals.annotate(Override.class);
         // 4/4: Implement
         final var $other = $equals.param(FINAL, this.reference(Object.class), "other");
@@ -119,9 +126,8 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $hashCode = $class.method(PUBLIC, int.class, hashCode);
         // 3/4: JavaDocument/Annotate
-        $hashCode.javadoc().append(format("{@inheritDoc}%n"))
-                           .append(format("%n@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code hashCode} method</a> considers the hash-code of each field of {@code this} instance to compute the overall return result."))
-                           .append(format("%n(If there is no field at all, the hash-code of {@code this} instance's {@linkplain #getClass() class} is returned instead.)"));
+        javadocInheritdoc($hashCode.javadoc());
+        javadocAppendSection($hashCode.javadoc(), HASHCODE_IMPLNOTE);
         $hashCode.annotate(Override.class);
         // 4/4: Implement
         final var $Objects = this.reference(Objects.class);
@@ -146,8 +152,8 @@ extends BasePlugin {
         final var $class = clazz.implClass;
         final var $toString = $class.method(PUBLIC, String.class, toString);
         // 3/4: JavaDocument/Annotate
-        $toString.javadoc().append(format("{@inheritDoc}%n"))
-                           .append(format("%n@implNote <a href=\"https://github.com/informaticum/xjc\">This generated {@code toString} method</a> returns a human readable list of all fields of {@code this} instance, each mapping to its own string representation."));
+        javadocInheritdoc($toString.javadoc());
+        javadocAppendSection($toString.javadoc(), TOSTRING_IMPLNOTE);
         $toString.annotate(Override.class);
         // 4/4: Implement
         final var $Objects = this.reference(Objects.class);
