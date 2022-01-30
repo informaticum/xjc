@@ -1,5 +1,6 @@
 package de.informaticum.xjc;
 
+import static de.informaticum.xjc.resources.TracePluginMessages.OPTION_DESCRIPTION;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -17,11 +18,10 @@ extends BasePlugin {
     private static final Logger LOG = getLogger(TracePlugin.class);
 
     private static final String OPTION_NAME = "informaticum-xjc-trace";
-    private static final String OPTION_DESC = "Traces/Logs all generated sources, mainly intended to enable debugging purposes.";
 
     @Override
-    public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
+    public final Entry<String, CharSequence> getOption() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
     }
 
     @Override
