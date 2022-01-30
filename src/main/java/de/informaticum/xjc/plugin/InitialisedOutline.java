@@ -1,5 +1,6 @@
 package de.informaticum.xjc.plugin;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 import com.sun.tools.xjc.model.Model;
@@ -20,6 +21,7 @@ public abstract interface InitialisedOutline {
     }
 
     public default JClass reference(final Class<?> clazz) {
+        assertThat(clazz.isPrimitive()).isFalse();
         return this.codeModel().ref(clazz);
     }
 
