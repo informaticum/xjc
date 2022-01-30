@@ -24,7 +24,7 @@ public enum CodeRetrofit {
 
     public static final void javadocDelimiter(final JDocComment $javadoc) {
         if (!$javadoc.isEmpty()) {
-            $javadoc.append(format("%n<p>"));
+            $javadoc.append(format("%n%n<p>"));
         }
     }
 
