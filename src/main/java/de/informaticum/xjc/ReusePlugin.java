@@ -19,6 +19,7 @@ public final class ReusePlugin
 extends BasePlugin {
 
     private static final Logger LOG = getLogger(ReusePlugin.class);
+    private static final String PUBLIC_QNAME = "Modify accessibility of QName [{}#{}] to [public].";
 
     private static final String OPTION_NAME = "informaticum-xjc-reuse";
     private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", REUSE_QNAMES_DESCRIPTION);
@@ -44,7 +45,7 @@ extends BasePlugin {
         $factory.fields().values().stream()
                 .filter($field -> $QName.isAssignableFrom($field.type().boxify()))
                 .forEach($qName -> {
-                    LOG.info("Modify accessibility of QName [{}#{}] to [public].", $factory.fullName(), $qName.name());
+                    LOG.info(PUBLIC_QNAME, $factory.fullName(), $qName.name());
                     javadocAppendSection($qName, PUBLIC_QNAMES_JAVADOC);
                     $qName.mods().setPublic();
                 });

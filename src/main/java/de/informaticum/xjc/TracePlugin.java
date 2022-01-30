@@ -16,6 +16,7 @@ public final class TracePlugin
 extends BasePlugin {
 
     private static final Logger LOG = getLogger(TracePlugin.class);
+    private static final String CURRENT_ENTITY = "Current {} is [{}].";
 
     private static final String OPTION_NAME = "informaticum-xjc-trace";
 
@@ -26,25 +27,25 @@ extends BasePlugin {
 
     @Override
     protected final boolean runPackage(final PackageOutline pakkage) {
-        LOG.trace("Current Package is [{}].", fullNameOf(pakkage));
+        LOG.trace(CURRENT_ENTITY, "Package", fullNameOf(pakkage));
         return true;
     }
 
     @Override
     protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        LOG.trace("Current Object-Factory is [{}].", $factory.fullName());
+        LOG.trace(CURRENT_ENTITY, "Object-Factory", fullNameOf($factory));
         return true;
     }
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        LOG.trace("Current Class is [{}].", fullNameOf(clazz));
+        LOG.trace(CURRENT_ENTITY, "Class", fullNameOf(clazz));
         return true;
     }
 
     @Override
     protected final boolean runEnum(final EnumOutline enumeration) {
-        LOG.trace("Current Enum is [{}].", fullNameOf(enumeration));
+        LOG.trace(CURRENT_ENTITY, "Enum", fullNameOf(enumeration));
         return true;
     }
 
