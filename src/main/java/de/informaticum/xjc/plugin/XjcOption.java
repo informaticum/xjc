@@ -4,8 +4,7 @@ import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.function.Consumer;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.EnumOutline;
+import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
 
 public abstract interface XjcOption {
@@ -56,19 +55,11 @@ public abstract interface XjcOption {
         }
     }
 
-    public default void doOnActivation(final Consumer<? super ClassOutline> execution, final ClassOutline clazz) {
+    public default <O extends CustomizableOutline> void doOnActivation(final Consumer<? super O> execution, final O clazz) {
         if (this.isActivated()) {
             execution.accept(clazz);
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), fullNameOf(clazz));
-        }
-    }
-
-    public default void doOnActivation(final Consumer<? super EnumOutline> execution, final EnumOutline enumeration) {
-        if (this.isActivated()) {
-            execution.accept(enumeration);
-        } else {
-            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), fullNameOf(enumeration));
         }
     }
 
