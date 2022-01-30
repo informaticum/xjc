@@ -28,6 +28,10 @@ public enum CodeRetrofit {
         }
     }
 
+    public static final void javadocInheritdoc(final JDocComment $javadoc) {
+        $javadoc.append($javadoc.isEmpty() ? "{@inheritDoc}" : format("%n%n{@inheritDoc}"));
+    }
+
     public static final void javadocAppendSection(final JDocCommentable $target, final ResourceBundleKeys key, final Object... arguments) {
         javadocAppendSection($target.javadoc(), key, arguments);
     }
