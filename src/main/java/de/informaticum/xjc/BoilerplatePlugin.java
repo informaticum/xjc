@@ -1,7 +1,5 @@
 package de.informaticum.xjc;
 
-import static com.sun.codemodel.JExpr.FALSE;
-import static com.sun.codemodel.JExpr.TRUE;
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JExpr.lit;
@@ -92,9 +90,9 @@ extends BasePlugin {
         $equals.annotate(Override.class);
         // 4/4: Implement
         final var $other = $equals.param(FINAL, this.reference(Object.class), "other");
-        $equals.body()._if($other.eq($null))._then()._return(FALSE);
-        $equals.body()._if($this.eq($other))._then()._return(TRUE);
-        $equals.body()._if(not($this.invoke("getClass").invoke(equals).arg($other.invoke("getClass"))))._then()._return(FALSE);
+        $equals.body()._if($other.eq($null))._then()._return(lit(false));
+        $equals.body()._if($this.eq($other))._then()._return(lit(true));
+        $equals.body()._if(not($this.invoke("getClass").invoke(equals).arg($other.invoke("getClass"))))._then()._return(lit(false));
         final var comparisons = new ArrayList<JExpression>();
         if (clazz.getSuperClass() != null) {
             comparisons.add($super.invoke(equals).arg($other));
@@ -107,7 +105,7 @@ extends BasePlugin {
                 comparisons.add($Objects.staticInvoke(equals).arg($this.ref($property)).arg($that.ref($property)));
             }
         }
-        $equals.body()._return(comparisons.stream().reduce(JExpression::cand).orElse(TRUE));
+        $equals.body()._return(comparisons.stream().reduce(JExpression::cand).orElse(lit(true)));
     }
 
     private final void addHashCode(final ClassOutline clazz) {
