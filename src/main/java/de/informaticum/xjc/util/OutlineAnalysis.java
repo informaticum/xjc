@@ -72,7 +72,7 @@ public enum OutlineAnalysis {
         } else if (property instanceof CAttributePropertyInfo) {
             return ((CAttributePropertyInfo) property).isRequired();
         } else if (property instanceof CValuePropertyInfo) {
-            // TODO: Currently, there is no similar "#isRequired()" for "CValuePropertyInfo" -- check, if an update is available
+            // Currently, there is no similar "#isRequired()" for "CValuePropertyInfo"
             // return ((CValuePropertyInfo) property).isRequired();
             return false;
         } else {
