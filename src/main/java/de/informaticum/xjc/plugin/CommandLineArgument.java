@@ -14,9 +14,9 @@ implements XjcOption {
 
     private boolean activated;
 
-    public CommandLineArgument(final String argument, final String description) {
+    public CommandLineArgument(final String argument, final CharSequence description) {
         this.argument = requireNonNull(argument).startsWith("-") ? argument : "-" + argument;
-        this.description = requireNonNull(description);
+        this.description = requireNonNull(description).toString();
         this.activated = false;
     }
 
