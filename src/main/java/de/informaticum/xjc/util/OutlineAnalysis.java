@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.function.Predicate;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.model.CAttributePropertyInfo;
 import com.sun.tools.xjc.model.CElementPropertyInfo;
@@ -32,7 +33,16 @@ public enum OutlineAnalysis {
      * @return the fully-qualified name of the given package
      */
     public static final String fullNameOf(final PackageOutline pakkage) {
-        return pakkage._package().name();
+        return fullNameOf(pakkage._package());
+    }
+
+    /**
+     * @param $package
+     *            the requested package
+     * @return the fully-qualified name of the given package
+     */
+    public static final String fullNameOf(final JPackage $package) {
+        return $package.name();
     }
 
     /**
@@ -41,7 +51,16 @@ public enum OutlineAnalysis {
      * @return the fully-qualified name of the given type
      */
     public static final String fullNameOf(final CustomizableOutline type) {
-        return type.getImplClass().fullName();
+        return fullNameOf(type.getImplClass());
+    }
+
+    /**
+     * @param $type
+     *            the requested type
+     * @return the fully-qualified name of the given type
+     */
+    public static final String fullNameOf(final JType $type) {
+        return $type.fullName();
     }
 
     public static final boolean isRequired(final FieldOutline attribute) {

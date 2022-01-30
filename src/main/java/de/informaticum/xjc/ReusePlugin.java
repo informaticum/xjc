@@ -4,6 +4,7 @@ import static de.informaticum.xjc.resources.ReusePluginMessages.OPTION_DESCRIPTI
 import static de.informaticum.xjc.resources.ReusePluginMessages.PUBLIC_QNAMES_JAVADOC;
 import static de.informaticum.xjc.resources.ReusePluginMessages.REUSE_QNAMES_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
+import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -45,7 +46,7 @@ extends BasePlugin {
         $factory.fields().values().stream()
                 .filter($field -> $QName.isAssignableFrom($field.type().boxify()))
                 .forEach($qName -> {
-                    LOG.info(PUBLIC_QNAME, $factory.fullName(), $qName.name());
+                    LOG.info(PUBLIC_QNAME, fullNameOf($factory), $qName.name());
                     javadocAppendSection($qName, PUBLIC_QNAMES_JAVADOC);
                     $qName.mods().setPublic();
                 });

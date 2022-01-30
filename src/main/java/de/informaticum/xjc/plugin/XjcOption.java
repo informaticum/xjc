@@ -52,7 +52,7 @@ public abstract interface XjcOption {
         if (this.isActivated()) {
             execution.accept($factory);
         } else {
-            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), $factory.fullName());
+            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), fullNameOf($factory));
         }
     }
 
