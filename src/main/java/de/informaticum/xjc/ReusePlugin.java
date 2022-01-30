@@ -1,5 +1,9 @@
 package de.informaticum.xjc;
 
+import static de.informaticum.xjc.resources.ReusePluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.resources.ReusePluginMessages.PUBLIC_QNAMES_JAVADOC;
+import static de.informaticum.xjc.resources.ReusePluginMessages.REUSE_QNAMES_DESCRIPTION;
+import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
 import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -17,12 +21,11 @@ extends BasePlugin {
     private static final Logger LOG = getLogger(ReusePlugin.class);
 
     private static final String OPTION_NAME = "informaticum-xjc-reuse";
-    private static final String OPTION_DESC = "Widens and/or lessens the usage of the generated XJC-API elements.";
-    private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", "Modify QName constants' accessibility to [public]. Default: false");
+    private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", REUSE_QNAMES_DESCRIPTION);
 
     @Override
-    public final Entry<String, String> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
+    public final Entry<String, CharSequence> getOption() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
     }
 
     @Override
@@ -38,11 +41,13 @@ extends BasePlugin {
 
     private final void publicifyQNames(final JDefinedClass $factory) {
         final var $QName = this.reference(QName.class);
-        $factory.fields().values().stream().filter(f -> $QName.isAssignableFrom(f.type().boxify())).forEach($qName -> {
-            LOG.info("Modify accessibility of QName [{}#{}] to [public].", $factory.fullName(), $qName.name());
-            $qName.javadoc().append("In order to allow reusage of this specific QName, <a href=\"https://github.com/informaticum/xjc\">it has gained 'public' access</a>.");
-            $qName.mods().setPublic();
-        });
+        $factory.fields().values().stream()
+                .filter($field -> $QName.isAssignableFrom($field.type().boxify()))
+                .forEach($qName -> {
+                    LOG.info("Modify accessibility of QName [{}#{}] to [public].", $factory.fullName(), $qName.name());
+                    javadocAppendSection($qName, PUBLIC_QNAMES_JAVADOC);
+                    $qName.mods().setPublic();
+                });
     }
 
 }

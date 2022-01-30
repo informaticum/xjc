@@ -1,6 +1,10 @@
 package de.informaticum.xjc.util;
 
+import static java.lang.String.format;
+import com.sun.codemodel.JDocComment;
+import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JMethod;
+import de.informaticum.xjc.resources.ResourceBundleKeys;
 
 public enum CodeRetrofit {
     ;
@@ -16,6 +20,21 @@ public enum CodeRetrofit {
         } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
             throw new RuntimeException(seriousProblem);
         }
+    }
+
+    public static final void javadocDelimiter(final JDocComment $javadoc) {
+        if (!$javadoc.isEmpty()) {
+            $javadoc.append(format("%n<p>"));
+        }
+    }
+
+    public static final void javadocAppendSection(final JDocCommentable $target, final ResourceBundleKeys key, final Object... arguments) {
+        javadocAppendSection($target.javadoc(), key, arguments);
+    }
+
+    public static final void javadocAppendSection(final JDocComment $javadoc, final ResourceBundleKeys key, final Object... arguments) {
+        javadocDelimiter($javadoc);
+        $javadoc.append(key.apply(arguments));
     }
 
 }
