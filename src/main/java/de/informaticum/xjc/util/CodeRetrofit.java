@@ -1,7 +1,7 @@
 package de.informaticum.xjc.util;
 
 import static java.lang.String.format;
-import com.sun.codemodel.JDocComment;
+import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JMethod;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
@@ -22,23 +22,23 @@ public enum CodeRetrofit {
         }
     }
 
-    public static final void javadocDelimiter(final JDocComment $javadoc) {
+    public static final void javadocDelimiter(final JCommentPart $javadoc) {
         if (!$javadoc.isEmpty()) {
-            $javadoc.append(format("%n%n<p>"));
+            $javadoc.add(format("%n%n<p>"));
         }
     }
 
-    public static final void javadocInheritdoc(final JDocComment $javadoc) {
-        $javadoc.append($javadoc.isEmpty() ? "{@inheritDoc}" : format("%n%n{@inheritDoc}"));
+    public static final void javadocInheritdoc(final JCommentPart $javadoc) {
+        $javadoc.add($javadoc.isEmpty() ? "{@inheritDoc}" : format("%n%n{@inheritDoc}"));
     }
 
     public static final void javadocAppendSection(final JDocCommentable $target, final ResourceBundleEntry key, final Object... arguments) {
         javadocAppendSection($target.javadoc(), key, arguments);
     }
 
-    public static final void javadocAppendSection(final JDocComment $javadoc, final ResourceBundleEntry key, final Object... arguments) {
+    public static final void javadocAppendSection(final JCommentPart $javadoc, final ResourceBundleEntry key, final Object... arguments) {
         javadocDelimiter($javadoc);
-        $javadoc.append(key.format(arguments));
+        $javadoc.add(key.format(arguments));
     }
 
 }
