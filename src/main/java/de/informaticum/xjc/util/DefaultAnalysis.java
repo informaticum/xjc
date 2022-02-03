@@ -74,6 +74,7 @@ public enum DefaultAnalysis {
         final var codeModel = outline.getCodeModel();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugewiesen wird, ohne
         //       dass ein Default-Wert existiert. Das darf nicht passieren. Ein "Boolean" ist initial "null".
+        // TODO: Consider property.isOptionalPrimitive()? What to do in that case?
         if (raw.equals(codeModel.BOOLEAN)) return Optional.of(lit(false));
         if (raw.equals(codeModel.BYTE))    return Optional.of(lit(0));
         if (raw.equals(codeModel.CHAR))    return Optional.of(lit('\u0000'));

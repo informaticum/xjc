@@ -45,7 +45,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     @Override
     public void postProcessModel(final Model model, final ErrorHandler errorHandler) {
         super.postProcessModel(model, errorHandler);
-        // TODO: consider model manipulation ...
+        // TODO: consider model manipulation ... (e.g., CPropertyInfo#setName(boolean, String)
     }
 
     @Override

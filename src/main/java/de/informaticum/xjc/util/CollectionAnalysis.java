@@ -173,6 +173,7 @@ public enum CollectionAnalysis {
         } else {
             throw new IllegalArgumentException("There is no unmodifiable-view-collection factory for type " + $type);
         }
+        // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }
 
 }
