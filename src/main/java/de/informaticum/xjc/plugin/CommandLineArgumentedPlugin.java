@@ -20,26 +20,26 @@ extends Plugin {
      * @see #getOptionName()
      * @see #getOptionDescription()
      */
-    public abstract Entry<? extends CharSequence, ? extends CharSequence> getOption();
+    public abstract Entry<String, String> getOptionEntry();
 
     /**
-     * @implNote The current implementation returns the key attribute of {@link #getOption()}.
+     * @implNote The current implementation returns the key attribute of {@link #getOptionEntry()}.
      *
-     * @see #getOption()
+     * @see #getOptionEntry()
      * @see #getOptionDescription()
      */
     @Override
     public final String getOptionName() {
-        return this.getOption().getKey().toString();
+        return this.getOptionEntry().getKey();
     }
 
     /**
      * @return the description of this XJC add-on
-     * @see #getOption()
+     * @see #getOptionEntry()
      * @see #getOptionName()
      */
     public final String getOptionDescription() {
-        return this.getOption().getValue().toString();
+        return this.getOptionEntry().getValue();
     }
 
     /**

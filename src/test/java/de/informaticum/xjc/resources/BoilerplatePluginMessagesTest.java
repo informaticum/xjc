@@ -1,15 +1,14 @@
 package de.informaticum.xjc.resources;
 
 import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class BoilerplatePluginMessagesTest {
+public class BoilerplatePluginMessagesTest
+extends ResourceBundleKeyTest {
 
     @Parameters(name = "{0}")
     public static Iterable<BoilerplatePluginMessages> keys() {
@@ -19,9 +18,9 @@ public class BoilerplatePluginMessagesTest {
     @Parameter(0)
     public BoilerplatePluginMessages key;
 
-    @Test
-    public void testApplicability() {
-        assertThat(this.key.toString()).isNotNull().isNotEmpty();
+    @Override
+    protected ResourceBundleEntry getSUT() {
+        return this.key;
     }
 
 }

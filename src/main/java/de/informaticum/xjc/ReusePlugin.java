@@ -23,11 +23,11 @@ extends BasePlugin {
     private static final String PUBLIC_QNAME = "Modify accessibility of QName [{}#{}] to [public].";
 
     private static final String OPTION_NAME = "informaticum-xjc-reuse";
-    private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", REUSE_QNAMES_DESCRIPTION);
+    private static final CommandLineArgument REUSE_QNAMES = new CommandLineArgument("reuse-qnames", REUSE_QNAMES_DESCRIPTION.text());
 
     @Override
-    public final Entry<String, CharSequence> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
+    public final Entry<String, String> getOptionEntry() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION.text());
     }
 
     @Override

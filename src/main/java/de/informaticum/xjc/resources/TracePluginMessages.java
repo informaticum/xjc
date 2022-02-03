@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 import de.informaticum.xjc.TracePlugin;
 
 public enum TracePluginMessages
-implements ResourceBundleKeys {
+implements ResourceBundleEntry {
 
     OPTION_DESCRIPTION,
 
@@ -16,11 +16,6 @@ implements ResourceBundleKeys {
     @Override
     public final ResourceBundle bundle() {
         return RB;
-    }
-
-    @Override
-    public final String toString() {
-        return this.apply();
     }
 
 }

@@ -84,7 +84,7 @@ extends BasePlugin {
     private static final String BECAUSE_CONSTRUCTOR_ALREADY_EXISTS = "such constructor already exists";
 
     @Override
-    public final Entry<String, String> getOption() {
+    public final Entry<String, String> getOptionEntry() {
         return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
     }
 

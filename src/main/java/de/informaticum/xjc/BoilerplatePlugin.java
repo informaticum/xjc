@@ -52,13 +52,13 @@ extends BasePlugin {
     private static final String TOSTRING_SIGNATURE = format("#%s()", toString);
 
     private static final String OPTION_NAME = "informaticum-xjc-boilerplate";
-    private static final CommandLineArgument GENERATE_EQUALS   = new CommandLineArgument("boilerplate-equals",   GENERATE_EQUALS_DESCRIPTION  .apply(EQUALS_SIGNATURE,   "-boilerplate-hashCode"));
-    private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument("boilerplate-hashCode", GENERATE_HASHCODE_DESCRIPTION.apply(HASHCODE_SIGNATURE, "-boilerplate-equals"));
-    private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument("boilerplate-toString", GENERATE_TOSTRING_DESCRIPTION.apply(TOSTRING_SIGNATURE));
+    private static final CommandLineArgument GENERATE_EQUALS   = new CommandLineArgument("boilerplate-equals",   GENERATE_EQUALS_DESCRIPTION  .format(EQUALS_SIGNATURE,   "-boilerplate-hashCode"));
+    private static final CommandLineArgument GENERATE_HASHCODE = new CommandLineArgument("boilerplate-hashCode", GENERATE_HASHCODE_DESCRIPTION.format(HASHCODE_SIGNATURE, "-boilerplate-equals"));
+    private static final CommandLineArgument GENERATE_TOSTRING = new CommandLineArgument("boilerplate-toString", GENERATE_TOSTRING_DESCRIPTION.format(TOSTRING_SIGNATURE));
 
     @Override
-    public final Entry<String, CharSequence> getOption() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION);
+    public final Entry<String, String> getOptionEntry() {
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION.text());
     }
 
     @Override

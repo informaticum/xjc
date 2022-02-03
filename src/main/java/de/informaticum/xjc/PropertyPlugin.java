@@ -81,7 +81,7 @@ extends BasePlugin {
     private static final String JAVADOC_SUFFIX = "%n</blockquote>";
 
     @Override
-    public final Entry<String, String> getOption() {
+    public final Entry<String, String> getOptionEntry() {
         return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
     }
 

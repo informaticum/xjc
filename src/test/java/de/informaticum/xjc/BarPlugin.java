@@ -11,7 +11,7 @@ public final class BarPlugin
 extends BasePlugin {
 
     @Override
-    public final Entry<String, String> getOption() {
+    public final Entry<String, String> getOptionEntry() {
         return new SimpleImmutableEntry<>("bar", "Some bar infomation.");
     }
 

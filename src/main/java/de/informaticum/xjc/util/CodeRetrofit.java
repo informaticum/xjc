@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JMethod;
-import de.informaticum.xjc.resources.ResourceBundleKeys;
+import de.informaticum.xjc.resources.ResourceBundleEntry;
 
 public enum CodeRetrofit {
     ;
@@ -32,13 +32,13 @@ public enum CodeRetrofit {
         $javadoc.append($javadoc.isEmpty() ? "{@inheritDoc}" : format("%n%n{@inheritDoc}"));
     }
 
-    public static final void javadocAppendSection(final JDocCommentable $target, final ResourceBundleKeys key, final Object... arguments) {
+    public static final void javadocAppendSection(final JDocCommentable $target, final ResourceBundleEntry key, final Object... arguments) {
         javadocAppendSection($target.javadoc(), key, arguments);
     }
 
-    public static final void javadocAppendSection(final JDocComment $javadoc, final ResourceBundleKeys key, final Object... arguments) {
+    public static final void javadocAppendSection(final JDocComment $javadoc, final ResourceBundleEntry key, final Object... arguments) {
         javadocDelimiter($javadoc);
-        $javadoc.append(key.apply(arguments));
+        $javadoc.append(key.format(arguments));
     }
 
 }
