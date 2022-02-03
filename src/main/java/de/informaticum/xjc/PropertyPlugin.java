@@ -271,8 +271,8 @@ extends BasePlugin {
     private final void removeSetter(final ClassOutline clazz) {
         for (final var $setter : generatedSettersOf(clazz).values()) {
             LOG.info("Remove property setter [{}#{}(...)].", fullNameOf(clazz), $setter.name());
-            final var $class = clazz.implClass;
-            $class.methods().remove($setter);
+            final var $Class = clazz.implClass;
+            $Class.methods().remove($setter);
         }
     }
 

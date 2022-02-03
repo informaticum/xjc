@@ -89,8 +89,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_METHOD, EQUALS_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
-        final var $class = clazz.implClass;
-        final var $equals = $class.method(PUBLIC, boolean.class, equals);
+        final var $Class = clazz.implClass;
+        final var $equals = $Class.method(PUBLIC, boolean.class, equals);
         // 3/4: JavaDocument/Annotate
         javadocInheritdoc($equals.javadoc());
         javadocAppendSection($equals.javadoc(), EQUALS_IMPLNOTE);
@@ -107,7 +107,7 @@ extends BasePlugin {
         final var properties = generatedPropertiesOf(clazz);
         if (!properties.isEmpty()) {
             final var $Objects = this.reference(Objects.class);
-            final var $that = $equals.body().decl(FINAL, $class, "that", cast($class, $other));
+            final var $that = $equals.body().decl(FINAL, $Class, "that", cast($Class, $other));
             for (final var $property : properties.values()) {
                 comparisons.add($Objects.staticInvoke(equals).arg($this.ref($property)).arg($that.ref($property)));
             }
@@ -123,8 +123,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_METHOD, HASHCODE_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
-        final var $class = clazz.implClass;
-        final var $hashCode = $class.method(PUBLIC, int.class, hashCode);
+        final var $Class = clazz.implClass;
+        final var $hashCode = $Class.method(PUBLIC, int.class, hashCode);
         // 3/4: JavaDocument/Annotate
         javadocInheritdoc($hashCode.javadoc());
         javadocAppendSection($hashCode.javadoc(), HASHCODE_IMPLNOTE);
@@ -149,8 +149,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_METHOD, TOSTRING_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
-        final var $class = clazz.implClass;
-        final var $toString = $class.method(PUBLIC, String.class, toString);
+        final var $Class = clazz.implClass;
+        final var $toString = $Class.method(PUBLIC, String.class, toString);
         // 3/4: JavaDocument/Annotate
         javadocInheritdoc($toString.javadoc());
         javadocAppendSection($toString.javadoc(), TOSTRING_IMPLNOTE);
@@ -167,7 +167,7 @@ extends BasePlugin {
         if (clazz.getSuperClass() != null) {
             segments.add(lit("Super: ").plus($super.invoke(toString)));
         }
-        final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg($class.name() + "[").arg("]");
+        final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg($Class.name() + "[").arg("]");
         $toString.body()._return(segments.stream().reduce($joiner, (partial, segement) -> partial.invoke("add").arg(segement)).invoke(toString));
     }
 

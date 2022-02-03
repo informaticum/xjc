@@ -127,8 +127,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_CONSTRUCTOR, "default", fullNameOf(clazz));
         // 2/3: Create
-        final var $class = clazz.implClass;
-        final var $constructor = $class.constructor(PUBLIC);
+        final var $Class = clazz.implClass;
+        final var $constructor = $Class.constructor(PUBLIC);
         // 3/3: Implement (with JavaDoc)
         $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
         if (clazz.getSuperClass() != null) {
@@ -192,8 +192,8 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_CONSTRUCTOR, label, fullNameOf(clazz));
         // 2/3: Create
-        final var $class = clazz.implClass;
-        final var $constructor = $class.constructor(PUBLIC);
+        final var $Class = clazz.implClass;
+        final var $constructor = $Class.constructor(PUBLIC);
         // 3/3: Implement (with JavaDoc)
         $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
         $constructor.javadoc(/* TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten) */).addThrows(IllegalArgumentException.class).append("iff any given value is {@code null} illegally");
@@ -305,10 +305,10 @@ extends BasePlugin {
         }
         LOG.info(GENERATE_CONSTRUCTOR, "copy", fullNameOf(clazz));
         // 2/3: Create
-        final var $class = clazz.implClass;
-        final var $constructor = $class.constructor(PUBLIC);
+        final var $Class = clazz.implClass;
+        final var $constructor = $Class.constructor(PUBLIC);
         // 3/3: Implement (with JavaDoc)
-        final var $blueprint = $constructor.param(FINAL, $class, "blueprint");
+        final var $blueprint = $constructor.param(FINAL, $Class, "blueprint");
         // TODO: Null-Check of $blueprint
         $constructor.javadoc().addParam($blueprint).append("the blueprint instance");
         $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
@@ -332,8 +332,8 @@ extends BasePlugin {
         }
         LOG.info("Add [{}] interface extension for [{}].", Cloneable.class, fullNameOf(clazz));
         // 2/2: Implement
-        final var $class = clazz.implClass;
-        $class._implements(Cloneable.class);
+        final var $Class = clazz.implClass;
+        $Class._implements(Cloneable.class);
     }
 
     private final void addClone(final ClassOutline clazz) {
@@ -345,8 +345,8 @@ extends BasePlugin {
         assertThat(this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)).isTrue();
         LOG.info(GENERATE_METHOD, CLONE_SIGNATURE, fullNameOf(clazz));
         // 2/4: Create
-        final var $class = clazz.implClass;
-        final var $clone = $class.method(PUBLIC, $class, clone);
+        final var $Class = clazz.implClass;
+        final var $clone = $Class.method(PUBLIC, $Class, clone);
         // 3/4: Annotate
         $clone.annotate(Override.class);
         // 4/4: Implement (with JavaDoc)
@@ -361,7 +361,7 @@ extends BasePlugin {
         } else {
             $body = $clone.body();
         }
-        final var $reproduction = $body.decl(FINAL, $class, "reproduction", cast($class, $super.invoke("clone")));
+        final var $reproduction = $body.decl(FINAL, $Class, "reproduction", cast($Class, $super.invoke("clone")));
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -373,17 +373,17 @@ extends BasePlugin {
     private final JClass generateBuilder(final ClassOutline clazz) {
         // TODO: Skip if Builder already exists
         LOG.info("Generate builder for [{}].", fullNameOf(clazz));
-        final var $clazz = clazz.implClass;
+        final var $Class = clazz.implClass;
         try {
-            final var isAbstract = $clazz.isAbstract();
-            final var isFinal = ($clazz.mods().getValue() & FINAL) != 0;
+            final var isAbstract = $Class.isAbstract();
+            final var isFinal = ($Class.mods().getValue() & FINAL) != 0;
             final var builderModifiers = PUBLIC | STATIC | (isAbstract ? ABSTRACT : NONE) | (isFinal ? FINAL : NONE);
             // 1/2: Create
-            final var $Builder = $clazz._class(builderModifiers, "Builder", ClassType.CLASS);
+            final var $Builder = $Class._class(builderModifiers, "Builder", ClassType.CLASS);
             // 2/2: Implement (with JavaDoc)
-            $Builder.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Builder</a> for (enclosing) class ").append($clazz).append(".");
+            $Builder.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Builder</a> for (enclosing) class ").append($Class).append(".");
             // (a) "toBuilder()" in XSDClass
-            final var $toBuilder = $clazz.method(builderModifiers & ~STATIC, $Builder, "toBuilder");
+            final var $toBuilder = $Class.method(builderModifiers & ~STATIC, $Builder, "toBuilder");
             $toBuilder.javadoc().addReturn().append("a new ").append($Builder).append(" instance with all properties initialised with the current values of {@code this} instance");
             // (b) "Builder()" in Builder
             final var $defaultConstructor = $Builder.constructor(PROTECTED);
@@ -391,11 +391,11 @@ extends BasePlugin {
             // (c) "Builder(XSDClass blueprint)" in Builder
             final var $blueprintConstructor = $Builder.constructor(PROTECTED);
             $blueprintConstructor.javadoc().append("Blueprint constructor.");
-            final var $blueprint = $blueprintConstructor.param(FINAL, $clazz, "blueprint");
-            $blueprintConstructor.javadoc().addParam($blueprint).append("the blueprint ").append($clazz).append(" instance to get all initial values from");
+            final var $blueprint = $blueprintConstructor.param(FINAL, $Class, "blueprint");
+            $blueprintConstructor.javadoc().addParam($blueprint).append("the blueprint ").append($Class).append(" instance to get all initial values from");
             // (d) "build()" in Builder
-            final var $build = $Builder.method(builderModifiers & ~STATIC, $clazz, "build");
-            $build.javadoc().addReturn().append("a new instance of ").append($clazz);
+            final var $build = $Builder.method(builderModifiers & ~STATIC, $Class, "build");
+            $build.javadoc().addReturn().append("a new instance of ").append($Class);
             if (clazz.getSuperClass() != null) {
                 $Builder._extends(this.generateBuilder(clazz.getSuperClass()));
                 // (a) "toBuilder()" in XSDClass
@@ -408,13 +408,13 @@ extends BasePlugin {
                 $build.annotate(Override.class);
             }
             if (!isAbstract) {
-                final var $builder = $clazz.method(builderModifiers, $Builder, "builder");
+                final var $builder = $Class.method(builderModifiers, $Builder, "builder");
                 $builder.body()._return(_new($Builder));
-                $builder.javadoc().addReturn().append("a new instance of the ").append($Builder).append(" class, corresponding to this ").append($clazz).append(" clazz");
+                $builder.javadoc().addReturn().append("a new instance of the ").append($Builder).append(" class, corresponding to this ").append($Class).append(" clazz");
                 // (a) "toBuilder()" in XSDClass
                 $toBuilder.body()._return(_new($Builder).arg($this));
                 // (d) "build()" in Builder
-                final var $instantiation = _new($clazz);
+                final var $instantiation = _new($Class);
                 for (final var $blueprintProperty : superAndGeneratedPropertiesOf(clazz).values()) {
                     // The according builder property is either a field of the current builder class' ...
                     // /* final var $builderProperty = $Builder.fields().get($blueprintProperty.name()); */
@@ -450,7 +450,7 @@ extends BasePlugin {
             }
             return $Builder;
         } catch (final JClassAlreadyExistsException alreadyExists) {
-            return stream($clazz.listClasses()).filter(nested -> "Builder".equals(nested.name()))
+            return stream($Class.listClasses()).filter(nested -> "Builder".equals(nested.name()))
                                                .findFirst()
                                                .orElseThrow(() -> new RuntimeException("Nested class 'Builder' already exists but cannot be found!", alreadyExists));
         }
