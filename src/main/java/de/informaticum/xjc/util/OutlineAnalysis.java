@@ -203,9 +203,9 @@ public enum OutlineAnalysis {
      */
     public static final LinkedHashMap<FieldOutline, JMethod> generatedGettersOf(final ClassOutline clazz) {
         final var getters = new LinkedHashMap<FieldOutline, JMethod>();
-        for (final var properties : generatedPropertiesOf(clazz).entrySet()) {
-            final var attribute = properties.getKey();
-            final var $property = properties.getValue();
+        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
+            final var attribute = property.getKey();
+            final var $property = property.getValue();
             final var getterName = guessGetterName(attribute);
             final var getter = getMethod(clazz, getterName);
             if (getter != null) {
@@ -223,9 +223,9 @@ public enum OutlineAnalysis {
      */
     public static final LinkedHashMap<FieldOutline, JMethod> generatedSettersOf(final ClassOutline clazz) {
         final var setters = new LinkedHashMap<FieldOutline, JMethod>();
-        for (final var properties : generatedPropertiesOf(clazz).entrySet()) {
-            final var attribute = properties.getKey();
-            final var $property = properties.getValue();
+        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
+            final var attribute = property.getKey();
+            final var $property = property.getValue();
             final var setterName = guessSetterName(attribute);
             final var setter = getMethod(clazz, setterName, $property.type());
             if (setter != null) {
