@@ -51,10 +51,10 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     @Override
     public final boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {
-        this.currentOutline = outline;
-        this.currentOptions = options;
-        this.currentErrorHandler = errorHandler;
         try {
+            this.currentOutline = outline;
+            this.currentOptions = options;
+            this.currentErrorHandler = errorHandler;
             this.sayHi();
             return this.run();
         } catch (final SAXException any) {
