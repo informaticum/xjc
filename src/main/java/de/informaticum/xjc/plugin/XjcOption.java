@@ -3,7 +3,7 @@ package de.informaticum.xjc.plugin;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.function.Consumer;
-import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
 
@@ -39,28 +39,24 @@ public abstract interface XjcOption {
         }
     }
 
-    public default void doOnActivation(final Consumer<? super PackageOutline> execution, final PackageOutline pakkage) {
+    private <T> void doOnActivation(final Consumer<? super T> execution, final T arg, final String name) {
         if (this.isActivated()) {
-            execution.accept(pakkage);
+            execution.accept(arg);
         } else {
-            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), fullNameOf(pakkage));
+            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);
         }
     }
 
-    public default void doOnActivation(final Consumer<? super JDefinedClass> execution, final JDefinedClass $factory) {
-        if (this.isActivated()) {
-            execution.accept($factory);
-        } else {
-            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), fullNameOf($factory));
-        }
+    public default <CO extends CustomizableOutline> void doOnActivation(final Consumer<? super CO> execution, final CO clazz) {
+        this.doOnActivation(execution, clazz, fullNameOf(clazz));
     }
 
-    public default <O extends CustomizableOutline> void doOnActivation(final Consumer<? super O> execution, final O clazz) {
-        if (this.isActivated()) {
-            execution.accept(clazz);
-        } else {
-            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), fullNameOf(clazz));
-        }
+    public default <PO extends PackageOutline> void doOnActivation(final Consumer<? super PO> execution, final PO pakkage) {
+        this.doOnActivation(execution, pakkage, fullNameOf(pakkage));
+    }
+
+    public default <JT extends JType> void doOnActivation(final Consumer<? super JT> execution, final JT $type) {
+        this.doOnActivation(execution, $type, fullNameOf($type));
     }
 
 }
