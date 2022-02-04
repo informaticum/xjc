@@ -19,7 +19,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    static final ResourceBundle RB = getBundle(BoilerplatePlugin.class.getName() + "Messages");
+    private static final ResourceBundle RB = getBundle(BoilerplatePlugin.class.getName() + "Messages");
 
     @Override
     public final ResourceBundle bundle() {

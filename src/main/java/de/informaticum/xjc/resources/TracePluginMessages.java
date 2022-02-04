@@ -11,7 +11,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    static final ResourceBundle RB = getBundle(TracePlugin.class.getName() + "Messages");
+    private static final ResourceBundle RB = getBundle(TracePlugin.class.getName() + "Messages");
 
     @Override
     public final ResourceBundle bundle() {

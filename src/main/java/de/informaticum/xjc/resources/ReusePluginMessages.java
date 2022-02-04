@@ -15,7 +15,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    static final ResourceBundle RB = getBundle(ReusePlugin.class.getName() + "Messages");
+    private static final ResourceBundle RB = getBundle(ReusePlugin.class.getName() + "Messages");
 
     @Override
     public final ResourceBundle bundle() {
