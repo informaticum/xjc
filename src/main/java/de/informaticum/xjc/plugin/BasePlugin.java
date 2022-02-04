@@ -80,7 +80,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         this.sayHi(System.out::println);
     }
 
-    protected void sayHi(final Consumer<? super String> sink) {
+    private final void sayHi(final Consumer<? super String> sink) {
         sink.accept(       "#################################################################################");
         sink.accept(       "### Hey JAXB/JAX-WS user,"                                                        );
         sink.accept(       "### you are using one of the informaticum's XJC plugins, i.e., the:"              );
