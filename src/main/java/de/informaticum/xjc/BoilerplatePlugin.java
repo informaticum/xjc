@@ -40,8 +40,8 @@ public final class BoilerplatePlugin
 extends BasePlugin {
 
     private static final Logger LOG = getLogger(BoilerplatePlugin.class);
-    protected static final String GENERATE_METHOD = "Generate [{}] method for [{}].";
-    protected static final String SKIP_METHOD = "Skip creation of [{}] method for [{}] because {}.";
+    protected static final String GENERATE_METHOD = "Generate method [{}#{}].";
+    protected static final String SKIP_METHOD = "Skip creation of method [{}#{}] because {}.";
     protected static final String BECAUSE_METHOD_ALREADY_EXISTS = "such method already exists";
 
     private static final String equals = "equals";
@@ -84,10 +84,10 @@ extends BasePlugin {
     private final void generateEquals(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, equals, Object.class) != null) {
-            LOG.warn(SKIP_METHOD, EQUALS_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            LOG.warn(SKIP_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_METHOD, EQUALS_SIGNATURE, fullNameOf(clazz));
+        LOG.info(GENERATE_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE);
         // 2/4: Create
         final var $Class = clazz.implClass;
         final var $equals = $Class.method(PUBLIC, boolean.class, equals);
@@ -118,10 +118,10 @@ extends BasePlugin {
     private final void addHashCode(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, hashCode) != null) {
-            LOG.warn(SKIP_METHOD, HASHCODE_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_METHOD, HASHCODE_SIGNATURE, fullNameOf(clazz));
+        LOG.info(GENERATE_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE);
         // 2/4: Create
         final var $Class = clazz.implClass;
         final var $hashCode = $Class.method(PUBLIC, int.class, hashCode);
@@ -144,10 +144,10 @@ extends BasePlugin {
     private final void addToString(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, toString) != null) {
-            LOG.warn(SKIP_METHOD, TOSTRING_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
+            LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
-        LOG.info(GENERATE_METHOD, TOSTRING_SIGNATURE, fullNameOf(clazz));
+        LOG.info(GENERATE_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE);
         // 2/4: Create
         final var $Class = clazz.implClass;
         final var $toString = $Class.method(PUBLIC, String.class, toString);
