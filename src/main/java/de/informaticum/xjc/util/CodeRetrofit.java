@@ -1,6 +1,7 @@
 package de.informaticum.xjc.util;
 
 import static java.lang.String.format;
+import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JMethod;
@@ -11,12 +12,12 @@ public enum CodeRetrofit {
 
     static final String BODY_FIELD = "body";
 
-    public static final JMethod eraseBody(final JMethod $method) {
+    public static final JBlock eraseBody(final JMethod $method) {
         try {
             final var internalBodyField = JMethod.class.getDeclaredField(BODY_FIELD);
             internalBodyField.setAccessible(true);
             internalBodyField.set($method, null);
-            return $method;
+            return $method.body();
         } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
             throw new RuntimeException(seriousProblem);
         }
