@@ -96,9 +96,9 @@ extends BasePlugin {
     @Override
     public final boolean prepareRun()
     throws SAXException {
-        GENERATE_VALUESCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
-        GENERATE_BASICCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
-        GENERATE_COPYCONSTRUCTOR.alsoActivate(GENERATE_DEFAULTCONSTRUCTOR);
+        GENERATE_VALUESCONSTRUCTOR.activates(GENERATE_DEFAULTCONSTRUCTOR);
+        GENERATE_BASICCONSTRUCTOR.activates(GENERATE_DEFAULTCONSTRUCTOR);
+        GENERATE_COPYCONSTRUCTOR.activates(GENERATE_DEFAULTCONSTRUCTOR);
         GENERATE_CLONE.doOnActivation(() -> this.outline().getClasses().forEach(this::addCloneable));
         return true;
     }

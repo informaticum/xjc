@@ -40,9 +40,17 @@ implements XjcOption {
         return 1;
     }
 
-    public final void alsoActivate(final CommandLineArgument... activateImplicitly) {
+    public final void activates(final CommandLineArgument... affected) {
+        this.set(true, affected);
+    }
+
+    public final void deactivates(final CommandLineArgument... affected) {
+        this.set(false, affected);
+    }
+
+    private final void set(final boolean state, final CommandLineArgument... affected) {
         if (this.activated) {
-            asList(activateImplicitly).forEach(arg -> arg.activated = true);
+            asList(affected).forEach(arg -> arg.activated = state);
         }
     }
 

@@ -105,8 +105,8 @@ extends BasePlugin {
     @Override
     public final boolean prepareRun()
     throws SAXException {
-        // TODO: FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHT_GETTERS or GENERATE_UNMODIFIABLE_GETTERS or GENERATE_OPTIONAL_GETTERS ? );
-        // TODO: Consider GENERATE_UNMODIFIABLE_GETTERS.alsoActivate(FINAL_FIELDS); ?
+        // TODO: FINAL_FIELDS.activates(GENERATE_STRAIGHT_GETTERS or GENERATE_UNMODIFIABLE_GETTERS or GENERATE_OPTIONAL_GETTERS ? );
+        // TODO: Consider GENERATE_UNMODIFIABLE_GETTERS.activates(FINAL_FIELDS); ?
         // TODO: (1) GENERATE_COLLECTION_SETTERS disables REMOVE_SETTERS or (2) abort execution or (3) let it happen (generate and remove immediately)?
         return true;
     }

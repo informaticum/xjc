@@ -68,8 +68,8 @@ extends BasePlugin {
 
     @Override
     public final boolean prepareRun() {
-        GENERATE_EQUALS.alsoActivate(GENERATE_HASHCODE);
-        GENERATE_HASHCODE.alsoActivate(GENERATE_EQUALS);
+        GENERATE_EQUALS.activates(GENERATE_HASHCODE);
+        GENERATE_HASHCODE.activates(GENERATE_EQUALS);
         return true;
     }
 
