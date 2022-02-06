@@ -5,9 +5,6 @@ import java.io.StringWriter;
 import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JGenerable;
 
-/**
- * Util class (technically a non-instantiable enum container) to provide some helper functions according to the fully-qualified names of packages and types.
- */
 public enum Printify {
     ;
 
