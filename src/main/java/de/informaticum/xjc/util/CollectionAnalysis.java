@@ -84,11 +84,11 @@ public enum CollectionAnalysis {
     /**
      * @param $type
      *            the collection type to analyse
-     * @return the according invocation code to create a modifiable default instance of the given type
+     * @return the according invocation code to create a modifiable empty instance of the given type
      * @throws IllegalArgumentException
      *             iff there is no default-collection instance of the given type
      */
-    public static final JInvocation defaultInstanceOf(final JType $type)
+    public static final JInvocation emptyModifiableInstanceOf(final JType $type)
     throws IllegalArgumentException {
         final var model = $type.owner();
         final var rawType = $type.boxify().erasure();

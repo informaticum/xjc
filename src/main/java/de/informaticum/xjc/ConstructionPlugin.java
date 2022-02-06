@@ -139,7 +139,7 @@ extends BasePlugin {
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
-            final var $value = defaultValueFor(attribute, GENERATE_COLLECTIONINIT).orElse($null);
+            final var $value = defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT).orElse($null);
             $constructor.javadoc().append(format("%n%nThe field {@link #%s} will be initialised with: {@code %s}", $property.name(), render($value)));
             $constructor.body().assign($this.ref($property), $value);
         }
@@ -234,7 +234,7 @@ extends BasePlugin {
     }
 
     private static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter) {
-        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
+        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT);
         appendParameterJavaDoc(javadoc, attribute, $parameter, $default);
     }
 
@@ -254,7 +254,7 @@ extends BasePlugin {
     }
 
     private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $expression) {
-        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT);
+        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT);
         if ($property.type().isPrimitive()) {
             $method.body().assign($this.ref($property), $expression);
         } else if (isOptional(attribute) && $default.isEmpty()) {
@@ -439,7 +439,7 @@ extends BasePlugin {
             for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
                 final var attribute = blueprintProperty.getKey();
                 final var $blueprintProperty = blueprintProperty.getValue();
-                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute, GENERATE_COLLECTIONINIT).orElse($null));
+                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT).orElse($null));
                 this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty));
                 final var $wither = $Builder.method(PUBLIC | (isFinal ? FINAL : NONE), $Builder, guessWitherName(attribute));
                 final var $parameter = $wither.param(FINAL, $builderProperty.type(), $builderProperty.name());
