@@ -13,10 +13,6 @@ public abstract interface XjcOption {
 
     public abstract boolean isActivated();
 
-    public default boolean isNotActivated() {
-        return !this.isActivated();
-    }
-
     public default XjcOption or(final XjcOption other) {
         return new XjcOption() {
             @Override
