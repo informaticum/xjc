@@ -8,7 +8,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class TracePluginMessagesTest
-extends ResourceBundleKeyTest {
+extends ResourceBundleKeyTest<TracePluginMessages> {
 
     @Parameters(name = "{0}")
     public static Iterable<TracePluginMessages> keys() {
@@ -19,7 +19,7 @@ extends ResourceBundleKeyTest {
     public TracePluginMessages key;
 
     @Override
-    protected ResourceBundleEntry getSUT() {
+    protected TracePluginMessages getSUT() {
         return this.key;
     }
 

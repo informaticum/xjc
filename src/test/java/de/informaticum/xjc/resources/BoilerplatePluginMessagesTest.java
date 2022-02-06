@@ -8,7 +8,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class BoilerplatePluginMessagesTest
-extends ResourceBundleKeyTest {
+extends ResourceBundleKeyTest<BoilerplatePluginMessages> {
 
     @Parameters(name = "{0}")
     public static Iterable<BoilerplatePluginMessages> keys() {
@@ -19,7 +19,7 @@ extends ResourceBundleKeyTest {
     public BoilerplatePluginMessages key;
 
     @Override
-    protected ResourceBundleEntry getSUT() {
+    protected BoilerplatePluginMessages getSUT() {
         return this.key;
     }
 

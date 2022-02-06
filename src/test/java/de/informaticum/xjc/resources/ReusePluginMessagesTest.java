@@ -8,7 +8,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class ReusePluginMessagesTest
-extends ResourceBundleKeyTest {
+extends ResourceBundleKeyTest<ReusePluginMessages> {
 
     @Parameters(name = "{0}")
     public static Iterable<ReusePluginMessages> keys() {
@@ -19,7 +19,7 @@ extends ResourceBundleKeyTest {
     public ReusePluginMessages key;
 
     @Override
-    protected ResourceBundleEntry getSUT() {
+    protected ReusePluginMessages getSUT() {
         return this.key;
     }
 
