@@ -1,6 +1,5 @@
 package de.informaticum.xjc.util;
 
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JGenerable;
@@ -16,7 +15,7 @@ public enum Printify {
      */
     public static final String render(final JGenerable $component) {
         final var out = new StringWriter();
-        $component.generate(new JFormatter(new PrintWriter(out)));
+        $component.generate(new JFormatter(out));
         return out.toString();
     }
 
