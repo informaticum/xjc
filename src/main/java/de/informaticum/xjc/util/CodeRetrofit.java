@@ -12,6 +12,11 @@ public enum CodeRetrofit {
 
     static final String BODY_FIELD = "body";
 
+    public static final <JCP extends JCommentPart> JCP eraseJavadoc(final JCP $javadoc) {
+        $javadoc.clear();
+        return $javadoc;
+    }
+
     public static final JBlock eraseBody(final JMethod $method) {
         try {
             final var internalBodyField = JMethod.class.getDeclaredField(BODY_FIELD);
