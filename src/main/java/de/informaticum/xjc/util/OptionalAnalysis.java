@@ -23,19 +23,7 @@ public enum OptionalAnalysis {
      * @return {@code true} iff the give method's return type is assignable to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional}
      */
     public static final boolean isOptionalMethod(final JMethod $method) {
-        final var model = $method.type().owner();
-        final var raw = $method.type().erasure();
-        if (model.ref(OptionalDouble.class).equals(raw)) {
-            return true;
-        } else if (model.ref(OptionalInt.class).equals(raw)) {
-            return true;
-        } else if (model.ref(OptionalLong.class).equals(raw)) {
-            return true;
-        } else if (model.ref(Optional.class).equals(raw)) {
-            return true;
-        } else {
-            return false;
-        }
+        return isPrimitiveOptional($method.type());
     }
 
     /**
