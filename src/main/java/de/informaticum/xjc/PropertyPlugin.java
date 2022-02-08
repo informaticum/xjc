@@ -217,7 +217,6 @@ extends BasePlugin {
                     supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond(exprRef.eq($null), $default.get(), exprView));
                 } else if ($default.isPresent() ) {
-                    // TODO: This should be impossible for collections
                     assertThat(UNMODIFIABLE_GETTERS.isActivated()).isFalse();
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_LIVE_REFERENCE, HINT_LIVE_REFERENCE);
