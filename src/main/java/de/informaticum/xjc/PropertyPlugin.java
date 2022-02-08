@@ -117,7 +117,7 @@ extends BasePlugin {
     private static final String OPTION_NAME = "informaticum-xjc-properties";
 
     private static final CommandLineArgument PRIVATE_FIELDS       = new CommandLineArgument("properties-private-fields",         PRIVATE_FIELDS_DESCRIPTION.text());
-    private static final CommandLineArgument FINAL_FIELDS         = new CommandLineArgument("properties-final-fields",           FINAL_FIELDS_DESCRIPTION.text());
+    private static final CommandLineArgument FINAL_FIELDS         = new CommandLineArgument("properties-final-fields",           FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
     private static final CommandLineArgument COLLECTION_INIT      = new CommandLineArgument("properties-initialise-collections", COLLECTION_INIT_DESCRIPTION.text());
     private static final CommandLineArgument STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",       STRAIGHT_GETTERS_DESCRIPTION.text());
     private static final CommandLineArgument OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
@@ -154,10 +154,10 @@ extends BasePlugin {
     @Override
     public final boolean prepareRun()
     throws SAXException {
+        FINAL_FIELDS.activates(STRAIGHT_GETTERS);
         OPTIONAL_GETTERS.activates(STRAIGHT_GETTERS);
         UNMODIFIABLE_GETTERS.activates(STRAIGHT_GETTERS);
         REMOVE_SETTERS.deactivates(COLLECTION_SETTERS);
-        // TODO: FINAL_FIELDS.alsoActivate(GENERATE_STRAIGHT_GETTERS or GENERATE_UNMODIFIABLE_GETTERS or GENERATE_OPTIONAL_GETTERS ? );
         // TODO: Consider GENERATE_UNMODIFIABLE_GETTERS.alsoActivate(FINAL_FIELDS); ?
         return true;
     }
