@@ -24,9 +24,9 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_UNMODIFI
 import static de.informaticum.xjc.resources.PropertyPluginMessages.ILLEGAL_NULL_VALUE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTES_BEGIN;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTES_END;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_VALUE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_VALUE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_EMPTY_CONTAINER;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_LIVE_REFERENCE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_LIVE_REFERENCE_CONTAINER;
@@ -54,6 +54,7 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_COLL
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_GETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_GETTER_JAVADOC;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_PRIMITIVE_GETTER_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_VALUE_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY;
@@ -249,7 +250,12 @@ extends BasePlugin {
             // } else if ($ReturnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.) 
             } else {
                 assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
-                if ($default.isPresent()) {
+                if ($property.type().isPrimitive()) {
+                    LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_PRIMITIVE_GETTER_JAVADOC);
+                    supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
+                    eraseBody($getter)._return(exprRef);
+                } else if ($default.isPresent()) {
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, render($default.get()), STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_VALUE);
                     supersedeReturns(getter, $property, render($default.get()), STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY);
@@ -257,7 +263,7 @@ extends BasePlugin {
                 } else if (OPTIONAL_GETTERS.isActivated() && isOptional(attribute)) {
                     assertThat(isOptionalMethod($getter)).withFailMessage("This case is not considered yet ;-(").isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_OPTIONAL_VALUE, NOTE_EMPTY_CONTAINER /*, NOTE_LIVE_REFERENCE_CONTAINER not valid for primitive fields */);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_OPTIONAL_VALUE, NOTE_EMPTY_CONTAINER);
                     supersedeReturns(getter, $property, $ReturnType, OPTIONAL_VALUE_JAVADOC_SUMMARY);
                     if ($property.type().isPrimitive()) {
                         eraseBody($getter)._return($OptionalFactory.staticInvoke("of").arg(exprRef));
@@ -269,7 +275,7 @@ extends BasePlugin {
                     $getter.type($OptionalType);
                 } else {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE /* , NOTE_LIVE_REFERENCE, HINT_LIVE_REFERENCE not valid for primitive fields */);
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(exprRef);
                 }
