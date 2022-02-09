@@ -258,7 +258,7 @@ extends AssignmentPlugin {
                     supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_REFERENCE_CONTAINER, HINT_REFERENCE);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_COLLECTION_JAVADOC_SUMMARY);
                     if (exprRef == exprRefOrDefCopy) {
-                        eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
+                        eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprRefOrDefCopy)));
                     } else {
                         eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprRefOrDefCopy)));
                     }
@@ -291,7 +291,7 @@ extends AssignmentPlugin {
                         eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprRefOrDefCopy)));
                     } else {
                         if (exprRef == exprRefOrDefCopy) {
-                            eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
+                            eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprRefOrDefCopy)));
                         } else {
                             eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprRefOrDefCopy)));
                         }
