@@ -18,6 +18,18 @@ public enum DefaultAnalysis {
 
     private static final Logger LOG = getLogger(DefaultAnalysis.class);
 
+    /* Do not (!) assign the following values. Instead, let Java do the initialisation. */
+    /* In result, each field's value will be defaulted as specified by the JLS.         */
+    /* --> https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html     */
+    private static boolean DEFAULT_BOOLEAN; /* no assignment, defaulted by Java instead */
+    private static byte    DEFAULT_BYTE   ; /* no assignment, defaulted by Java instead */
+    private static char    DEFAULT_CHAR   ; /* no assignment, defaulted by Java instead */
+    private static double  DEFAULT_DOUBLE ; /* no assignment, defaulted by Java instead */
+    private static float   DEFAULT_FLOAT  ; /* no assignment, defaulted by Java instead */
+    private static int     DEFAULT_INT    ; /* no assignment, defaulted by Java instead */
+    private static long    DEFAULT_LONG   ; /* no assignment, defaulted by Java instead */
+    private static short   DEFAULT_SHORT  ; /* no assignment, defaulted by Java instead */
+
     /**
      * Returns the the default value for the given field if such value exists. In detail, this means (in order):
      * <dl>
@@ -87,14 +99,14 @@ public enum DefaultAnalysis {
         //       dass ein Default-Wert existiert. Das darf nicht passieren. Ein "Boolean" ist initial "null".
         // TODO: Consider property.isUnboxable()? What to do in that case?
         // TODO: Consider property.isOptionalPrimitive()? What to do in that case?
-        if (raw.equals(codeModel.BOOLEAN)) return Optional.of(lit(false   ));
-        if (raw.equals(codeModel.BYTE   )) return Optional.of(lit(0       ));
-        if (raw.equals(codeModel.CHAR   )) return Optional.of(lit('\u0000'));
-        if (raw.equals(codeModel.DOUBLE )) return Optional.of(lit(0.0d    ));
-        if (raw.equals(codeModel.FLOAT  )) return Optional.of(lit(0.0f    ));
-        if (raw.equals(codeModel.INT    )) return Optional.of(lit(0       ));
-        if (raw.equals(codeModel.LONG   )) return Optional.of(lit(0L      ));
-        if (raw.equals(codeModel.SHORT  )) return Optional.of(lit(0       ));
+        if (raw.equals(codeModel.BOOLEAN)) return Optional.of(lit(DEFAULT_BOOLEAN));
+        if (raw.equals(codeModel.BYTE   )) return Optional.of(lit(DEFAULT_BYTE   ));
+        if (raw.equals(codeModel.CHAR   )) return Optional.of(lit(DEFAULT_CHAR   ));
+        if (raw.equals(codeModel.DOUBLE )) return Optional.of(lit(DEFAULT_DOUBLE ));
+        if (raw.equals(codeModel.FLOAT  )) return Optional.of(lit(DEFAULT_FLOAT  ));
+        if (raw.equals(codeModel.INT    )) return Optional.of(lit(DEFAULT_INT    ));
+        if (raw.equals(codeModel.LONG   )) return Optional.of(lit(DEFAULT_LONG   ));
+        if (raw.equals(codeModel.SHORT  )) return Optional.of(lit(DEFAULT_SHORT  ));
         if (property.isCollection() && initCollections &&  unmodifiable) return Optional.of(emptyImmutableInstanceOf( field.getRawType()));
         if (property.isCollection() && initCollections && !unmodifiable) return Optional.of(emptyModifiableInstanceOf(field.getRawType()));
         return Optional.empty();
