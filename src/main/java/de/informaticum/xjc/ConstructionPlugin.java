@@ -150,10 +150,10 @@ extends BasePlugin {
         if (getConstructor(clazz) == null) {
             LOG.warn("Skip hiding of default constructor for [{}] because such constructor does not exist.", fullNameOf(clazz));
             return;
-        } else if (GENERATE_VALUESCONSTRUCTOR.isActivated() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
+        } else if (GENERATE_VALUESCONSTRUCTOR.getAsBoolean() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
             LOG.warn("Skip hiding of default constructor for [{}] because it is similar to the all-values constructor.", fullNameOf(clazz));
             return;
-        } else if (GENERATE_BASICCONSTRUCTOR.isActivated() && filter(superAndGeneratedPropertiesOf(clazz), OutlineAnalysis::isRequired).isEmpty()) {
+        } else if (GENERATE_BASICCONSTRUCTOR.getAsBoolean() && filter(superAndGeneratedPropertiesOf(clazz), OutlineAnalysis::isRequired).isEmpty()) {
             LOG.warn("Skip hiding of default constructor for [{}] because it is similar to the basic-values constructor.", fullNameOf(clazz));
             return;
         }
@@ -280,7 +280,7 @@ extends BasePlugin {
     }
 
     private final JExpression potentialDefensiveCopy(final FieldOutline attribute, final JFieldVar $property, final JExpression $expression) {
-        if (GENERATE_DEFENSIVECOPIES.isActivated()) {
+        if (GENERATE_DEFENSIVECOPIES.getAsBoolean()) {
             // TODO: use copy-constructor if exits
             if (attribute.getPropertyInfo().isCollection()) {
                 // TODO: Cloning the collection's elements (a.k.a. deep clone)

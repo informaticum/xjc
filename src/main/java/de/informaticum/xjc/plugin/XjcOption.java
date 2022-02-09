@@ -2,16 +2,16 @@ package de.informaticum.xjc.plugin;
 
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
 
-public abstract interface XjcOption {
+public abstract interface XjcOption
+extends BooleanSupplier {
 
     public abstract String getArgument();
-
-    public abstract boolean isActivated();
 
     public default XjcOption or(final XjcOption other) {
         return new XjcOption() {
@@ -21,14 +21,14 @@ public abstract interface XjcOption {
             }
 
             @Override
-            public final boolean isActivated() {
-                return XjcOption.this.isActivated() || other.isActivated();
+            public final boolean getAsBoolean() {
+                return XjcOption.this.getAsBoolean() || other.getAsBoolean();
             }
         };
     }
 
     public default void doOnActivation(final Runnable execution) {
-        if (this.isActivated()) {
+        if (this.getAsBoolean()) {
             execution.run();
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}], because it has not been activated.", this.getArgument());
@@ -36,7 +36,7 @@ public abstract interface XjcOption {
     }
 
     private <T> void doOnActivation(final Consumer<? super T> execution, final T arg, final String name) {
-        if (this.isActivated()) {
+        if (this.getAsBoolean()) {
             execution.accept(arg);
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);

@@ -5,9 +5,9 @@ import static de.informaticum.xjc.util.CollectionAnalysis.emptyModifiableInstanc
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.plugin.CommandLineArgument;
 import org.slf4j.Logger;
 
 /**
@@ -56,8 +56,8 @@ public enum DefaultAnalysis {
      * @return an {@link Optional} holding the default value for the given field if such value exists; the {@linkplain Optional#empty() empty Optional} otherwise
      * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
      */
-    public static final Optional<JExpression> defaultValueFor(final FieldOutline field, final CommandLineArgument initCollections, final CommandLineArgument unmodifiable) {
-        return defaultValueFor(field, initCollections.isActivated(), unmodifiable.isActivated());
+    public static final Optional<JExpression> defaultValueFor(final FieldOutline field, final BooleanSupplier initCollections, final BooleanSupplier unmodifiable) {
+        return defaultValueFor(field, initCollections.getAsBoolean(), unmodifiable.getAsBoolean());
     }
 
     /**
