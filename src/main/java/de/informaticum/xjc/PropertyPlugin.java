@@ -16,6 +16,7 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELDS_
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELD_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFAULTED_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFAULTED_UNMODIFIABLE_COLLECTION;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFENSIVE_COPY_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_EMPTY_COLLECTION_CONTAINER;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_LIVE_REFERENCE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_NULLABLE_VALUE;
@@ -26,6 +27,8 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTES_END;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_VALUE;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFENSIVE_COPY_COLLECTION;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_EMPTY_CONTAINER;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_LIVE_REFERENCE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_LIVE_REFERENCE_CONTAINER;
@@ -228,6 +231,9 @@ extends AssignmentPlugin {
                 assertThat($ReturnType.isReference()).isTrue();
                 final var exprView = unmodifiableViewFactoryFor($ReturnType).arg(exprRef);
                 final var epxrNullOrView = cond(exprRef.eq($null), $null, exprView);
+                final var NOTE_REFERENCE = DEFENSIVE_COPIES.getAsBoolean() ? NOTE_DEFENSIVE_COPY_COLLECTION : NOTE_LIVE_REFERENCE;
+                final var NOTE_REFERENCE_CONTAINER = DEFENSIVE_COPIES.getAsBoolean() ? NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER : NOTE_LIVE_REFERENCE_CONTAINER;
+                final var HINT_REFERENCE = DEFENSIVE_COPIES.getAsBoolean() ? HINT_DEFENSIVE_COPY_COLLECTION : HINT_LIVE_REFERENCE;
                 if ($default.isPresent() && UNMODIFIABLE_GETTERS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
@@ -236,7 +242,7 @@ extends AssignmentPlugin {
                 } else if ($default.isPresent() ) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_LIVE_REFERENCE, HINT_LIVE_REFERENCE);
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE, HINT_REFERENCE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond(exprRef.eq($null), $default.get(), exprDefCopy));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute) && UNMODIFIABLE_GETTERS.getAsBoolean()) {
@@ -248,7 +254,7 @@ extends AssignmentPlugin {
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_LIVE_REFERENCE_CONTAINER, HINT_LIVE_REFERENCE);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_REFERENCE_CONTAINER, HINT_REFERENCE);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_COLLECTION_JAVADOC_SUMMARY);
                     if (exprRef == exprDefCopy) {
                         eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
@@ -263,7 +269,7 @@ extends AssignmentPlugin {
                     eraseBody($getter)._return(epxrNullOrView);
                 } else {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_LIVE_REFERENCE, HINT_LIVE_REFERENCE);
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE, HINT_REFERENCE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(exprDefCopy);
                 }
