@@ -241,14 +241,14 @@ extends AssignmentPlugin {
                     eraseBody($getter)._return(cond(exprRef.eq($null), $default.get(), exprDefCopy));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute) && UNMODIFIABLE_GETTERS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_LIVE_REFERENCE_CONTAINER, HINT_LIVE_REFERENCE);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(epxrNullOrView));
                     $getter.type($OptionalType);
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_LIVE_REFERENCE_CONTAINER, HINT_LIVE_REFERENCE);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_COLLECTION_JAVADOC_SUMMARY);
                     if (exprRef == exprDefCopy) {
                         eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
