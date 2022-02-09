@@ -53,7 +53,6 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_COLL
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_GETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_GETTER_JAVADOC;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_PRIMITIVE_GETTER_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_VALUE_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY;
@@ -159,7 +158,6 @@ extends AssignmentPlugin {
         OPTIONAL_GETTERS.activates(STRAIGHT_GETTERS);
         UNMODIFIABLE_GETTERS.activates(STRAIGHT_GETTERS);
         REMOVE_SETTERS.deactivates(COLLECTION_SETTERS);
-        // TODO: Consider GENERATE_UNMODIFIABLE_GETTERS.alsoActivate(FINAL_FIELDS); ?
         return true;
     }
 
@@ -218,8 +216,14 @@ extends AssignmentPlugin {
             final var $OptionalFactory = $OptionalType.erasure();
 
             final var exprRef = $this.ref($property);
+            final var exprDefCopy = this.potentialDefensiveCopy(attribute, $property, exprRef);
             final var originJavadoc = new ArrayList<>($getter.javadoc());
-            if (attributeInfo.isCollection()) {
+            if ($property.type().isPrimitive()) {
+                LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
+                supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC);
+                supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
+                eraseBody($getter)._return(exprDefCopy);
+            } else if (attributeInfo.isCollection()) {
                 assertThat(attributeInfo.defaultValue).isNull();
                 assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
                 assertThat(isOptionalMethod($getter)).isFalse();
@@ -237,62 +241,66 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_LIVE_REFERENCE, HINT_LIVE_REFERENCE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(cond(exprRef.eq($null), $default.get(), exprRef));
+                    eraseBody($getter)._return(cond(exprRef.eq($null), $default.get(), exprDefCopy));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute) && UNMODIFIABLE_GETTERS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC, NOTE_OPTIONAL_VALUE, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_LIVE_REFERENCE_CONTAINER, HINT_LIVE_REFERENCE);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_LIVE_REFERENCE_CONTAINER, HINT_LIVE_REFERENCE);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(epxrNullOrView));
                     $getter.type($OptionalType);
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_OPTIONAL_VALUE, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
+                    if (exprRef == exprDefCopy) {
+                        eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
+                    } else {
+                        eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprDefCopy)));
+                    }
                     $getter.type($OptionalType);
                 } else if (UNMODIFIABLE_GETTERS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, UNMODIFIABLE_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE , NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
+                    supersedeJavadoc(getter, $property, $ReturnType, UNMODIFIABLE_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(epxrNullOrView);
                 } else {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE , NOTE_LIVE_REFERENCE, HINT_LIVE_REFERENCE);
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_LIVE_REFERENCE, HINT_LIVE_REFERENCE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(exprRef);
+                    eraseBody($getter)._return(exprDefCopy);
                 }
-            // } else if ($ReturnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.) 
+            // } else if ($ReturnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.)
             } else {
                 assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
-                if ($property.type().isPrimitive()) {
-                    LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_PRIMITIVE_GETTER_JAVADOC);
-                    supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(exprRef);
-                } else if ($default.isPresent()) {
+                if ($default.isPresent()) {
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, render($default.get()), STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_VALUE);
                     supersedeReturns(getter, $property, render($default.get()), STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(cond(exprRef.eq($null), $default.get(), exprRef));
+                    eraseBody($getter)._return(cond(exprRef.eq($null), $default.get(), exprDefCopy));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(isOptionalMethod($getter)).withFailMessage("This case is not considered yet ;-(").isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_OPTIONAL_VALUE, NOTE_EMPTY_CONTAINER);
-                    supersedeReturns(getter, $property, $ReturnType, OPTIONAL_VALUE_JAVADOC_SUMMARY);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER);
+                    supersedeReturns(getter, $property, $OptionalType, OPTIONAL_VALUE_JAVADOC_SUMMARY);
                     if ($property.type().isPrimitive()) {
+                        assertThat(exprRef == exprDefCopy).isTrue();
                         eraseBody($getter)._return($OptionalFactory.staticInvoke("of").arg(exprRef));
                     } else if (isPrimitiveOptional($OptionalType)) {
-                        eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprRef)));
+                        eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprDefCopy)));
                     } else {
-                        eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
+                        if (exprRef == exprDefCopy) {
+                            eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(exprRef));
+                        } else {
+                            eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprDefCopy)));
+                        }
                     }
                     $getter.type($OptionalType);
                 } else {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(exprRef);
+                    eraseBody($getter)._return(exprDefCopy);
                 }
             }
             javadocAppendSection($getter.javadoc(), REFACTORED_GETTER_INTRO);
@@ -322,14 +330,14 @@ extends AssignmentPlugin {
     }
 
     private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter,
-                                        final JFieldVar $property, final JType $Type,
-                                        final ResourceBundleEntry returnJavadoc) {
+                                         final JFieldVar $property, final JType $Type,
+                                         final ResourceBundleEntry returnJavadoc) {
         supersedeReturns(getter, $property, $Type.erasure().name(), returnJavadoc);
     }
 
     private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter,
-                                        final JFieldVar $property, final String noteParam,
-                                        final ResourceBundleEntry returnJavadoc) {
+                                         final JFieldVar $property, final String noteParam,
+                                         final ResourceBundleEntry returnJavadoc) {
         final var $return = getter.getValue().javadoc().addReturn();
         eraseJavadoc($return);
         $return.append(returnJavadoc.format($property.name(), noteParam));
