@@ -287,10 +287,7 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_VALUE_JAVADOC_SUMMARY);
-                    if ($property.type().isPrimitive()) {
-                        assertThat(exprRef == exprRefOrDefCopy).isTrue();
-                        eraseBody($getter)._return($OptionalFactory.staticInvoke("of").arg(exprRef));
-                    } else if (isPrimitiveOptional($OptionalType)) {
+                    if (isPrimitiveOptional($OptionalType)) {
                         eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprRefOrDefCopy)));
                     } else {
                         if (exprRef == exprRefOrDefCopy) {
