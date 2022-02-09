@@ -249,7 +249,7 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(cond(exprRef.eq($null), $null, exprView)));
+                    eraseBody($getter)._return(cond(exprRef.eq($null), $OptionalFactory.staticInvoke("empty"), $OptionalFactory.staticInvoke("of").arg(exprView)));
                     $getter.type($OptionalType);
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
