@@ -54,4 +54,9 @@ implements XjcOption {
         }
     }
 
+    @Override
+    public String toString() {
+        return this.argument;
+    }
+
 }
