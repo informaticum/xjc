@@ -1,7 +1,5 @@
 package de.informaticum.xjc;
 
-import static com.sun.codemodel.JExpr._new;
-import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JOp.cond;
@@ -13,6 +11,7 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SE
 import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SETTERS_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.DEFAULTED_OPTIONAL_ARGUMENT;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.DEFAULTED_REQUIRED_ARGUMENT;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELDS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELD_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFAULTED_COLLECTION;
@@ -86,6 +85,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.function.BooleanSupplier;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
@@ -93,7 +93,6 @@ import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
 import de.informaticum.xjc.util.CollectionAnalysis;
@@ -101,7 +100,7 @@ import org.slf4j.Logger;
 import org.xml.sax.SAXException;
 
 public final class PropertyPlugin
-extends BasePlugin {
+extends AssignmentPlugin {
 
     private static final Logger LOG = getLogger(PropertyPlugin.class);
     private static final String MODIFY_PROPERTY = "Set {} of property [{}#{}] onto [{}].";
@@ -120,6 +119,7 @@ extends BasePlugin {
     private static final CommandLineArgument PRIVATE_FIELDS       = new CommandLineArgument("properties-private-fields",         PRIVATE_FIELDS_DESCRIPTION.text());
     private static final CommandLineArgument FINAL_FIELDS         = new CommandLineArgument("properties-final-fields",           FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
     private static final CommandLineArgument COLLECTION_INIT      = new CommandLineArgument("properties-initialise-collections", COLLECTION_INIT_DESCRIPTION.text());
+    private static final CommandLineArgument DEFENSIVE_COPIES     = new CommandLineArgument("properties-defensive-copies",       DEFENSIVE_COPIES_DESCRIPTION.text());
     private static final CommandLineArgument STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",       STRAIGHT_GETTERS_DESCRIPTION.text());
     private static final CommandLineArgument OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
     private static final CommandLineArgument UNMODIFIABLE_GETTERS = new CommandLineArgument("properties-unmodifiable-getters",   UNMODIFIABLE_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
@@ -135,7 +135,7 @@ extends BasePlugin {
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
         return Arrays.asList(PRIVATE_FIELDS, FINAL_FIELDS,
-                             COLLECTION_INIT,
+                             COLLECTION_INIT, DEFENSIVE_COPIES,
                              STRAIGHT_GETTERS, OPTIONAL_GETTERS, UNMODIFIABLE_GETTERS,
                              COLLECTION_SETTERS, REMOVE_SETTERS);
     }
@@ -161,6 +161,21 @@ extends BasePlugin {
         REMOVE_SETTERS.deactivates(COLLECTION_SETTERS);
         // TODO: Consider GENERATE_UNMODIFIABLE_GETTERS.alsoActivate(FINAL_FIELDS); ?
         return true;
+    }
+
+    @Override
+    protected BooleanSupplier initCollections() {
+        return COLLECTION_INIT;
+    }
+
+    @Override
+    protected BooleanSupplier createDefensiveCopies() {
+        return DEFENSIVE_COPIES;
+    }
+
+    @Override
+    protected BooleanSupplier createUnmodifiableCollections() {
+        return UNMODIFIABLE_GETTERS;
     }
 
     @Override
@@ -343,17 +358,14 @@ extends BasePlugin {
             final var $default = defaultValueFor(attribute, COLLECTION_INIT, UNMODIFIABLE_GETTERS);
             if ($default.isPresent()) {
                 javadocAppendSection($valueDoc, isRequired(attribute) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, $property.name(), render($default.get()));
-                $setter.body().assign($this.ref($property), cond($value.eq($null), $default.get(), $value));
+                this.accordingAssignment(attribute, $setter, $property, $value);
             } else if (isRequired(attribute)) {
                 javadocAppendSection($valueDoc, REQUIRED_ARGUMENT, $property.name());
                 javadocAppendSection($setter.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_NULL_VALUE);
-                $setter._throws(IllegalArgumentException.class);
-                final var $condition = $setter.body()._if($value.eq($null));
-                $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
-                $condition._else().assign($this.ref($property), $value);
+                this.accordingAssignment(attribute, $setter, $property, $value);
             } else {
                 javadocAppendSection($valueDoc, OPTIONAL_ARGUMENT, $property.name());
-                $setter.body().assign($this.ref($property), $value);
+                this.accordingAssignment(attribute, $setter, $property, $value);
             }
         }
     }
