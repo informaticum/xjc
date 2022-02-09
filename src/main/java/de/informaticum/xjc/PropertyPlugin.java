@@ -114,16 +114,15 @@ extends AssignmentPlugin {
     private static final String REMOVE_SETTER = "Remove setter method [{}#{}(...)].";
 
     private static final String OPTION_NAME = "informaticum-xjc-properties";
-
-    private static final CommandLineArgument PRIVATE_FIELDS       = new CommandLineArgument("properties-private-fields",         PRIVATE_FIELDS_DESCRIPTION.text());
-    private static final CommandLineArgument FINAL_FIELDS         = new CommandLineArgument("properties-final-fields",           FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
     private static final CommandLineArgument COLLECTION_INIT      = new CommandLineArgument("properties-initialise-collections", COLLECTION_INIT_DESCRIPTION.text());
     private static final CommandLineArgument DEFENSIVE_COPIES     = new CommandLineArgument("properties-defensive-copies",       DEFENSIVE_COPIES_DESCRIPTION.text());
     private static final CommandLineArgument STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",       STRAIGHT_GETTERS_DESCRIPTION.text());
-    private static final CommandLineArgument OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
-    private static final CommandLineArgument UNMODIFIABLE_GETTERS = new CommandLineArgument("properties-unmodifiable-getters",   UNMODIFIABLE_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS_DESCRIPTION));
+    private static final CommandLineArgument OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS));
+    private static final CommandLineArgument UNMODIFIABLE_GETTERS = new CommandLineArgument("properties-unmodifiable-getters",   UNMODIFIABLE_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS));
     private static final CommandLineArgument COLLECTION_SETTERS   = new CommandLineArgument("properties-collection-setters",     COLLECTION_SETTERS_DESCRIPTION.text());
     private static final CommandLineArgument REMOVE_SETTERS       = new CommandLineArgument("properties-remove-setters",         REMOVE_SETTERS_DESCRIPTION.format(COLLECTION_SETTERS));
+    private static final CommandLineArgument PRIVATE_FIELDS       = new CommandLineArgument("properties-private-fields",         PRIVATE_FIELDS_DESCRIPTION.text());
+    private static final CommandLineArgument FINAL_FIELDS         = new CommandLineArgument("properties-final-fields",           FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS));
     // TODO: What about unsetter?
 
     @Override
