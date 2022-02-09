@@ -199,6 +199,7 @@ extends AssignmentPlugin {
     }
 
     private final void refactorGetter(final ClassOutline clazz) {
+        assertThat(STRAIGHT_GETTERS.getAsBoolean()).isTrue();
         final var properties = generatedPropertiesOf(clazz);
         for (final var getter : generatedGettersOf(clazz).entrySet()) {
             final var attribute = getter.getKey();
