@@ -231,7 +231,6 @@ extends AssignmentPlugin {
                 assertThat($ReturnType.isPrimitive()).isFalse();
                 assertThat($ReturnType.isReference()).isTrue();
                 final var exprView = unmodifiableViewFactoryFor($ReturnType).arg(exprRef);
-                final var epxrNullOrView = cond(exprRef.eq($null), $null, exprView);
                 final var NOTE_REFERENCE = DEFENSIVE_COPIES.getAsBoolean() ? NOTE_DEFENSIVE_COPY_COLLECTION : NOTE_LIVE_REFERENCE;
                 final var NOTE_REFERENCE_CONTAINER = DEFENSIVE_COPIES.getAsBoolean() ? NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER : NOTE_LIVE_REFERENCE_CONTAINER;
                 final var HINT_REFERENCE = DEFENSIVE_COPIES.getAsBoolean() ? HINT_DEFENSIVE_COPY_COLLECTION : HINT_LIVE_REFERENCE;
@@ -250,7 +249,7 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(epxrNullOrView));
+                    eraseBody($getter)._return($OptionalFactory.staticInvoke("ofNullable").arg(cond(exprRef.eq($null), $null, exprView)));
                     $getter.type($OptionalType);
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
@@ -263,7 +262,7 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, UNMODIFIABLE_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(epxrNullOrView);
+                    eraseBody($getter)._return(cond(exprRef.eq($null), $null, exprView));
                 } else {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE, HINT_REFERENCE);
