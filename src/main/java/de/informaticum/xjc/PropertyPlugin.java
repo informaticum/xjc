@@ -219,10 +219,11 @@ extends AssignmentPlugin {
             final var exprRefOrDefCopy = this.potentialDefensiveCopy(attribute, $property, exprRef);
             final var originJavadoc = new ArrayList<>($getter.javadoc());
             if ($property.type().isPrimitive()) {
+                assertThat(exprRef == exprRefOrDefCopy).isTrue();
                 LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                 supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC);
                 supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
-                eraseBody($getter)._return(exprRefOrDefCopy);
+                eraseBody($getter)._return(exprRef);
             } else if (attributeInfo.isCollection()) {
                 assertThat(attributeInfo.defaultValue).isNull();
                 assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
