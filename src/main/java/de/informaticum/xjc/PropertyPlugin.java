@@ -76,12 +76,12 @@ import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.Printify.render;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
+import static java.util.Arrays.asList;
 import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.BooleanSupplier;
@@ -133,10 +133,7 @@ extends AssignmentPlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return Arrays.asList(PRIVATE_FIELDS, FINAL_FIELDS,
-                             COLLECTION_INIT, DEFENSIVE_COPIES,
-                             STRAIGHT_GETTERS, OPTIONAL_GETTERS, UNMODIFIABLE_GETTERS,
-                             COLLECTION_SETTERS, REMOVE_SETTERS);
+        return asList(PRIVATE_FIELDS, FINAL_FIELDS, COLLECTION_INIT, DEFENSIVE_COPIES, STRAIGHT_GETTERS, OPTIONAL_GETTERS, UNMODIFIABLE_GETTERS, COLLECTION_SETTERS, REMOVE_SETTERS);
     }
 
     @Override
