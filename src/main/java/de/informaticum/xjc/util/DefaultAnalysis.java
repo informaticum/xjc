@@ -1,12 +1,15 @@
 package de.informaticum.xjc.util;
 
+import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JExpr.lit;
+import static de.informaticum.xjc.util.CollectionAnalysis.copyFactoryFor;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyModifiableInstanceOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldVar;
 import com.sun.tools.xjc.outline.FieldOutline;
 import org.slf4j.Logger;
 
@@ -80,6 +83,24 @@ public enum DefaultAnalysis {
         } else {
             return Optional.empty();
         }
+    }
+
+    public static final JExpression defensiveCopyFor(final FieldOutline attribute, final JFieldVar $property, final JExpression $expression, final BooleanSupplier createCopies) {
+        if (createCopies.getAsBoolean()) {
+            // TODO: use copy-constructor if exits
+            if (attribute.getPropertyInfo().isCollection()) {
+                // TODO: Cloning the collection's elements (a.k.a. deep clone)
+                return copyFactoryFor($property.type()).arg($expression);
+            } else if ($property.type().isArray()) {
+                return cast($property.type(), $expression.invoke("clone"));
+            } else if (attribute.parent().parent().getCodeModel().ref(Cloneable.class).isAssignableFrom($property.type().boxify())) {
+                // TODO (?): Skip cast if "clone()" already returns required type (real case?)
+                return cast($property.type(), $expression.invoke("clone"));
+            } else {
+                LOG.debug("Skip defensive copy for [{}] because [{}] is neither Collection, Array, nor Cloneable.", $property.name(), $property.type().boxify().erasure());
+            }
+        }
+        return $expression;
     }
 
 }

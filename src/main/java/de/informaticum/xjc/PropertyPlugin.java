@@ -66,6 +66,7 @@ import static de.informaticum.xjc.util.CodeRetrofit.eraseJavadoc;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
+import static de.informaticum.xjc.util.DefaultAnalysis.defensiveCopyFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
@@ -221,7 +222,7 @@ extends AssignmentPlugin {
             final var $OptionalType = optionalTypeFor($ReturnType);
             final var $prop = $this.ref($property);
             final var $default = defaultValueFor(attribute, COLLECTION_INIT, UNMODIFIABLE_GETTERS);
-            final var $copy = this.potentialDefensiveCopy(attribute, $property, $prop);
+            final var $copy = defensiveCopyFor(attribute, $property, $prop, DEFENSIVE_COPIES);
             final var $view = unmodifiableViewFactoryFor($ReturnType).arg($prop);
             final var $optionalEmpty = $OptionalType.erasure().staticInvoke("empty");
             final var $optionalOf = $OptionalType.erasure().staticInvoke("of");
