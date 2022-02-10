@@ -86,7 +86,9 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
@@ -95,6 +97,7 @@ import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.plugin.CommandLineArgument;
+import de.informaticum.xjc.resources.PropertyPluginMessages;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
 import de.informaticum.xjc.util.CollectionAnalysis;
 import org.slf4j.Logger;
@@ -126,6 +129,10 @@ extends AssignmentPlugin {
     private static final CommandLineArgument PRIVATE_FIELDS       = new CommandLineArgument("properties-private-fields",         PRIVATE_FIELDS_DESCRIPTION.text());
     private static final CommandLineArgument FINAL_FIELDS         = new CommandLineArgument("properties-final-fields",           FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS));
     // TODO: What about unsetter?
+
+    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE = (x,y) -> x==y ? NOTE_LIVE_REFERENCE : NOTE_DEFENSIVE_COPY_COLLECTION;
+    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> HINT_REFERENCE = (x,y) -> x==y ? HINT_LIVE_REFERENCE : HINT_DEFENSIVE_COPY_COLLECTION;
+    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE_CONTAINER = (x,y) -> x==y ? NOTE_LIVE_REFERENCE_CONTAINER : NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER;
 
     @Override
     public final Entry<String, String> getOptionEntry() {
@@ -233,9 +240,6 @@ extends AssignmentPlugin {
                 assertThat(isOptionalMethod($getter)).isFalse();
                 assertThat($ReturnType.isPrimitive()).isFalse();
                 assertThat($ReturnType.isReference()).isTrue();
-                final var NOTE_REFERENCE = DEFENSIVE_COPIES.getAsBoolean() ? NOTE_DEFENSIVE_COPY_COLLECTION : NOTE_LIVE_REFERENCE;
-                final var NOTE_REFERENCE_CONTAINER = DEFENSIVE_COPIES.getAsBoolean() ? NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER : NOTE_LIVE_REFERENCE_CONTAINER;
-                final var HINT_REFERENCE = DEFENSIVE_COPIES.getAsBoolean() ? HINT_DEFENSIVE_COPY_COLLECTION : HINT_LIVE_REFERENCE;
                 if ($default.isPresent() && UNMODIFIABLE_GETTERS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
@@ -244,7 +248,7 @@ extends AssignmentPlugin {
                 } else if ($default.isPresent() ) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE, HINT_REFERENCE);
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE.apply($prop, $copy), HINT_REFERENCE.apply($prop, $copy));
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $copy));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute) && UNMODIFIABLE_GETTERS.getAsBoolean()) {
@@ -256,7 +260,7 @@ extends AssignmentPlugin {
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_REFERENCE_CONTAINER, HINT_REFERENCE);
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_REFERENCE_CONTAINER.apply($prop, $copy), HINT_REFERENCE.apply($prop, $copy));
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $optionalEmpty, $optionalOf.arg($copy)));
                     $getter.type($OptionalType);
@@ -268,7 +272,7 @@ extends AssignmentPlugin {
                 } else {
                     assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE, HINT_REFERENCE);
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE.apply($prop, $copy), HINT_REFERENCE.apply($prop, $copy));
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(($prop == $copy) ? $prop : cond($prop.eq($null), $null, $copy));
                 }
