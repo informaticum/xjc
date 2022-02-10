@@ -361,19 +361,14 @@ extends AssignmentPlugin {
             // 3/3: Implement
             javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
             final var $value = $setter.param(FINAL, $property.type(), $property.name());
-            final var $valueDoc = $setter.javadoc().addParam($value);
             final var $default = defaultValueFor(attribute, COLLECTION_INIT, UNMODIFIABLE_GETTERS);
-            if ($default.isPresent()) {
-                javadocAppendSection($valueDoc, isRequired(attribute) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, $property.name(), render($default.get()));
-                this.accordingAssignment(attribute, $setter, $property, $value);
-            } else if (isRequired(attribute)) {
-                javadocAppendSection($valueDoc, REQUIRED_ARGUMENT, $property.name());
-                javadocAppendSection($setter.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_NULL_VALUE);
-                this.accordingAssignment(attribute, $setter, $property, $value);
-            } else {
-                javadocAppendSection($valueDoc, OPTIONAL_ARGUMENT, $property.name());
-                this.accordingAssignment(attribute, $setter, $property, $value);
-            }
+            this.accordingAssignment(attribute, $setter, $property, $value,
+                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? REQUIRED_ARGUMENT : OPTIONAL_ARGUMENT, $property.name()); },
+                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, $property.name(), render($default.get())); },
+                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), REQUIRED_ARGUMENT, $property.name());
+                                             javadocAppendSection($m.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_NULL_VALUE); },
+                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), OPTIONAL_ARGUMENT, $property.name()); }
+            );
         }
     }
 
