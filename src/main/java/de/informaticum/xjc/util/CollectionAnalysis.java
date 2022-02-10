@@ -79,6 +79,7 @@ public enum CollectionAnalysis {
         } else {
             throw new IllegalArgumentException("There is no empty-collection instance of type " + $type);
         }
+        // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }
 
     /**
@@ -110,6 +111,7 @@ public enum CollectionAnalysis {
         } else {
             throw new IllegalArgumentException("There is no default-collection instance of type " + $type);
         }
+        // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }
 
     /**
@@ -141,6 +143,7 @@ public enum CollectionAnalysis {
         } else {
             throw new IllegalArgumentException("There is no copy-collection factory for type " + $type);
         }
+        // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }
 
     /**
