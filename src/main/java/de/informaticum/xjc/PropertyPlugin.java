@@ -266,6 +266,7 @@ extends AssignmentPlugin {
                     supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $null, $view));
                 } else {
+                    assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE, HINT_REFERENCE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
