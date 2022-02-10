@@ -269,7 +269,7 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE, HINT_REFERENCE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return($copy);
+                    eraseBody($getter)._return(($prop == $copy) ? $prop : cond($prop.eq($null), $null, $copy));
                 }
             // } else if ($ReturnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.)
             } else {
@@ -293,7 +293,7 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return($copy);
+                    eraseBody($getter)._return(($prop == $copy) ? $prop : cond($prop.eq($null), $null, $copy));
                 }
             }
             javadocAppendSection($getter.javadoc(), REFACTORED_GETTER_INTRO);
