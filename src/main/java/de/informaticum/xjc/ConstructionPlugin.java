@@ -152,11 +152,7 @@ extends AssignmentPlugin {
         }
         $constructor.javadoc().append("all fields are initialised in succession.");
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            final var attribute = property.getKey();
-            final var $property = property.getValue();
-            final var $value = defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT).orElse($null);
-            $constructor.javadoc().append(format("%n%nThe field {@link #%s} will be initialised with: {@code %s}", $property.name(), render($value)));
-            $constructor.body().assign($this.ref($property), $value);
+            this.accordingInitialisation(property, $constructor, ($c,$v) -> $c.javadoc().append(format("%n%nThe field {@link #%s} will be initialised with: {@code %s}", property.getValue().name(), render($v))));
         }
     }
 
