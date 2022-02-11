@@ -223,7 +223,6 @@ extends AssignmentPlugin {
             final var $prop = $this.ref($property);
             final var $default = defaultValueFor(attribute, COLLECTION_INIT, UNMODIFIABLE_GETTERS);
             final var $copy = defensiveCopyFor(attribute, $property, $prop, DEFENSIVE_COPIES);
-            final var $view = unmodifiableViewFactoryFor($ReturnType).arg($prop);
             final var $optionalEmpty = $OptionalType.erasure().staticInvoke("empty");
             final var $optionalOf = $OptionalType.erasure().staticInvoke("of");
 
@@ -241,6 +240,7 @@ extends AssignmentPlugin {
                 assertThat(isOptionalMethod($getter)).isFalse();
                 assertThat($ReturnType.isPrimitive()).isFalse();
                 assertThat($ReturnType.isReference()).isTrue();
+                final var $view = unmodifiableViewFactoryFor($ReturnType).arg($prop);
                 if ($default.isPresent() && UNMODIFIABLE_GETTERS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
