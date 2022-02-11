@@ -39,6 +39,7 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
@@ -51,14 +52,13 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
 import org.xml.sax.SAXException;
 
 public class ConstructionPlugin
-extends BasePlugin {
+extends AssignmentPlugin {
 
     private static final Logger LOG = getLogger(ConstructionPlugin.class);
 
@@ -101,6 +101,21 @@ extends BasePlugin {
         GENERATE_COPYCONSTRUCTOR.activates(GENERATE_DEFAULTCONSTRUCTOR);
         GENERATE_CLONE.doOnActivation(() -> this.outline().getClasses().forEach(this::addCloneable));
         return true;
+    }
+
+    @Override
+    protected BooleanSupplier initCollections() {
+        return GENERATE_COLLECTIONINIT;
+    }
+
+    @Override
+    protected BooleanSupplier createDefensiveCopies() {
+        return GENERATE_DEFENSIVECOPIES;
+    }
+
+    @Override
+    protected BooleanSupplier createUnmodifiableCollections() {
+        return () -> true;
     }
 
     @Override
