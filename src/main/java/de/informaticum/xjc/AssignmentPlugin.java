@@ -27,6 +27,15 @@ extends BasePlugin {
 
     protected abstract BooleanSupplier createDefensiveCopies();
 
+    protected final void accordingInitialisation(final Entry<FieldOutline, JFieldVar> property, final JMethod $method,
+                                                 final BiConsumer<? super JMethod, ? super JExpression> onInitialisation) {
+        final var attribute = property.getKey();
+        final var $property = property.getValue();
+        final var $value = defaultValueFor(attribute, this.initCollections(), this.createUnmodifiableCollections()).orElse($null);
+        $method.body().assign($this.ref($property), $value);
+        onInitialisation.accept($method, $value);
+    }
+
     protected final void accordingAssignment(final Entry<FieldOutline, JFieldVar> property, final JMethod $method, final JExpression $expression,
                                              final Consumer<? super JMethod> onPrimitive, final BiConsumer<? super JMethod, ? super JExpression> onDefault,
                                              final Consumer<? super JMethod> onRequired, final Consumer<? super JMethod> onFallback) {
