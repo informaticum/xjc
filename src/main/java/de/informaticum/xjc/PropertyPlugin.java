@@ -281,8 +281,8 @@ extends AssignmentPlugin {
             } else {
                 assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
                 assertThat(isOptionalMethod($getter)).isFalse();
-                assertThat($ReturnType.isPrimitive()).isFalse();
-                assertThat($ReturnType.isReference()).isTrue();
+                // assertThat($ReturnType.isPrimitive()).isFalse(); // TODO: return type may be primitive, even if property is not
+                // assertThat($ReturnType.isReference()).isTrue();  // TODO: return type may be primitive, even if property is not
                 if ($default.isPresent()) {
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, render($default.get()), STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_VALUE);
