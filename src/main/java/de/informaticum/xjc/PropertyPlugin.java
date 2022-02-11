@@ -361,13 +361,12 @@ extends AssignmentPlugin {
             // 3/3: Implement
             javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
             final var $value = $setter.param(FINAL, $property.type(), $property.name());
-            final var $default = defaultValueFor(attribute, COLLECTION_INIT, UNMODIFIABLE_GETTERS);
             this.accordingAssignment(collectionProperty, $setter, $value,
-                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? REQUIRED_ARGUMENT : OPTIONAL_ARGUMENT, $property.name()); },
-                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, $property.name(), render($default.get())); },
-                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), REQUIRED_ARGUMENT, $property.name());
-                                             javadocAppendSection($m.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_NULL_VALUE); },
-                                     $m -> { javadocAppendSection($m.javadoc().addParam($value), OPTIONAL_ARGUMENT, $property.name()); }
+                                     ($m) -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? REQUIRED_ARGUMENT : OPTIONAL_ARGUMENT, $property.name()); },
+                                  ($m,$d) -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, $property.name(), render($d)); },
+                                     ($m) -> { javadocAppendSection($m.javadoc().addParam($value), REQUIRED_ARGUMENT, $property.name());
+                                               javadocAppendSection($m.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_NULL_VALUE); },
+                                     ($m) -> { javadocAppendSection($m.javadoc().addParam($value), OPTIONAL_ARGUMENT, $property.name()); }
             );
         }
     }
