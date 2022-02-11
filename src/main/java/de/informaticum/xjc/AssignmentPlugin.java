@@ -8,6 +8,7 @@ import static de.informaticum.xjc.plugin.TargetSugar.$this;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
 import static de.informaticum.xjc.util.DefaultAnalysis.defensiveCopyFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
+import java.util.Map.Entry;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import com.sun.codemodel.JExpression;
@@ -25,9 +26,11 @@ extends BasePlugin {
 
     protected abstract BooleanSupplier createDefensiveCopies();
 
-    protected final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $expression,
+    protected final void accordingAssignment(final Entry<FieldOutline, JFieldVar> property, final JMethod $method, final JExpression $expression,
                                              final Consumer<? super JMethod> onPrimitive, final Consumer<? super JMethod> onDefault,
                                              final Consumer<? super JMethod> onRequired, final Consumer<? super JMethod> onFallback) {
+        final var attribute = property.getKey();
+        final var $property = property.getValue();
         final var $default = defaultValueFor(attribute, this.initCollections(), this.createUnmodifiableCollections());
         final var $defensiveCopy = defensiveCopyFor(attribute, $property, $expression, this.createDefensiveCopies());
         if ($property.type().isPrimitive()) {

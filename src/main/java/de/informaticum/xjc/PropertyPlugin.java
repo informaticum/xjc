@@ -362,7 +362,7 @@ extends AssignmentPlugin {
             javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
             final var $value = $setter.param(FINAL, $property.type(), $property.name());
             final var $default = defaultValueFor(attribute, COLLECTION_INIT, UNMODIFIABLE_GETTERS);
-            this.accordingAssignment(attribute, $setter, $property, $value,
+            this.accordingAssignment(collectionProperty, $setter, $value,
                                      $m -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? REQUIRED_ARGUMENT : OPTIONAL_ARGUMENT, $property.name()); },
                                      $m -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, $property.name(), render($default.get())); },
                                      $m -> { javadocAppendSection($m.javadoc().addParam($value), REQUIRED_ARGUMENT, $property.name());
