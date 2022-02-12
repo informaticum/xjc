@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.function.BooleanSupplier;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.plugin.BasePlugin;
@@ -41,6 +42,24 @@ extends BasePlugin {
         final var $value = defaultValueFor(attribute, this.initCollections(), this.createUnmodifiableCollections()).orElse($null);
         $setter.body().assign($this.ref($property), $value);
         javadocAppendSection($setter.javadoc(), FIELD_INITIALISATION, property.getValue().name(), render($value));
+    }
+
+    protected final void accordingSuperAssignment(final Entry<FieldOutline, JFieldVar> property, final JMethod $setter, final JInvocation $super, final JExpression $expression) {
+        final var attribute = property.getKey();
+        final var $property = property.getValue();
+        final var $default = defaultValueFor(attribute, this.initCollections(), this.createUnmodifiableCollections());
+        $super.arg($expression);
+        if ($property.type().isPrimitive()) {
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), PRIMITVE_ARGUMENT, property.getValue().name());
+        } else if ($default.isPresent()) {
+            // TODO: Different Javadoc message for collection types?
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), isRequired(property.getKey()) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, property.getValue().name(), render($default.get()));
+        } else if (isRequired(attribute)) {
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), REQUIRED_ARGUMENT, property.getValue().name());
+            javadocAppendSection($setter.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_VALUE);
+        } else {
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), OPTIONAL_ARGUMENT, property.getValue().name());
+        }
     }
 
     protected final void accordingAssignment(final Entry<FieldOutline, JFieldVar> property, final JMethod $setter, final JExpression $expression) {
