@@ -9,8 +9,6 @@ import static de.informaticum.xjc.plugin.TargetSugar.$this;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_INIT_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SETTERS_JAVADOC;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.DEFAULTED_OPTIONAL_ARGUMENT;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.DEFAULTED_REQUIRED_ARGUMENT;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELDS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELD_JAVADOC;
@@ -21,7 +19,6 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_EMPTY_CO
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_LIVE_REFERENCE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_NULLABLE_VALUE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_UNMODIFIABLE_COLLECTION;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.ILLEGAL_NULL_VALUE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTES_BEGIN;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTES_END;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_DEFAULTED_COLLECTION;
@@ -37,7 +34,6 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_OPTIONAL
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_REQUIRED_VALUE;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_UNMODIFIABLE_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_UNMODIFIABLE_COLLECTION_CONTAINER;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_ARGUMENT;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_GETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_GETTER_JAVADOC;
@@ -50,7 +46,6 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.PRIVATE_FIELD
 import static de.informaticum.xjc.resources.PropertyPluginMessages.REFACTORED_GETTER_INTRO;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.REFACTORED_GETTER_OUTRO;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.REMOVE_SETTERS_DESCRIPTION;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.REQUIRED_ARGUMENT;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY;
@@ -361,13 +356,7 @@ extends AssignmentPlugin {
             // 3/3: Implement
             javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
             final var $value = $setter.param(FINAL, $property.type(), $property.name());
-            this.accordingAssignment(collectionProperty, $setter, $value,
-                                     ($m) -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? REQUIRED_ARGUMENT : OPTIONAL_ARGUMENT, $property.name()); },
-                                  ($m,$d) -> { javadocAppendSection($m.javadoc().addParam($value), isRequired(attribute) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, $property.name(), render($d)); },
-                                     ($m) -> { javadocAppendSection($m.javadoc().addParam($value), REQUIRED_ARGUMENT, $property.name());
-                                               javadocAppendSection($m.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_NULL_VALUE); },
-                                     ($m) -> { javadocAppendSection($m.javadoc().addParam($value), OPTIONAL_ARGUMENT, $property.name()); }
-            );
+            this.accordingAssignment(collectionProperty, $setter, $value);
         }
     }
 

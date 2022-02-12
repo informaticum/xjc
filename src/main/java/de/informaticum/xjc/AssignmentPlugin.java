@@ -5,13 +5,21 @@ import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.DEFAULTED_OPTIONAL_ARGUMENT;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.DEFAULTED_REQUIRED_ARGUMENT;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.FIELD_INITIALISATION;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.ILLEGAL_VALUE;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.OPTIONAL_ARGUMENT;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.PRIMITVE_ARGUMENT;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.REQUIRED_ARGUMENT;
+import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
 import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
 import static de.informaticum.xjc.util.DefaultAnalysis.defensiveCopyFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
+import static de.informaticum.xjc.util.Printify.render;
+import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map.Entry;
-import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
@@ -27,49 +35,46 @@ extends BasePlugin {
 
     protected abstract BooleanSupplier createDefensiveCopies();
 
-    protected final void accordingInitialisation(final Entry<FieldOutline, JFieldVar> property, final JMethod $method,
-                                                 final BiConsumer<? super JMethod, ? super JExpression> onInitialisation) {
+    protected final void accordingInitialisation(final Entry<FieldOutline, JFieldVar> property, final JMethod $setter) {
         final var attribute = property.getKey();
         final var $property = property.getValue();
         final var $value = defaultValueFor(attribute, this.initCollections(), this.createUnmodifiableCollections()).orElse($null);
-        $method.body().assign($this.ref($property), $value);
-        onInitialisation.accept($method, $value);
+        $setter.body().assign($this.ref($property), $value);
+        javadocAppendSection($setter.javadoc(), FIELD_INITIALISATION, property.getValue().name(), render($value));
     }
 
-    protected final void accordingAssignment(final Entry<FieldOutline, JFieldVar> property, final JMethod $method, final JExpression $expression,
-                                             final Consumer<? super JMethod> onPrimitive, final BiConsumer<? super JMethod, ? super JExpression> onDefault,
-                                             final Consumer<? super JMethod> onRequired, final Consumer<? super JMethod> onFallback) {
+    protected final void accordingAssignment(final Entry<FieldOutline, JFieldVar> property, final JMethod $setter, final JExpression $expression) {
         final var attribute = property.getKey();
         final var $property = property.getValue();
         final var $default = defaultValueFor(attribute, this.initCollections(), this.createUnmodifiableCollections());
         final var $defensiveCopy = defensiveCopyFor(attribute, $property, $expression, this.createDefensiveCopies());
         if ($property.type().isPrimitive()) {
             // TODO: Handle primitive $property with non-primitive $expression (that may be 'null')
-            $method.body().assign($this.ref($property), $expression);
-            onPrimitive.accept($method);
+            $setter.body().assign($this.ref($property), $expression);
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), PRIMITVE_ARGUMENT, property.getValue().name());
         } else if ($default.isPresent()) {
-            // TODO: if ($expression.equals($null)) {
-            //     $method.body().assign($this.ref($property), $default.get());
-            // } else {
-                $method.body().assign($this.ref($property), cond($expression.eq($null), $default.get(), $defensiveCopy));
-                onDefault.accept($method, $default.get());
-            // }
+            if ($expression.equals($null)) {
+                $setter.body().assign($this.ref($property), $default.get());
+            } else {
+                $setter.body().assign($this.ref($property), cond($expression.eq($null), $default.get(), $defensiveCopy));
+            }
+            // TODO: Different Javadoc message for collection types?
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), isRequired(property.getKey()) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT, property.getValue().name(), render($default.get()));
         } else if (isRequired(attribute)) {
-            // TODO: assertThat($expression).isNotEqualTo($null);
-            $method._throws(IllegalArgumentException.class);
-            final var $condition = $method.body()._if($expression.eq($null));
+            assertThat($expression).isNotEqualTo($null);
+            $setter._throws(IllegalArgumentException.class);
+            final var $condition = $setter.body()._if($expression.eq($null));
             $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
             $condition._else().assign($this.ref($property), $defensiveCopy);
-            onRequired.accept($method);
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), REQUIRED_ARGUMENT, property.getValue().name());
+            javadocAppendSection($setter.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_VALUE);
         } else {
-            if ($defensiveCopy == $expression) {
-                $method.body().assign($this.ref($property), $expression);
-            // TODO: } else if ($expression.equals($null)) {
-            //    $method.body().assign($this.ref($property), $expression);
+            if (($defensiveCopy == $expression) || $expression.equals($null)) {
+                $setter.body().assign($this.ref($property), $expression);
             } else {
-                $method.body().assign($this.ref($property), cond($expression.eq($null), $null, $defensiveCopy));
+                $setter.body().assign($this.ref($property), cond($expression.eq($null), $null, $defensiveCopy));
             }
-            onFallback.accept($method);
+            javadocAppendSection($setter.javadoc().addParam(property.getValue()), OPTIONAL_ARGUMENT, property.getValue().name());
         }
     }
 
