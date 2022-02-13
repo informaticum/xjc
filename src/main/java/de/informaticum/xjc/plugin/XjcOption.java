@@ -15,14 +15,22 @@ extends BooleanSupplier {
 
     public default XjcOption or(final XjcOption other) {
         return new XjcOption() {
-            @Override
-            public final String getArgument() {
-                return XjcOption.this.getArgument() + "/" + other.getArgument();
+            @Override public final String getArgument() {
+                return XjcOption.this.getArgument() + "||" + other.getArgument();
             }
-
-            @Override
-            public final boolean getAsBoolean() {
+            @Override public final boolean getAsBoolean() {
                 return XjcOption.this.getAsBoolean() || other.getAsBoolean();
+            }
+        };
+    }
+
+    public default XjcOption and(final XjcOption other) {
+        return new XjcOption() {
+            @Override public final String getArgument() {
+                return XjcOption.this.getArgument() + "&&" + other.getArgument();
+            }
+            @Override public final boolean getAsBoolean() {
+                return XjcOption.this.getAsBoolean() && other.getAsBoolean();
             }
         };
     }
