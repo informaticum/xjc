@@ -44,8 +44,17 @@ public enum CollectionAnalysis {
      * @return {@code true} iff the give method's return type is assignable to {@link Collection}
      */
     public static final boolean isCollectionMethod(final JMethod $method) {
-        final var model = $method.type().owner();
-        final var raw = $method.type().erasure().boxify();
+        return isCollectionType($method.type());
+    }
+
+    /**
+     * @param $Type
+     *            the type to analyse
+     * @return {@code true} iff the give type is assignable to {@link Collection}
+     */
+    public static final boolean isCollectionType(final JType $Type) {
+        final var model = $Type.owner();
+        final var raw = $Type.erasure().boxify();
         return model.ref(Collection.class).isAssignableFrom(raw);
     }
 
