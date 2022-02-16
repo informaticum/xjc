@@ -6,10 +6,8 @@ import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.BoilerplatePlugin.BECAUSE_METHOD_ALREADY_EXISTS;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_INIT_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SETTERS_JAVADOC;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELDS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELD_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFAULTED_COLLECTION;
@@ -54,14 +52,11 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_GETT
 import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_VALUE_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY;
-import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_GETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_GETTER_JAVADOC;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseJavadoc;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
-import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
-import static de.informaticum.xjc.util.DefaultAnalysis.defensiveCopyFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
@@ -83,7 +78,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
@@ -97,7 +91,6 @@ import de.informaticum.xjc.resources.PropertyPluginMessages;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
 import de.informaticum.xjc.util.CollectionAnalysis;
 import org.slf4j.Logger;
-import org.xml.sax.SAXException;
 
 public final class PropertyPlugin
 extends AssignmentPlugin {
@@ -115,15 +108,12 @@ extends AssignmentPlugin {
     private static final String REMOVE_SETTER = "Remove setter method [{}#{}(...)].";
 
     private static final String OPTION_NAME = "informaticum-xjc-properties";
-    private static final CommandLineArgument COLLECTION_INIT      = new CommandLineArgument("properties-initialise-collections", COLLECTION_INIT_DESCRIPTION.text());
-    private static final CommandLineArgument DEFENSIVE_COPIES     = new CommandLineArgument("properties-defensive-copies",       DEFENSIVE_COPIES_DESCRIPTION.text());
-    private static final CommandLineArgument STRAIGHT_GETTERS     = new CommandLineArgument("properties-straight-getters",       STRAIGHT_GETTERS_DESCRIPTION.text());
-    private static final CommandLineArgument OPTIONAL_GETTERS     = new CommandLineArgument("properties-optional-getters",       OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS));
-    private static final CommandLineArgument UNMODIFIABLE_GETTERS = new CommandLineArgument("properties-unmodifiable-getters",   UNMODIFIABLE_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS));
-    private static final CommandLineArgument COLLECTION_SETTERS   = new CommandLineArgument("properties-collection-setters",     COLLECTION_SETTERS_DESCRIPTION.text());
-    private static final CommandLineArgument REMOVE_SETTERS       = new CommandLineArgument("properties-remove-setters",         REMOVE_SETTERS_DESCRIPTION.format(COLLECTION_SETTERS));
-    private static final CommandLineArgument PRIVATE_FIELDS       = new CommandLineArgument("properties-private-fields",         PRIVATE_FIELDS_DESCRIPTION.text());
-    private static final CommandLineArgument FINAL_FIELDS         = new CommandLineArgument("properties-final-fields",           FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS));
+    /*pkg*/ static final CommandLineArgument STRAIGHT_GETTERS   = new CommandLineArgument("properties-straight-getters",   STRAIGHT_GETTERS_DESCRIPTION.text());
+    private static final CommandLineArgument OPTIONAL_GETTERS   = new CommandLineArgument("properties-optional-getters",   OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS));
+    private static final CommandLineArgument COLLECTION_SETTERS = new CommandLineArgument("properties-collection-setters", COLLECTION_SETTERS_DESCRIPTION.text());
+    private static final CommandLineArgument REMOVE_SETTERS     = new CommandLineArgument("properties-remove-setters",     REMOVE_SETTERS_DESCRIPTION.format(COLLECTION_SETTERS));
+    private static final CommandLineArgument PRIVATE_FIELDS     = new CommandLineArgument("properties-private-fields",     PRIVATE_FIELDS_DESCRIPTION.text());
+    private static final CommandLineArgument FINAL_FIELDS       = new CommandLineArgument("properties-final-fields",       FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS));
     // TODO: What about unsetter?
 
     private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE = (x,y) -> x==y ? NOTE_LIVE_REFERENCE : NOTE_DEFENSIVE_COPY_COLLECTION;
@@ -137,7 +127,10 @@ extends AssignmentPlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return asList(PRIVATE_FIELDS, FINAL_FIELDS, COLLECTION_INIT, DEFENSIVE_COPIES, STRAIGHT_GETTERS, OPTIONAL_GETTERS, UNMODIFIABLE_GETTERS, COLLECTION_SETTERS, REMOVE_SETTERS);
+        return asList(NOTNULL_COLLECTIONS, DEFENSIVE_COPIES, UNMODIFIABLE_COLLECTIONS,
+                      PRIVATE_FIELDS, FINAL_FIELDS,
+                      STRAIGHT_GETTERS, OPTIONAL_GETTERS,
+                      COLLECTION_SETTERS, REMOVE_SETTERS);
     }
 
     @Override
@@ -153,35 +146,22 @@ extends AssignmentPlugin {
     }
 
     @Override
-    public final boolean prepareRun()
-    throws SAXException {
+    public final boolean prepareRun() {
+        // For all collection fields, the out-of-the-box-getters create modifiable empty collection instances if there is no value assigned.
+        // That becomes impossible if fields are final and, thus, {@link #STRAIGHT_GETTERS} must be enabled too.
         FINAL_FIELDS.activates(STRAIGHT_GETTERS);
+        // Similar, the out-of-the-box-getters compromises the idea of optional getters and, thus, {@link #STRAIGHT_GETTERS} must be enabled too.
         OPTIONAL_GETTERS.activates(STRAIGHT_GETTERS);
-        UNMODIFIABLE_GETTERS.activates(STRAIGHT_GETTERS);
+        // Skip {@link #COLLECTION_SETTERS} if setter methods shall be removed
         REMOVE_SETTERS.deactivates(COLLECTION_SETTERS);
         return true;
-    }
-
-    @Override
-    protected BooleanSupplier initCollections() {
-        return COLLECTION_INIT;
-    }
-
-    @Override
-    protected BooleanSupplier createDefensiveCopies() {
-        return DEFENSIVE_COPIES;
-    }
-
-    @Override
-    protected BooleanSupplier createUnmodifiableCollections() {
-        return UNMODIFIABLE_GETTERS;
     }
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
         PRIVATE_FIELDS.doOnActivation(this::setFieldsPrivate, clazz);
         FINAL_FIELDS.doOnActivation(this::setFieldsFinal, clazz);
-        STRAIGHT_GETTERS.or(UNMODIFIABLE_GETTERS).or(OPTIONAL_GETTERS).doOnActivation(this::refactorGetter, clazz);
+        STRAIGHT_GETTERS.or(UNMODIFIABLE_COLLECTIONS).or(OPTIONAL_GETTERS).doOnActivation(this::refactorGetter, clazz);
         COLLECTION_SETTERS.doOnActivation(this::addCollectionSetter, clazz);
         REMOVE_SETTERS.doOnActivation(this::removeSetter, clazz);
         return true;
@@ -216,8 +196,8 @@ extends AssignmentPlugin {
             final var $ReturnType = $getter.type();
             final var $OptionalType = optionalTypeFor($ReturnType);
             final var $prop = $this.ref($property);
-            final var $default = defaultValueFor(attribute, COLLECTION_INIT, UNMODIFIABLE_GETTERS);
-            final var $copy = defensiveCopyFor(attribute, $property, $prop, DEFENSIVE_COPIES);
+            final var $default = defaultExpressionFor(attribute);
+            final var $nonNull = effectiveExpressionForNonNull($property.type(), $prop);
             final var $optionalEmpty = $OptionalType.erasure().staticInvoke("empty");
             final var $optionalOf = $OptionalType.erasure().staticInvoke("of");
 
@@ -229,48 +209,49 @@ extends AssignmentPlugin {
                 LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                 supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC);
                 supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
-                eraseBody($getter)._return($copy);
+                eraseBody($getter)._return($nonNull);
             } else if (attributeInfo.isCollection()) {
                 assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
                 assertThat(isOptionalMethod($getter)).isFalse();
                 assertThat($ReturnType.isPrimitive()).isFalse();
                 assertThat($ReturnType.isReference()).isTrue();
+                // TODO: if $copy is deep copy, the collection view should wrap $copy 
                 final var $view = unmodifiableViewFactoryFor($ReturnType).arg($prop);
-                if ($default.isPresent() && UNMODIFIABLE_GETTERS.getAsBoolean()) {
+                if ($default.isPresent() && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $view));
                 } else if ($default.isPresent() ) {
-                    assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
+                    assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE.apply($prop, $copy), HINT_REFERENCE.apply($prop, $copy));
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $copy));
-                } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute) && UNMODIFIABLE_GETTERS.getAsBoolean()) {
+                    eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $nonNull));
+                } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute) && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $optionalEmpty, $optionalOf.arg($view)));
                     $getter.type($OptionalType);
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
-                    assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
+                    assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_REFERENCE_CONTAINER.apply($prop, $copy), HINT_REFERENCE.apply($prop, $copy));
+                    supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_REFERENCE_CONTAINER.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(cond($prop.eq($null), $optionalEmpty, $optionalOf.arg($copy)));
+                    eraseBody($getter)._return(cond($prop.eq($null), $optionalEmpty, $optionalOf.arg($nonNull)));
                     $getter.type($OptionalType);
-                } else if (UNMODIFIABLE_GETTERS.getAsBoolean()) {
+                } else if (UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, UNMODIFIABLE_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $null, $view));
                 } else {
-                    assertThat(UNMODIFIABLE_GETTERS.getAsBoolean()).isFalse();
+                    assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE.apply($prop, $copy), HINT_REFERENCE.apply($prop, $copy));
+                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(($prop == $copy) ? $prop : cond($prop.eq($null), $null, $copy));
+                    eraseBody($getter)._return(($prop == $nonNull) ? $prop : cond($prop.eq($null), $null, $nonNull));
                 }
             // } else if ($ReturnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.)
             } else {
@@ -282,24 +263,57 @@ extends AssignmentPlugin {
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, render($default.get()), STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_VALUE);
                     supersedeReturns(getter, $property, render($default.get()), STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $copy));
+                    eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $nonNull));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
                     assertThat(isOptionalMethod($getter)).withFailMessage("This case is not considered yet ;-(").isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_VALUE_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(cond($prop.eq($null), $optionalEmpty, $optionalOf.arg($copy)));
+                    eraseBody($getter)._return(cond($prop.eq($null), $optionalEmpty, $optionalOf.arg($nonNull)));
                     $getter.type($OptionalType);
                 } else {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE);
                     supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
-                    eraseBody($getter)._return(($prop == $copy) ? $prop : cond($prop.eq($null), $null, $copy));
+                    eraseBody($getter)._return(($prop == $nonNull) ? $prop : cond($prop.eq($null), $null, $nonNull));
                 }
             }
             javadocAppendSection($getter.javadoc(), REFACTORED_GETTER_INTRO);
             $getter.javadoc().addAll(originJavadoc);
             $getter.javadoc().append(REFACTORED_GETTER_OUTRO.text());
+        }
+    }
+
+    private final void addCollectionSetter(final ClassOutline clazz) {
+        for (final var collectionProperty : filter(generatedPropertiesOf(clazz), k -> k.getPropertyInfo().isCollection()).entrySet()) {
+            final var attribute = collectionProperty.getKey();
+            assertThat(attribute.getPropertyInfo().defaultValue).isNull();
+            final var $property = collectionProperty.getValue();
+            assertThat($property.type().isPrimitive()).isFalse();
+            final var setterName = guessSetterName(attribute);
+            // 1/3: Prepare
+            if (getMethod(clazz, setterName, $property.type()) != null) {
+                LOG.error(SKIP_SETTER, fullNameOf(clazz), setterName, $property.type(), $property.name(), BECAUSE_METHOD_ALREADY_EXISTS);
+                continue;
+            }
+            LOG.info(GENERATE_SETTER, fullNameOf(clazz), setterName, $property.type(), $property.name());
+            // 2/3: Create
+            final var $Class = clazz.implClass;
+            // TODO: final'ise all other setter methods too
+            final var $setter = $Class.method(PUBLIC | FINAL, this.codeModel().VOID, setterName);
+            // 3/3: Implement
+            javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
+            final var $value = $setter.param(FINAL, $property.type(), $property.name());
+            accordingAssignment(collectionProperty, $setter, $value);
+        }
+    }
+
+    private final void removeSetter(final ClassOutline clazz) {
+        final var $Class = clazz.implClass;
+        for (final var $setter : generatedSettersOf(clazz).values()) {
+            LOG.info(REMOVE_SETTER, fullNameOf(clazz), $setter.name());
+            $Class.methods().remove($setter);
+            // TODO: Add class javadoc to list all deleted setter methods
         }
     }
 
@@ -323,49 +337,14 @@ extends AssignmentPlugin {
         $javadoc.append(NOTES_END.text());
     }
 
-    private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter,
-                                         final JFieldVar $property, final JType $Type,
-                                         final ResourceBundleEntry returnJavadoc) {
+    private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter, final JFieldVar $property, final JType $Type, final ResourceBundleEntry returnJavadoc) {
         supersedeReturns(getter, $property, $Type.erasure().name(), returnJavadoc);
     }
 
-    private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter,
-                                         final JFieldVar $property, final String noteParam,
-                                         final ResourceBundleEntry returnJavadoc) {
+    private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter, final JFieldVar $property, final String noteParam, final ResourceBundleEntry returnJavadoc) {
         final var $return = getter.getValue().javadoc().addReturn();
         eraseJavadoc($return);
         $return.append(returnJavadoc.format($property.name(), noteParam));
-    }
-
-    private final void addCollectionSetter(final ClassOutline clazz) {
-        for (final var collectionProperty : filter(generatedPropertiesOf(clazz), k -> k.getPropertyInfo().isCollection()).entrySet()) {
-            final var attribute = collectionProperty.getKey();
-            assertThat(attribute.getPropertyInfo().defaultValue).isNull();
-            final var $property = collectionProperty.getValue();
-            assertThat($property.type().isPrimitive()).isFalse();
-            final var setterName = guessSetterName(attribute);
-            // 1/3: Prepare
-            if (getMethod(clazz, setterName, $property.type()) != null) {
-                LOG.error(SKIP_SETTER, fullNameOf(clazz), setterName, $property.type(), $property.name(), BECAUSE_METHOD_ALREADY_EXISTS);
-                continue;
-            }
-            LOG.info(GENERATE_SETTER, fullNameOf(clazz), setterName, $property.type(), $property.name());
-            // 2/3: Create
-            final var $Class = clazz.implClass;
-            final var $setter = $Class.method(PUBLIC | FINAL, this.codeModel().VOID, setterName);
-            // 3/3: Implement
-            javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
-            final var $value = $setter.param(FINAL, $property.type(), $property.name());
-            this.accordingAssignment(collectionProperty, $setter, $value);
-        }
-    }
-
-    private final void removeSetter(final ClassOutline clazz) {
-        final var $Class = clazz.implClass;
-        for (final var $setter : generatedSettersOf(clazz).values()) {
-            LOG.info(REMOVE_SETTER, fullNameOf(clazz), $setter.name());
-            $Class.methods().remove($setter);
-        }
     }
 
 }

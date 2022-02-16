@@ -16,46 +16,54 @@ import static de.informaticum.xjc.BoilerplatePlugin.SKIP_METHOD;
 import static de.informaticum.xjc.plugin.TargetSugar.$null;
 import static de.informaticum.xjc.plugin.TargetSugar.$super;
 import static de.informaticum.xjc.plugin.TargetSugar.$this;
+import static de.informaticum.xjc.resources.AssignmentPluginMessages.ILLEGAL_VALUE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVES_BEGIN;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVES_BUILDER;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVES_CONSTRUCTOR;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVES_END;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVES_FACTORY;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ASSIGN_ALL_FIELDS;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.BASIC_CONSTRUCTOR_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.BLUEPRINT_ARGUMENT;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.CONSTRUCTOR_INTRO;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.COPY_CONSTRUCTOR_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.DEFAULT_CONSTRUCTOR_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.GENERATE_CLONE_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.HIDDEN_CONSTRUCTOR_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.INJECT_SUPER_CONSTRUCTOR;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.INVALID_ARGUMENT_HANDLING;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.PROTECTED_CONSTRUCTOR_JAVADOC;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.VALUES_CONSTRUCTOR_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeModelAnalysis.getMethod;
-import static de.informaticum.xjc.util.CollectionAnalysis.copyFactoryFor;
-import static de.informaticum.xjc.util.DefaultAnalysis.defaultValueFor;
+import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getConstructor;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
-import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
-import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.OutlineAnalysis.superAndGeneratedPropertiesOf;
-import static de.informaticum.xjc.util.Printify.render;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessFactoryName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessWitherName;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JDocComment;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
-import org.xml.sax.SAXException;
 
 public class ConstructionPlugin
 extends AssignmentPlugin {
@@ -66,138 +74,75 @@ extends AssignmentPlugin {
     private static final String CLONE_SIGNATURE = format("#%s()", clone);
 
     private static final String OPTION_NAME = "informaticum-xjc-construction";
-    private static final String OPTION_DESC = "Generates construction code, i.e., constructors, builders, clones.";
-    private static final CommandLineArgument GENERATE_DEFAULTCONSTRUCTOR = new CommandLineArgument("construction-default-constructor",      "Generate default constructor. Default: false");
-    private static final CommandLineArgument HIDE_DEFAULTCONSTRUCTOR     = new CommandLineArgument("construction-hide-default-constructor", "Hides default constructors if such constructor exists. Default: false");
-    private static final CommandLineArgument GENERATE_VALUESCONSTRUCTOR  = new CommandLineArgument("construction-values-constructor",       "Generate all-values constructor (automatically enables option '-construction-default-constructor'). Default: false");
-    private static final CommandLineArgument GENERATE_BASICCONSTRUCTOR   = new CommandLineArgument("construction-basic-constructor",        "Generate basic-values constructor, based on all required fields (automatically enables option '-construction-default-constructor'). Default: false");
-    private static final CommandLineArgument GENERATE_COLLECTIONINIT     = new CommandLineArgument("construction-initialise-collections",   "Each time a collection initialisation statement is generated, the value will not be 'null' but the empty collection instance. Default: false");
-    private static final CommandLineArgument GENERATE_COPYCONSTRUCTOR    = new CommandLineArgument("construction-copy-constructor",         "Generate copy constructor (automatically enables option '-construction-default-constructor'). Default: false");
+
+    private static final CommandLineArgument GENERATE_DEFAULT_CONSTRUCTOR = new CommandLineArgument("construction-default-constructor",      DEFAULT_CONSTRUCTOR_DESCRIPTION.text());
+    private static final CommandLineArgument GENERATE_VALUES_CONSTRUCTOR  = new CommandLineArgument("construction-values-constructor",       VALUES_CONSTRUCTOR_DESCRIPTION.format(GENERATE_DEFAULT_CONSTRUCTOR));
+    private static final CommandLineArgument GENERATE_BASIC_CONSTRUCTOR   = new CommandLineArgument("construction-basic-constructor",        BASIC_CONSTRUCTOR_DESCRIPTION.format(GENERATE_DEFAULT_CONSTRUCTOR));
+    private static final CommandLineArgument GENERATE_COPY_CONSTRUCTOR    = new CommandLineArgument("construction-copy-constructor",         COPY_CONSTRUCTOR_DESCRIPTION.format(GENERATE_DEFAULT_CONSTRUCTOR, DEFENSIVE_COPIES));
+    private static final CommandLineArgument HIDE_DEFAULT_CONSTRUCTOR     = new CommandLineArgument("construction-hide-default-constructor", HIDDEN_CONSTRUCTOR_DESCRIPTION.text());
+    private static final CommandLineArgument GENERATE_CLONE               = new CommandLineArgument("construction-clone",                    GENERATE_CLONE_DESCRIPTION.format(CLONE_SIGNATURE));
+
     private static final CommandLineArgument GENERATE_BUILDER            = new CommandLineArgument("construction-builder",                  "Generate builder. Default: false");
-    private static final CommandLineArgument GENERATE_CLONE              = new CommandLineArgument("construction-clone",             format("Generate [%s] method. Default: false", CLONE_SIGNATURE));
-    private static final CommandLineArgument GENERATE_DEFENSIVECOPIES    = new CommandLineArgument("construction-defensive-copies",         "Generated code will create defensive copies of the submitted collection/array/cloneable arguments. (Note: No deep copies!) Default: false");
     private static final CommandLineArgument HIDE_DEFAULT_FACTORIES      = new CommandLineArgument("construction-hide-default-factories",   "Hides default factory methods of object factories. Default: false");
     private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES    = new CommandLineArgument("construction-remove-default-factories", "Removes default factory methods of object factories. Default: false");
 
     private static final String GENERATE_CONSTRUCTOR = "Generate {} constructor for [{}].";
     private static final String SKIP_CONSTRUCTOR = "Skip creation of {} constructor for [{}] because {}.";
-    private static final String BECAUSE_CONSTRUCTOR_ALREADY_EXISTS = "such constructor already exists";
+    private static final String BECAUSE_CONSTRUCTOR_ALREADY_EXISTS = "such constructor (coincidentally?) already exists";
+    private static final String HIDE_CONSTRUCTOR = "Hide {} constructor of [{}].";
+    private static final String SKIP_HIDING_OF_MISSING = "Skip hiding of {} constructor for [{}] because such constructor does not exist.";
+    private static final String SKIP_HIDING_OF_SIMILAR = "Skip hiding of {} constructor for [{}] because it is similar to the {} constructor.";
+    private static final String ABORT_HIDING_OF_MISSING = "Abort hiding of {} constructor for [{}] because {}.";
+    private static final String BECAUSE_NO_ALTERNATIVE_EXISTS = "there is no alternative to create an instance";
+    private static final String ADD_INTERFACE = "Add [{}] interface extension for [{}].";
+    private static final String SKIP_INTERFACE = "Skip [{}] interface extension for [{}] because interface is already implemented.";
 
     @Override
     public final Entry<String, String> getOptionEntry() {
-        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESC);
+        return new SimpleImmutableEntry<>(OPTION_NAME, OPTION_DESCRIPTION.text());
     }
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        return asList(GENERATE_DEFAULTCONSTRUCTOR, HIDE_DEFAULTCONSTRUCTOR, GENERATE_VALUESCONSTRUCTOR, GENERATE_BASICCONSTRUCTOR, GENERATE_COLLECTIONINIT, GENERATE_COPYCONSTRUCTOR, GENERATE_BUILDER, GENERATE_CLONE, GENERATE_DEFENSIVECOPIES, HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
+        return asList(NOTNULL_COLLECTIONS, DEFENSIVE_COPIES, UNMODIFIABLE_COLLECTIONS,
+                      GENERATE_DEFAULT_CONSTRUCTOR, GENERATE_VALUES_CONSTRUCTOR, GENERATE_BASIC_CONSTRUCTOR, GENERATE_COPY_CONSTRUCTOR,
+                      HIDE_DEFAULT_CONSTRUCTOR,
+                      GENERATE_CLONE, 
+
+                      GENERATE_BUILDER, HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);
     }
 
     @Override
-    public final boolean prepareRun()
-    throws SAXException {
-        GENERATE_VALUESCONSTRUCTOR.activates(GENERATE_DEFAULTCONSTRUCTOR);
-        GENERATE_BASICCONSTRUCTOR.activates(GENERATE_DEFAULTCONSTRUCTOR);
-        GENERATE_COPYCONSTRUCTOR.activates(GENERATE_DEFAULTCONSTRUCTOR);
-        GENERATE_CLONE.doOnActivation(() -> this.outline().getClasses().forEach(this::addCloneable));
+    public final boolean prepareRun() {
+        // Any explicit constructor removes the implicit default constructor.
+        // Thus, {@link #GENERATE_DEFAULT_CONSTRUCTOR} must be activated too when creating all-values constructor.
+        GENERATE_VALUES_CONSTRUCTOR.activates(GENERATE_DEFAULT_CONSTRUCTOR);
+        // Similar, {@link #GENERATE_DEFAULT_CONSTRUCTOR} must be activated too when creating required-values constructor.
+        GENERATE_BASIC_CONSTRUCTOR.activates(GENERATE_DEFAULT_CONSTRUCTOR);
+        // Similar, {@link #GENERATE_DEFAULT_CONSTRUCTOR} must be activated too when creating copy constructor.
+        GENERATE_COPY_CONSTRUCTOR.activates(GENERATE_DEFAULT_CONSTRUCTOR);
+        GENERATE_CLONE.doOnActivation(() -> this.outline().getClasses().forEach(c -> this.addInterface(c, Cloneable.class)));
         return true;
     }
 
     @Override
-    protected BooleanSupplier initCollections() {
-        return GENERATE_COLLECTIONINIT;
-    }
-
-    @Override
-    protected BooleanSupplier createDefensiveCopies() {
-        return GENERATE_DEFENSIVECOPIES;
-    }
-
-    @Override
-    protected BooleanSupplier createUnmodifiableCollections() {
-        return () -> true;
-    }
-
-    @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        GENERATE_DEFAULTCONSTRUCTOR.doOnActivation(this::generateDefaultConstructor, clazz);
-        GENERATE_VALUESCONSTRUCTOR.doOnActivation(this::generateValuesConstructor, clazz);
-        GENERATE_BASICCONSTRUCTOR.doOnActivation(this::generateBasicConstructor, clazz);
-        GENERATE_COPYCONSTRUCTOR.doOnActivation(this::generateCopyConstructor, clazz);
+        GENERATE_DEFAULT_CONSTRUCTOR.doOnActivation(c -> this.generateConstructor(c, "default", any -> false), clazz);
+        GENERATE_VALUES_CONSTRUCTOR.doOnActivation(c -> this.generateConstructor(c, "all-values", any -> true), clazz);
+        GENERATE_BASIC_CONSTRUCTOR.doOnActivation(c -> this.generateConstructor(c, "required-values", OutlineAnalysis::isRequired), clazz);
+        GENERATE_COPY_CONSTRUCTOR.doOnActivation(this::generateCopyConstructor, clazz);
+        HIDE_DEFAULT_CONSTRUCTOR.doOnActivation(this::hideDefaultConstructor, clazz);
+        GENERATE_CLONE.doOnActivation(this::generateClone, clazz);
+
         GENERATE_BUILDER.doOnActivation(this::generateBuilder, clazz);
-        GENERATE_CLONE.doOnActivation(this::addClone, clazz);
-        // GENERATE_DEFENSIVECOPIES is used indirectly
-        // Default-Constructor-Hiding must be called after Builder creation! (Otherwise JavaDoc misses reference on it.)
-        HIDE_DEFAULTCONSTRUCTOR.doOnActivation(this::hideDefaultConstructor, clazz);
         HIDE_DEFAULT_FACTORIES.doOnActivation(this::hideDefaultFactory, clazz);
         REMOVE_DEFAULT_FACTORIES.doOnActivation(this::removeDefaultFactory, clazz);
         return true;
     }
 
-    private final void generateDefaultConstructor(final ClassOutline clazz) {
+    private final void generateConstructor(final ClassOutline clazz, final String label, final Predicate<? super FieldOutline> passedAsParameter) {
         // 1/3: Prepare
-        if (getConstructor(clazz) != null) {
-            LOG.warn(SKIP_CONSTRUCTOR, "default", fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
-            return;
-        }
-        LOG.info(GENERATE_CONSTRUCTOR, "default", fullNameOf(clazz));
-        // 2/3: Create
-        final var $Class = clazz.implClass;
-        final var $constructor = $Class.constructor(PUBLIC);
-        // 3/3: Implement (with JavaDoc)
-        $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
-        if (clazz.getSuperClass() != null) {
-            $constructor.javadoc().append("the default constructor of the super class is called, and then ");
-            $constructor.body().invoke("super");
-        }
-        $constructor.javadoc().append("all fields are initialised in succession.");
-        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            this.accordingInitialisation(property, $constructor, ($c,$v) -> $c.javadoc().append(format("%n%nThe field {@link #%s} will be initialised with: {@code %s}", property.getValue().name(), render($v))));
-        }
-    }
-
-    private final void hideDefaultConstructor(final ClassOutline clazz) {
-        // 1/2: Prepare
-        if (getConstructor(clazz) == null) {
-            LOG.warn("Skip hiding of default constructor for [{}] because such constructor does not exist.", fullNameOf(clazz));
-            return;
-        } else if (GENERATE_VALUESCONSTRUCTOR.getAsBoolean() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
-            LOG.warn("Skip hiding of default constructor for [{}] because it is similar to the all-values constructor.", fullNameOf(clazz));
-            return;
-        } else if (GENERATE_BASICCONSTRUCTOR.getAsBoolean() && filter(superAndGeneratedPropertiesOf(clazz), OutlineAnalysis::isRequired).isEmpty()) {
-            LOG.warn("Skip hiding of default constructor for [{}] because it is similar to the basic-values constructor.", fullNameOf(clazz));
-            return;
-        }
-        LOG.info("Hide default constructor [{}#{}()].", fullNameOf(clazz), fullNameOf(clazz));
-        // 2/2: Modify
-        final var $constructor = getConstructor(clazz);
-        $constructor.mods().setProtected();
-        $constructor.javadoc().append(format("%n%nThis constructor has been <a href=\"https://github.com/informaticum/xjc\">intentionally set on {@code protected} visibility</a> to be not used anymore."))
-                              .append(format("%nInstead in order to create instances of this class, use any of the other constructors"));
-        final var $Builder = stream(clazz.implClass.listClasses()).filter(nested -> "Builder".equals(nested.name())).findFirst();
-        if ($Builder.isPresent()) {
-            $constructor.javadoc().append(" or utilise the nested ").append($Builder.get());
-        }
-        $constructor.javadoc().append(format(".%n"))
-                              .append(format("%nSince JAX-B's reflective instantiation bases on a default constructor, it has not been removed."))
-                              .append(format("%n(As an aside, it cannot be set to {@code private} because the similarly kept sub-classes' default constructors must have access to this constructor.)"));
-    }
-
-    private final void generateValuesConstructor(final ClassOutline clazz) {
-        this.generateValuesConstructor(clazz, "all-values", any -> true);
-    }
-
-    private final void generateBasicConstructor(final ClassOutline clazz) {
-        this.generateValuesConstructor(clazz, "basic-values", OutlineAnalysis::isRequired);
-    }
-
-    private final void generateValuesConstructor(final ClassOutline clazz, final String label, final Predicate<? super FieldOutline> predicate) {
-        // 1/3: Prepare
-        if (filter(superAndGeneratedPropertiesOf(clazz), predicate).isEmpty() && (getConstructor(clazz) != null)) {
-            LOG.info(SKIP_CONSTRUCTOR, label, fullNameOf(clazz), "it is effectively similar to default-constructor");
-            return;
-        }
-        if (getConstructor(clazz, filter(superAndGeneratedPropertiesOf(clazz), predicate)) != null) {
+        if (getConstructor(clazz, filter(superAndGeneratedPropertiesOf(clazz), passedAsParameter)) != null) {
             LOG.warn(SKIP_CONSTRUCTOR, label, fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return;
         }
@@ -206,106 +151,37 @@ extends AssignmentPlugin {
         final var $Class = clazz.implClass;
         final var $constructor = $Class.constructor(PUBLIC);
         // 3/3: Implement (with JavaDoc)
-        $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
-        $constructor.javadoc(/* TODO: @throws nur, wenn wirklich möglich (Super-Konstruktor beachten) */).addThrows(IllegalArgumentException.class).append("iff any given value is {@code null} illegally");
+        javadocAppendSection($constructor, CONSTRUCTOR_INTRO);
         if (clazz.getSuperClass() != null) {
-            $constructor.javadoc().append(format("the %s constructor of the super class is called, and then ", label));
+            // Firstly, call super constructor (and pass through according parameters) ...
+            $constructor.javadoc().add(INJECT_SUPER_CONSTRUCTOR.format(label));
             final var $super = $constructor.body().invoke("super");
-            for (final var property : filter(superAndGeneratedPropertiesOf(clazz.getSuperClass()), predicate).entrySet()) {
-                final var attribute = property.getKey();
+            for (final var property : filter(superAndGeneratedPropertiesOf(clazz.getSuperClass()), passedAsParameter).entrySet()) {
                 final var $property = property.getValue();
                 final var $parameter = $constructor.param(FINAL, $property.type(), $property.name());
-                appendParameterJavaDoc($constructor.javadoc(), attribute, $parameter);
-                $super.arg($parameter);
+                accordingSuperAssignment(property, $constructor, $super, $parameter);
             }
         }
-        $constructor.javadoc().append("all fields are assigned in succession.")
-                              .append(format("%nIf any given value is invalid, either the according default value will be assigned (if such value exists) or an according exception will be thrown."));
-        final var specifiedFields = filter(generatedPropertiesOf(clazz), predicate).entrySet();
-        if (!specifiedFields.isEmpty()) {
+        final var fieldsWithParameter = filter(generatedPropertiesOf(clazz), passedAsParameter).entrySet();
+        $constructor.javadoc().add(ASSIGN_ALL_FIELDS.text());
+        if (!fieldsWithParameter.isEmpty()) {
+            // ... Secondly, assign all declared fields with its according parameter ...
+            javadocAppendSection($constructor, INVALID_ARGUMENT_HANDLING);
             $constructor.body().directStatement("// below fields are assigned with their according parameter");
-            for (final var property : specifiedFields) {
-                final var attribute = property.getKey();
+            for (final var property : fieldsWithParameter) {
                 final var $property = property.getValue();
                 final var $parameter = $constructor.param(FINAL, $property.type(), $property.name());
-                appendParameterJavaDoc($constructor.javadoc(), attribute, $parameter);
-                this.accordingAssignment(attribute, $constructor, $property, $parameter);
+                accordingAssignment(property, $constructor, $parameter);
             }
         }
-        final var additionalFields = filter(generatedPropertiesOf(clazz), predicate.negate()).entrySet();
-        if (!additionalFields.isEmpty()) {
+        final var fieldsWithInitialisation = filter(generatedPropertiesOf(clazz), not(passedAsParameter)).entrySet();
+        if (!fieldsWithInitialisation.isEmpty()) {
+            // ... Thirdly, initialise all declared fields without an according parameter.
             $constructor.body().directStatement("// below fields are assigned with their according initial value");
-            for (final var property : additionalFields) {
-                final var attribute = property.getKey();
-                final var $property = property.getValue();
-                final var $parameter = $null;
-                this.accordingAssignment(attribute, $constructor, $property, $parameter);
+            for (final var property : fieldsWithInitialisation) {
+                accordingInitialisation(property, $constructor);
             }
         }
-    }
-
-    private static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter) {
-        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT);
-        appendParameterJavaDoc(javadoc, attribute, $parameter, $default);
-    }
-
-    static final void appendParameterJavaDoc(final JDocComment javadoc, final FieldOutline attribute, final JVar $parameter, final Optional<JExpression> $default) {
-        final var info = attribute.getPropertyInfo();
-        final var name = info.getName(true);
-        if ($parameter.type().isPrimitive()) {
-            javadoc.addParam($parameter).append(format("value for the attribute '%s'", name));
-        } else if (isOptional(attribute) && $default.isEmpty()) {
-            javadoc.addParam($parameter).append(format("value for the attribute '%s' (can be {@code null} because attribute is optional)", name));
-        } else if (isRequired(attribute) && $default.isEmpty()) {
-            javadoc.addParam($parameter).append(format("value for the attribute '%s' (cannot be {@code null} because attribute is required)", name));
-        } else {
-            assertThat($default).isPresent();
-            javadoc.addParam($parameter).append(format(info.isCollection() ? "value for the attribute '%s' (can be {@code null} because an empty, modifiable collection will be used instead)" : "value for the attribute '%s' (can be {@code null} because an according default value will be used instead)", name));
-        }
-    }
-
-    private final void accordingAssignment(final FieldOutline attribute, final JMethod $method, final JFieldVar $property, final JExpression $expression) {
-        final var $default = defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT);
-        if ($property.type().isPrimitive()) {
-            $method.body().assign($this.ref($property), $expression);
-        } else if (isOptional(attribute) && $default.isEmpty()) {
-            final var $copyExpression = this.potentialDefensiveCopy(attribute, $property, $expression);
-            if ($copyExpression == $expression) {
-                $method.body().assign($this.ref($property), $expression);
-            } else {
-                $method.body().assign($this.ref($property), cond($expression.eq($null), $null, $copyExpression));
-            }
-        } else if (isRequired(attribute) && $default.isEmpty()) {
-            $method._throws(IllegalArgumentException.class);
-            final var $condition = $method.body()._if($expression.eq($null));
-            $condition._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
-            $condition._else().assign($this.ref($property), this.potentialDefensiveCopy(attribute, $property, $expression));
-        } else {
-            assertThat($default).isPresent();
-            if ($expression.equals($null)) {
-                $method.body().assign($this.ref($property), $default.get());
-            } else {
-                $method.body().assign($this.ref($property), cond($expression.eq($null), $default.get(), this.potentialDefensiveCopy(attribute, $property, $expression)));
-            }
-        }
-    }
-
-    private final JExpression potentialDefensiveCopy(final FieldOutline attribute, final JFieldVar $property, final JExpression $expression) {
-        if (GENERATE_DEFENSIVECOPIES.getAsBoolean()) {
-            // TODO: use copy-constructor if exits
-            if (attribute.getPropertyInfo().isCollection()) {
-                // TODO: Cloning the collection's elements (a.k.a. deep clone)
-                return copyFactoryFor($property.type()).arg($expression);
-            } else if ($property.type().isArray()) {
-                return cast($property.type(), $expression.invoke("clone"));
-            } else if (this.reference(Cloneable.class).isAssignableFrom($property.type().boxify())) {
-                // TODO (?): Skip cast if "clone()" already returns required type
-                return cast($property.type(), $expression.invoke("clone"));
-            } else {
-                LOG.debug("Skip defensive copy for [{}] because [{}] is neither Collection, Array, nor Cloneable.", $property.name(), $property.type().boxify().erasure());
-            }
-        }
-        return $expression;
     }
 
     private final void generateCopyConstructor(final ClassOutline clazz) {
@@ -320,34 +196,66 @@ extends AssignmentPlugin {
         final var $constructor = $Class.constructor(PUBLIC);
         // 3/3: Implement (with JavaDoc)
         final var $blueprint = $constructor.param(FINAL, $Class, "blueprint");
-        // TODO: Null-Check of $blueprint
-        $constructor.javadoc().addParam($blueprint).append("the blueprint instance");
-        $constructor.javadoc().append(format("<a href=\"https://github.com/informaticum/xjc\">Creates a new instance of this class.</a>%nIn detail, "));
+        $constructor.javadoc().addParam($blueprint).append(BLUEPRINT_ARGUMENT.text());
+        javadocAppendSection($constructor, CONSTRUCTOR_INTRO);
         if (clazz.getSuperClass() != null) {
-            $constructor.javadoc().append("the copy-constructor of the super class is called, and then ");
+            $constructor.javadoc().add(INJECT_SUPER_CONSTRUCTOR.format("copy"));
             $constructor.body().invoke("super").arg($blueprint);
         }
-        $constructor.javadoc().append("all fields are assigned in succession.");
-        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            final var attribute = property.getKey();
-            final var $property = property.getValue();
-            $constructor.body().assign($this.ref($property), this.potentialDefensiveCopy(attribute, $property, $blueprint.ref($property)));
+        $constructor.body()._if($blueprint.eq($null))._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required argument 'blueprint' must not be null!")));
+        javadocAppendSection($constructor.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_VALUE);
+        final var fields = generatedPropertiesOf(clazz).entrySet();
+        $constructor.javadoc().add(ASSIGN_ALL_FIELDS.text());
+        if (!fields.isEmpty()) {
+            $constructor.body().directStatement("// below fields are assigned with their according blueprint value");
+            for (final var property : fields) {
+                final var $property = property.getValue();
+                $constructor.body().assign($this.ref($property), cond($blueprint.ref($property).eq($null), $null, effectiveExpressionForNonNull($property.type(), $blueprint.ref($property))));
+            }
         }
     }
 
-    private final void addCloneable(final ClassOutline clazz) {
+    private final void hideDefaultConstructor(final ClassOutline clazz) {
         // 1/2: Prepare
-        if (this.reference(Cloneable.class).isAssignableFrom(clazz.implClass)) {
-            LOG.warn("Skip [{}] interface extension for [{}] because interface is already implemented.", Cloneable.class, fullNameOf(clazz));
+        if (HIDE_DEFAULT_FACTORIES.or(REMOVE_DEFAULT_FACTORIES).getAsBoolean() && !GENERATE_VALUES_CONSTRUCTOR.and(GENERATE_BASIC_CONSTRUCTOR).and(GENERATE_BUILDER).getAsBoolean()) {
+            LOG.error(ABORT_HIDING_OF_MISSING, "default", fullNameOf(clazz), BECAUSE_NO_ALTERNATIVE_EXISTS);
+            return;
+        } else if (getConstructor(clazz) == null) {
+            LOG.warn(SKIP_HIDING_OF_MISSING, "default", fullNameOf(clazz));
+            return;
+        } else if (GENERATE_VALUES_CONSTRUCTOR.getAsBoolean() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
+            LOG.warn(SKIP_HIDING_OF_SIMILAR, "default", fullNameOf(clazz), "all-values");
+            return;
+        } else if (GENERATE_BASIC_CONSTRUCTOR.getAsBoolean() && filter(superAndGeneratedPropertiesOf(clazz), OutlineAnalysis::isRequired).isEmpty()) {
+            LOG.warn(SKIP_HIDING_OF_SIMILAR, "default", fullNameOf(clazz), "required-values");
             return;
         }
-        LOG.info("Add [{}] interface extension for [{}].", Cloneable.class, fullNameOf(clazz));
-        // 2/2: Implement
-        final var $Class = clazz.implClass;
-        $Class._implements(Cloneable.class);
+        LOG.info(HIDE_CONSTRUCTOR, "default", fullNameOf(clazz));
+        // 2/2: Modify
+        final var $constructor = getConstructor(clazz);
+        javadocAppendSection($constructor, PROTECTED_CONSTRUCTOR_JAVADOC);
+        javadocAppendSection($constructor, ALTERNATIVES_BEGIN);
+        if (GENERATE_VALUES_CONSTRUCTOR.or(GENERATE_BASIC_CONSTRUCTOR).getAsBoolean()) { $constructor.javadoc().append(ALTERNATIVES_CONSTRUCTOR.text()); }
+        if (GENERATE_BUILDER.getAsBoolean()                                          ) { $constructor.javadoc().append(ALTERNATIVES_BUILDER.format("Builder"));     }
+        if (!HIDE_DEFAULT_FACTORIES.or(REMOVE_DEFAULT_FACTORIES).getAsBoolean()      ) { $constructor.javadoc().append(ALTERNATIVES_FACTORY.text());     }
+        $constructor.javadoc().append(ALTERNATIVES_END.text());
+        $constructor.mods().setProtected();
     }
 
-    private final void addClone(final ClassOutline clazz) {
+    private final void addInterface(final ClassOutline clazz, final Class<?> interfaceClass) {
+        // 1/2: Prepare
+        assertThat(interfaceClass).isInterface();
+        if (this.reference(interfaceClass).isAssignableFrom(clazz.implClass)) {
+            LOG.warn(SKIP_INTERFACE, interfaceClass, fullNameOf(clazz));
+            return;
+        }
+        LOG.info(ADD_INTERFACE, interfaceClass, fullNameOf(clazz));
+        // 2/2: Implement
+        final var $Class = clazz.implClass;
+        $Class._implements(interfaceClass);
+    }
+
+    private final void generateClone(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, clone) != null) {
             LOG.warn(SKIP_METHOD, CLONE_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
@@ -363,22 +271,23 @@ extends AssignmentPlugin {
         // 4/4: Implement (with JavaDoc)
         final JBlock $body;
         if (clazz.getSuperClass() == null) {
+            // case (a): there is no JAXB-bound super class -- incorporate the CloneNotSupportedException
             final var $try = $clone.body()._try();
             $body = $try.body();
             final var $catch = $try._catch(this.reference(CloneNotSupportedException.class));
             final var $bug = $catch.param("bug");
             $bug.mods().setFinal(true);
-            $catch.body()._throw(_new(this.reference(RuntimeException.class)).arg("WTF! Super's #clone() failed unexpectedly.").arg($bug));
+            $catch.body()._throw(_new(this.reference(RuntimeException.class)).arg("Seriously?!? Super's #clone() failed, although this class implements the Cloneable interface.").arg($bug));
         } else {
+            // case (b): there is a JAXB-bound super class -- no need to handle a CloneNotSupportedException
             $body = $clone.body();
         }
-        final var $reproduction = $body.decl(FINAL, $Class, "reproduction", cast($Class, $super.invoke("clone")));
+        final var $instance = $body.decl(FINAL, $Class, "cloneInstance", cast($Class, $super.invoke(clone)));
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            final var attribute = property.getKey();
             final var $property = property.getValue();
-            $body.assign($reproduction.ref($property), this.potentialDefensiveCopy(attribute, $property, $this.ref($property)));
+            $body.assign($instance.ref($property), cond($this.ref($property).eq($null), $null, effectiveExpressionForNonNull($property.type(), $this.ref($property))));
         }
-        $body._return($reproduction);
+        $body._return($instance);
     }
 
     private final JClass generateBuilder(final ClassOutline clazz) {
@@ -390,6 +299,7 @@ extends AssignmentPlugin {
             final var isFinal = ($Class.mods().getValue() & FINAL) != 0;
             final var builderModifiers = PUBLIC | STATIC | (isAbstract ? ABSTRACT : NONE) | (isFinal ? FINAL : NONE);
             // 1/2: Create
+            assertThat($Class.name()).withFailMessage("The nested type '{}' cannot hide an enclosing type {}!", "Builder", $Class.fullName()).isNotEqualTo("Builder");
             final var $Builder = $Class._class(builderModifiers, "Builder", ClassType.CLASS);
             // 2/2: Implement (with JavaDoc)
             $Builder.javadoc().append("<a href=\"https://github.com/informaticum/xjc\">Builder</a> for (enclosing) class ").append($Class).append(".");
@@ -450,12 +360,11 @@ extends AssignmentPlugin {
             for (final var blueprintProperty : generatedPropertiesOf(clazz).entrySet()) {
                 final var attribute = blueprintProperty.getKey();
                 final var $blueprintProperty = blueprintProperty.getValue();
-                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultValueFor(attribute, GENERATE_COLLECTIONINIT, /*TODO*/ GENERATE_COLLECTIONINIT).orElse($null));
-                this.accordingAssignment(attribute, $blueprintConstructor, $builderProperty, $blueprint.ref($blueprintProperty));
+                final var $builderProperty = $Builder.field(PROTECTED, $blueprintProperty.type(), $blueprintProperty.name(), defaultExpressionFor(attribute).orElse($null));
+                accordingAssignment(blueprintProperty, $blueprintConstructor, $blueprint.ref($blueprintProperty));
                 final var $wither = $Builder.method(PUBLIC | (isFinal ? FINAL : NONE), $Builder, guessWitherName(attribute));
                 final var $parameter = $wither.param(FINAL, $builderProperty.type(), $builderProperty.name());
-                appendParameterJavaDoc($wither.javadoc(), attribute, $parameter);
-                this.accordingAssignment(attribute, $wither, $builderProperty, $parameter);
+                accordingAssignment(blueprintProperty, $wither, $parameter);
                 $wither.body()._return($this);
                 $wither.javadoc().addReturn().append("{@code this} builder instance for fluent API style");
             }

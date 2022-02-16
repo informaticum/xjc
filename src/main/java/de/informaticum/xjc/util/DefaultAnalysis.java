@@ -5,11 +5,12 @@ import static com.sun.codemodel.JExpr.lit;
 import static de.informaticum.xjc.util.CollectionAnalysis.copyFactoryFor;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
 import static de.informaticum.xjc.util.CollectionAnalysis.emptyModifiableInstanceOf;
+import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.FieldOutline;
 import org.slf4j.Logger;
 
@@ -20,6 +21,7 @@ public enum DefaultAnalysis {
     ;
 
     private static final Logger LOG = getLogger(DefaultAnalysis.class);
+    private static final String ILLEGAL_DEFAULT_VALUE = "Lexical representation of the existing default value for [{}] is [{}]!";
 
     /* Do not (!) assign the following values. Instead, let Java do the initialisation. */
     /* In result, each field's value will be defaulted as specified by the JLS.         */
@@ -40,32 +42,33 @@ public enum DefaultAnalysis {
      * <dd>{@linkplain com.sun.tools.xjc.model.CDefaultValue#compute(com.sun.tools.xjc.outline.Outline) the according Java expression} is chosen if it can be computed,</dd>
      * <dt>for any primitive type</dt>
      * <dd><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">the according Java default value</a> is chosen,</dd>
-     * <dt>for any known collection type</dt>
-     * <dd>{@linkplain CollectionAnalysis#emptyModifiableInstanceOf(com.sun.codemodel.JType) the according modifiable/unmodifiable empty instance} may be chosen (if
-     * requested),</dd>
+     * <dt>for any collection type</dt>
+     * <dd>if requested (see parameter {@code initCollections}), the according {@linkplain CollectionAnalysis#emptyModifiableInstanceOf(JType) modifiable} or
+     * {@linkplain CollectionAnalysis#emptyImmutableInstanceOf(JType) unmodifiable} empty instance will be chosen (see parameter {@code unmodifiableCollections}),</dd>
      * <dt>in any other cases</dt>
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>
      *
-     * @param field
+     * @param attribute
      *            the field to analyse
      * @param initCollections
-     *            in order to initialise collections with the according modifiable/unmodifiable empty instance supply {@code true}; otherwise supply {@code false} to do not
-     * @param unmodifiable
-     *            in case an empty collection instance is initialised, that instance may be either modifiable (supply {@code false}) or may be unmodifiable (supply {@code true})
+     *            either to initialise collections or not
+     * @param unmodifiableCollections
+     *            if collections are initialised this specifies either to return an unmodifiable or a modifiable collection
      * @return an {@link Optional} holding the default value for the given field if such value exists; the {@linkplain Optional#empty() empty Optional} otherwise
      * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
      */
-    public static final Optional<JExpression> defaultValueFor(final FieldOutline field, final BooleanSupplier initCollections, final BooleanSupplier unmodifiable) {
-        final var outline = field.parent().parent();
-        final var property = field.getPropertyInfo();
+    public static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute, final boolean initCollections, final boolean unmodifiableCollections) {
+        final var outline = attribute.parent().parent();
+        final var codeModel = outline.getCodeModel();
+        final var property = attribute.getPropertyInfo();
         if (property.defaultValue != null) {
+            assertThat(property.isCollection()).isFalse();
             final var $default = property.defaultValue.compute(outline);
             if ($default != null) { return Optional.of($default); }
-            else { LOG.error("Lexical representation of the existing default value for [{}] is [null]!", property.getName(false)); }
+            else { LOG.error(ILLEGAL_DEFAULT_VALUE, property.getName(false), null); }
         }
-        final var raw = field.getRawType();
-        final var codeModel = outline.getCodeModel();
+        final var raw = attribute.getRawType();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugewiesen wird, ohne
         //       dass ein Default-Wert existiert. Das darf nicht passieren. Ein "Boolean" ist initial "null".
         // TODO: Consider property.isUnboxable()? What to do in that case?
@@ -78,29 +81,49 @@ public enum DefaultAnalysis {
         else if (raw.equals(codeModel.INT    )) { return Optional.of(lit(DEFAULT_INT    )); }
         else if (raw.equals(codeModel.LONG   )) { return Optional.of(lit(DEFAULT_LONG   )); }
         else if (raw.equals(codeModel.SHORT  )) { return Optional.of(lit(DEFAULT_SHORT  )); }
-        else if (property.isCollection() && initCollections.getAsBoolean()) {
-            return Optional.of(unmodifiable.getAsBoolean() ? emptyImmutableInstanceOf(field.getRawType()) : emptyModifiableInstanceOf(field.getRawType()));
+        else if (property.isCollection() && initCollections) {
+            return Optional.of(unmodifiableCollections ? emptyImmutableInstanceOf(attribute.getRawType()) : emptyModifiableInstanceOf(attribute.getRawType()));
         } else {
             return Optional.empty();
         }
     }
 
-    public static final JExpression defensiveCopyFor(final FieldOutline attribute, final JFieldVar $property, final JExpression $expression, final BooleanSupplier createCopies) {
-        if (createCopies.getAsBoolean()) {
-            // TODO: use copy-constructor if exits
-            if (attribute.getPropertyInfo().isCollection()) {
-                // TODO: Cloning the collection's elements (a.k.a. deep clone)
-                return copyFactoryFor($property.type()).arg($expression);
-            } else if ($property.type().isArray()) {
-                return cast($property.type(), $expression.invoke("clone"));
-            } else if (attribute.parent().parent().getCodeModel().ref(Cloneable.class).isAssignableFrom($property.type().boxify())) {
-                // TODO (?): Skip cast if "clone()" already returns required type (real case?)
-                return cast($property.type(), $expression.invoke("clone"));
-            } else {
-                LOG.debug("Skip defensive copy for [{}] because [{}] is neither Collection, Array, nor Cloneable.", $property.name(), $property.type().boxify().erasure());
-            }
+    /**
+     * This method returns the clone expression for the given type and for the given actual expression if such clone expression exists. In detail, this means (in order):
+     * <dl>
+     * <dt>for any array</dt>
+     * <dd>a shallow {@linkplain Object#clone() clone} but not a deep clone (multi-dimensional arrays are not cloned in deep, neither are the arrays's elements),</dd>
+     * <dt>for any {@link Cloneable} type</dt>
+     * <dd>a clone of this instance (either shallow or deep clone, depending on the specific internal {@link Object#clone()} implementation),</dd>
+     * <dt>for any collection type</dt>
+     * <dd>a {@linkplain CollectionAnalysis#copyFactoryFor(JType) modifiable} or {@linkplain CollectionAnalysis#unmodifiableViewFactoryFor(JType) unmodifiable} collection copy (see
+     * parameter {@code unmodifiableCollections})</dd>
+     * <dd>note, the copy most likely won't be a real clone as the collection type may differ and collection elements won't be cloned),</dd>
+     * <dt>in any other cases</dt>
+     * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
+     * </dl>
+     *
+     * @param $Type
+     *            the type to analyse
+     * @param $expression
+     *            the actual expression
+     * @return an {@link Optional} holding the clone expression for the actual expression if such clone expression exists; the {@linkplain Optional#empty() empty Optional}
+     *         otherwise
+     */
+    public static final Optional<JExpression> cloneExpressionFor(final JType $Type, final JExpression $expression, final boolean unmodifiableCollections) {
+        if ($Type.isArray()) {
+            // TODO: Deep copy (instead of shallow copy) for multi-dimensional arrays; Or even further, cloning the array's elements in general (a.k.a. deep clone)
+            return Optional.of(cast($Type, $expression.invoke("clone")));
+        } else if ($Type.owner().ref(Cloneable.class).isAssignableFrom($Type.boxify())) {
+            // TODO: Get deep clone (instead of shallow copy) even if the origin type does not? (for example ArrayList#clone() only returns a shallow copy)
+            return Optional.of(cast($Type, $expression.invoke("clone")));
+        } else if (CollectionAnalysis.isCollectionType($Type)) {
+            // TODO: Cloning the collection's elements (a.k.a. deep clone instead of shallow copy)
+            return Optional.of(unmodifiableCollections ? unmodifiableViewFactoryFor($Type).arg($expression) : copyFactoryFor($Type).arg($expression));
+        // TODO } else if (copy-constructor?) {
+        // TODO } else if (copy-factory-method (in some util class)?) {
         }
-        return $expression;
+        return Optional.empty();
     }
 
 }
