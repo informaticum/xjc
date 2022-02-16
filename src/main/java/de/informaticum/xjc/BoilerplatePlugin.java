@@ -76,8 +76,8 @@ extends BasePlugin {
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
         GENERATE_EQUALS.doOnActivation(this::generateEquals, clazz);
-        GENERATE_HASHCODE.doOnActivation(this::addHashCode, clazz);
-        GENERATE_TOSTRING.doOnActivation(this::addToString, clazz);
+        GENERATE_HASHCODE.doOnActivation(this::generateHashCode, clazz);
+        GENERATE_TOSTRING.doOnActivation(this::generateToString, clazz);
         return true;
     }
 
@@ -115,7 +115,7 @@ extends BasePlugin {
         $equals.body()._return(comparisons.stream().reduce(JExpression::cand).orElse(lit(true)));
     }
 
-    private final void addHashCode(final ClassOutline clazz) {
+    private final void generateHashCode(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, hashCode) != null) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
@@ -141,7 +141,7 @@ extends BasePlugin {
         $hashCode.body()._return($hash.listArgs().length > 0 ? $hash : $this.invoke("getClass").invoke(hashCode));
     }
 
-    private final void addToString(final ClassOutline clazz) {
+    private final void generateToString(final ClassOutline clazz) {
         // 1/4: Prepare
         if (getMethod(clazz, toString) != null) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
