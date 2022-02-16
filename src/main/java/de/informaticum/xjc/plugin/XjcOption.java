@@ -59,8 +59,8 @@ extends BooleanSupplier {
         this.doOnActivation(execution, pakkage, fullNameOf(pakkage));
     }
 
-    public default <JT extends JType> void doOnActivation(final Consumer<? super JT> execution, final JT $type) {
-        this.doOnActivation(execution, $type, fullNameOf($type));
+    public default <JT extends JType> void doOnActivation(final Consumer<? super JT> execution, final JT $Type) {
+        this.doOnActivation(execution, $Type, fullNameOf($Type));
     }
 
 }

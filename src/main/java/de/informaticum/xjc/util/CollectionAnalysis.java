@@ -50,17 +50,17 @@ public enum CollectionAnalysis {
     }
 
     /**
-     * @param $type
+     * @param $Type
      *            the collection type to analyse
      * @return the according invocation code to create an unmodifiable empty instance of the given type
      * @throws IllegalArgumentException
      *             iff there is no empty-collection instance of the given type
      */
-    public static final JInvocation emptyImmutableInstanceOf(final JType $type)
+    public static final JInvocation emptyImmutableInstanceOf(final JType $Type)
     throws IllegalArgumentException {
-        final var model = $type.owner();
+        final var model = $Type.owner();
         final var $Collections = model.ref(Collections.class);
-        final var rawType = $type.boxify().erasure();
+        final var rawType = $Type.boxify().erasure();
         if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
             assertThat(emptyNavigableSet()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("emptyNavigableSet");
@@ -77,22 +77,22 @@ public enum CollectionAnalysis {
             assertThat(emptyList()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("emptyList");
         } else {
-            throw new IllegalArgumentException("There is no empty-collection instance of type " + $type);
+            throw new IllegalArgumentException("There is no empty-collection instance of type " + $Type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }
 
     /**
-     * @param $type
+     * @param $Type
      *            the collection type to analyse
      * @return the according invocation code to create a modifiable empty instance of the given type
      * @throws IllegalArgumentException
      *             iff there is no default-collection instance of the given type
      */
-    public static final JInvocation emptyModifiableInstanceOf(final JType $type)
+    public static final JInvocation emptyModifiableInstanceOf(final JType $Type)
     throws IllegalArgumentException {
-        final var model = $type.owner();
-        final var rawType = $type.boxify().erasure();
+        final var model = $Type.owner();
+        final var rawType = $Type.boxify().erasure();
         if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
             assertThat(new TreeSet<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(TreeSet.class).narrow(DIAMOND));
@@ -109,22 +109,22 @@ public enum CollectionAnalysis {
             assertThat(new ArrayList<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(ArrayList.class).narrow(DIAMOND));
         } else {
-            throw new IllegalArgumentException("There is no default-collection instance of type " + $type);
+            throw new IllegalArgumentException("There is no default-collection instance of type " + $Type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }
 
     /**
-     * @param $type
+     * @param $Type
      *            the collection type to analyse
      * @return the according invocation code to create a factory for a modifiable copy instance of the given type
      * @throws IllegalArgumentException
      *             if there is no copy-collection factory for the given type
      */
-    public static final JInvocation copyFactoryFor(final JType $type)
+    public static final JInvocation copyFactoryFor(final JType $Type)
     throws IllegalArgumentException {
-        final var model = $type.owner();
-        final var rawType = $type.boxify().erasure();
+        final var model = $Type.owner();
+        final var rawType = $Type.boxify().erasure();
         if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
             assertThat(new TreeSet<>(emptySortedSet())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(TreeSet.class).narrow(DIAMOND));
@@ -141,23 +141,23 @@ public enum CollectionAnalysis {
             assertThat(new ArrayList<>(emptyList())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(ArrayList.class).narrow(DIAMOND));
         } else {
-            throw new IllegalArgumentException("There is no copy-collection factory for type " + $type);
+            throw new IllegalArgumentException("There is no copy-collection factory for type " + $Type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }
 
     /**
-     * @param $type
+     * @param $Type
      *            the collection type to analyse
      * @return the according invocation code to create a factory for an unmodifiable view instance of the given type
      * @throws IllegalArgumentException
      *             if there is no unmodifiable-view-collection factory for the given type
      */
-    public static final JInvocation unmodifiableViewFactoryFor(final JType $type)
+    public static final JInvocation unmodifiableViewFactoryFor(final JType $Type)
     throws IllegalArgumentException {
-        final var model = $type.owner();
+        final var model = $Type.owner();
         final var $Collections = model.ref(Collections.class);
-        final var rawType = $type.boxify().erasure();
+        final var rawType = $Type.boxify().erasure();
         if (model.ref(NavigableSet.class).isAssignableFrom(rawType)) {
             assertThat(unmodifiableNavigableSet(emptyNavigableSet())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("unmodifiableNavigableSet");
@@ -174,7 +174,7 @@ public enum CollectionAnalysis {
             assertThat(unmodifiableCollection(emptyList())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("unmodifiableCollection");
         } else {
-            throw new IllegalArgumentException("There is no unmodifiable-view-collection factory for type " + $type);
+            throw new IllegalArgumentException("There is no unmodifiable-view-collection factory for type " + $Type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
     }

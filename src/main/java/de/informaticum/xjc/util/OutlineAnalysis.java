@@ -56,12 +56,12 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * @param $type
+     * @param $Type
      *            the requested type
      * @return the fully-qualified name of the given type
      */
-    public static final String fullNameOf(final JType $type) {
-        return $type.fullName();
+    public static final String fullNameOf(final JType $Type) {
+        return $Type.fullName();
     }
 
     public static final boolean isRequired(final FieldOutline attribute) {

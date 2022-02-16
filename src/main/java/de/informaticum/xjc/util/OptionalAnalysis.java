@@ -27,14 +27,14 @@ public enum OptionalAnalysis {
     }
 
     /**
-     * @param $type
+     * @param $Type
      *            the type to analyse
      * @return the according optional type (i.e., {@link JClass} of either {@link OptionalDouble} for {@code double}/{@link Double} type, {@link OptionalInt} for
      *         {@code int}/{@link Integer} type, {@link OptionalLong} for {@code long}/{@link Long} type, or {@link Optional} in any other case)
      */
-    public static final JClass optionalTypeFor(final JType $type) {
-        final var model = $type.owner();
-        final var primitive = $type.unboxify();
+    public static final JClass optionalTypeFor(final JType $Type) {
+        final var model = $Type.owner();
+        final var primitive = $Type.unboxify();
         if (model.DOUBLE.equals(primitive)) {
             assertThat(OptionalDouble.empty()).withFailMessage(UNEXPECTED_MODIFICATION).isNotPresent();
             assertThat(OptionalDouble.of(0.0d)).withFailMessage(UNEXPECTED_MODIFICATION).hasValue(0);
@@ -50,18 +50,18 @@ public enum OptionalAnalysis {
         } else {
             assertThat(Optional.empty()).withFailMessage(UNEXPECTED_MODIFICATION).isNotPresent();
             assertThat(Optional.of("foobar")).withFailMessage(UNEXPECTED_MODIFICATION).hasValue("foobar");
-            return model.ref(Optional.class).narrow($type.boxify());
+            return model.ref(Optional.class).narrow($Type.boxify());
         }
     }
 
     /**
-     * @param $type
+     * @param $Type
      *            the type to analyse
      * @return {@code true} iff the give type is assignable to {@link OptionalDouble}, {@link OptionalInt}, or {@link OptionalLong}
      */
-    public static final boolean isPrimitiveOptional(final JType $type) {
-        final var model = $type.owner();
-        final var raw = $type.erasure();
+    public static final boolean isPrimitiveOptional(final JType $Type) {
+        final var model = $Type.owner();
+        final var raw = $Type.erasure();
         if (model.ref(OptionalDouble.class).equals(raw)) {
             return true;
         } else if (model.ref(OptionalInt.class).equals(raw)) {
