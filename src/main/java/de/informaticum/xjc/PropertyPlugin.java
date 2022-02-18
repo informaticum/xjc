@@ -1,6 +1,7 @@
 package de.informaticum.xjc;
 
 import static com.sun.codemodel.JMod.FINAL;
+import static com.sun.codemodel.JMod.NONE;
 import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.BoilerplatePlugin.BECAUSE_METHOD_ALREADY_EXISTS;
@@ -316,9 +317,8 @@ extends AssignmentPlugin {
         assertThat(properties).containsKey(attribute);
         final var $property = properties.get(attribute);
         final var $getter = getter.getValue();
-        // TODO: FINAL flag via xjc option
-        // TODO: FINAL'ise all other getter methods too
-        final var $getOrDefault = $Class.method(PUBLIC | FINAL, $property.type(), $getter.name() + "OrDefault");
+        final var modifiers = $getter.mods().getValue() | (FINAL_GETTERS.getAsBoolean() ? FINAL : NONE);
+        final var $getOrDefault = $Class.method(modifiers, $property.type(), $getter.name() + "OrDefault");
         final var $defaultValue = $getOrDefault.param(FINAL, deoptionalisedTypeFor($getter.type().boxify()).orElse($property.type()), "defaultValue");
         $getOrDefault.body()._return($this.invoke($getter).invoke("orElse").arg($defaultValue));
         return $getOrDefault;
@@ -360,8 +360,8 @@ extends AssignmentPlugin {
             LOG.info(GENERATE_SETTER, fullNameOf(clazz), setterName, $property.type(), $property.name());
             // 2/3: Create
             final var $Class = clazz.implClass;
-            // TODO: final'ise all other setter methods too
-            final var $setter = $Class.method(PUBLIC | FINAL, this.codeModel().VOID, setterName);
+            final var modifiers = PUBLIC | (FINAL_SETTERS.getAsBoolean() ? FINAL : NONE);
+            final var $setter = $Class.method(modifiers, this.codeModel().VOID, setterName);
             // 3/3: Implement
             javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
             final var $value = $setter.param(FINAL, $property.type(), $property.name());
