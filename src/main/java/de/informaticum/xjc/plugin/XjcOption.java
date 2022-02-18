@@ -2,6 +2,7 @@ package de.informaticum.xjc.plugin;
 
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import com.sun.codemodel.JType;
@@ -61,6 +62,26 @@ extends BooleanSupplier {
 
     public default <JT extends JType> void doOnActivation(final Consumer<? super JT> execution, final JT $Type) {
         this.doOnActivation(execution, $Type, fullNameOf($Type));
+    }
+
+    private <T, U> void doOnActivation(final BiConsumer<? super T, ? super U> execution, final T arg1, final U arg2, final String name) {
+        if (this.getAsBoolean()) {
+            execution.accept(arg1, arg2);
+        } else {
+            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);
+        }
+    }
+
+    public default <CO extends CustomizableOutline, P> void doOnActivation(final BiConsumer<? super CO, ? super P> execution, final CO clazz, final P param) {
+        this.doOnActivation(execution, clazz, param, fullNameOf(clazz));
+    }
+
+    public default <PO extends PackageOutline, P> void doOnActivation(final BiConsumer<? super PO, ? super P> execution, final PO pakkage, final P param) {
+        this.doOnActivation(execution, pakkage, param, fullNameOf(pakkage));
+    }
+
+    public default <JT extends JType, P> void doOnActivation(final BiConsumer<? super JT, ? super P> execution, final JT $Type, final P param) {
+        this.doOnActivation(execution, $Type, param, fullNameOf($Type));
     }
 
 }
