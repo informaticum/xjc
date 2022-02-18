@@ -193,33 +193,6 @@
           <validateLinks>true</validateLinks>
           <detectLinks>false</detectLinks>
           <detectJavaApiLink>true</detectJavaApiLink>
-          <!-- Colorise Code Snippets -->
-          <resourcesArtifacts>
-            <resourcesArtifact>
-              <groupId>de.informaticum</groupId>
-              <artifactId>syntaxhighlighter</artifactId>
-              <version>3.0.90</version>
-            </resourcesArtifact>
-          </resourcesArtifacts>
-          <additionalJOptions>
-            <additionalJOption>--allow-script-in-comments</additionalJOption>
-          </additionalJOptions>
-          <!-- Add SyntaxHighlighter (Java brushing) features (at the beginning of each JavaDoc HTML file). -->
-          <top><![CDATA[
-            <script src="{@docRoot}/syntaxhighlighter/3.0.90/scripts/shCore.min.js" type="text/javascript"></script>
-            <script src="{@docRoot}/syntaxhighlighter/3.0.90/scripts/shBrushBash.js" type="text/javascript"></script>
-            <script src="{@docRoot}/syntaxhighlighter/3.0.90/scripts/shBrushJava.js" type="text/javascript"></script>
-            <link href="{@docRoot}/syntaxhighlighter/3.0.90/styles/shCore.css" rel="stylesheet" type="text/css" />
-            <link href="{@docRoot}/syntaxhighlighter/3.0.90/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
-          ]]></top>
-          <!-- Activate and customize SyntaxHighlighter features (at the bottom of each JavaDoc HTML file). -->
-          <footer><![CDATA[
-            <script type="text/javascript">
-              SyntaxHighlighter.defaults["auto-links"] = false;
-              SyntaxHighlighter.defaults["tab-size"] = 2;
-              SyntaxHighlighter.all();
-            </script>
-          ]]></footer>
         </configuration>
         <executions>
           <execution>
@@ -255,10 +228,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M5</version>
-        <configuration>
-            <!-- Set to "true". Any test failure causes the Cucumber-Reporting to fail! -->
-          <testFailureIgnore>true</testFailureIgnore>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
