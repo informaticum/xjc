@@ -10,6 +10,8 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SE
 import static de.informaticum.xjc.resources.PropertyPluginMessages.COLLECTION_SETTERS_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELDS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_FIELD_JAVADOC;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_GETTERS_DESCRIPTION;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.FINAL_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFAULTED_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFAULTED_UNMODIFIABLE_COLLECTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.HINT_DEFENSIVE_COPY_COLLECTION;
@@ -108,6 +110,7 @@ extends AssignmentPlugin {
     private static final String REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED = "Refactor [{}#{}()]: return unmodifiable view or default value if 'null'"; // currently only for collections
     private static final String REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL  = "Refactor [{}#{}()]: return Optional<X> of unmodifiable view of optional attribute"; // currently only for collections
     private static final String GENERATE_SETTER = "Generate setter method [{}#{}({})] for property [{}].";
+    private static final String MODIFY_METHOD = "Set {} of method [{}#{}] onto [{}].";
     private static final String SKIP_SETTER = "Skip creation of setter method [{}#{}({})] for property [{}] because {}.";
     private static final String REMOVE_SETTER = "Remove setter method [{}#{}(...)].";
 
@@ -119,6 +122,8 @@ extends AssignmentPlugin {
     private static final CommandLineArgument REMOVE_SETTERS     = new CommandLineArgument("properties-remove-setters",     REMOVE_SETTERS_DESCRIPTION.format(COLLECTION_SETTERS));
     private static final CommandLineArgument PRIVATE_FIELDS     = new CommandLineArgument("properties-private-fields",     PRIVATE_FIELDS_DESCRIPTION.text());
     private static final CommandLineArgument FINAL_FIELDS       = new CommandLineArgument("properties-final-fields",       FINAL_FIELDS_DESCRIPTION.format(STRAIGHT_GETTERS));
+    private static final CommandLineArgument FINAL_GETTERS      = new CommandLineArgument("properties-final-getters",      FINAL_GETTERS_DESCRIPTION.text());
+    private static final CommandLineArgument FINAL_SETTERS      = new CommandLineArgument("properties-final-setters",      FINAL_SETTERS_DESCRIPTION.text());
     // TODO: What about unsetter?
 
     private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE = (x,y) -> x==y ? NOTE_LIVE_REFERENCE : NOTE_DEFENSIVE_COPY_COLLECTION;
@@ -135,7 +140,8 @@ extends AssignmentPlugin {
         return asList(NOTNULL_COLLECTIONS, DEFENSIVE_COPIES, UNMODIFIABLE_COLLECTIONS,
                       PRIVATE_FIELDS, FINAL_FIELDS,
                       STRAIGHT_GETTERS, OPTIONAL_GETTERS, OPTIONAL_ORDEFAULT,
-                      COLLECTION_SETTERS, REMOVE_SETTERS);
+                      COLLECTION_SETTERS, REMOVE_SETTERS,
+                      FINAL_GETTERS, FINAL_SETTERS);
     }
 
     @Override
@@ -170,6 +176,8 @@ extends AssignmentPlugin {
         OPTIONAL_ORDEFAULT.doOnActivation(this::generateOrDefaultGetters, clazz);
         COLLECTION_SETTERS.doOnActivation(this::addCollectionSetter, clazz);
         REMOVE_SETTERS.doOnActivation(this::removeSetter, clazz);
+        FINAL_GETTERS.doOnActivation(this::setGettersFinal, clazz);
+        FINAL_SETTERS.doOnActivation(this::setSettersFinal, clazz);
         return true;
     }
 
@@ -329,6 +337,14 @@ extends AssignmentPlugin {
         }
     }
 
+    private final void setGettersFinal(final ClassOutline clazz) {
+        for (final var $getter : generatedGettersOf(clazz).values()) {
+            LOG.info(MODIFY_METHOD, "mutability", fullNameOf(clazz), $getter, "final");
+            // TODO: Javadoc
+            $getter.mods().setFinal(true);
+        }
+    }
+
     private final void addCollectionSetter(final ClassOutline clazz) {
         for (final var collectionProperty : filter(generatedPropertiesOf(clazz), k -> k.getPropertyInfo().isCollection()).entrySet()) {
             final var attribute = collectionProperty.getKey();
@@ -359,6 +375,14 @@ extends AssignmentPlugin {
             LOG.info(REMOVE_SETTER, fullNameOf(clazz), $setter.name());
             $Class.methods().remove($setter);
             // TODO: Add class javadoc to list all deleted setter methods
+        }
+    }
+
+    private final void setSettersFinal(final ClassOutline clazz) {
+        for (final var $setter : generatedSettersOf(clazz).values()) {
+            LOG.info(MODIFY_METHOD, "mutability", fullNameOf(clazz), $setter, "final");
+            // TODO: Javadoc
+            $setter.mods().setFinal(true);
         }
     }
 
