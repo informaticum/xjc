@@ -35,6 +35,7 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.NOTE_UNMODIFI
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_GETTERS_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_GETTER_JAVADOC;
+import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_ORDEFAULT_DESCRIPTION;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.OPTIONAL_VALUE_JAVADOC_SUMMARY;
@@ -56,7 +57,9 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_
 import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseJavadoc;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
+import static de.informaticum.xjc.util.CollectionAnalysis.isCollectionMethod;
 import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
+import static de.informaticum.xjc.util.OptionalAnalysis.deoptionalisedTypeFor;
 import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
@@ -90,6 +93,7 @@ import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.resources.PropertyPluginMessages;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
 import de.informaticum.xjc.util.CollectionAnalysis;
+import de.informaticum.xjc.util.DefaultAnalysis;
 import org.slf4j.Logger;
 
 public final class PropertyPlugin
@@ -110,6 +114,7 @@ extends AssignmentPlugin {
     private static final String OPTION_NAME = "informaticum-xjc-properties";
     /*pkg*/ static final CommandLineArgument STRAIGHT_GETTERS   = new CommandLineArgument("properties-straight-getters",   STRAIGHT_GETTERS_DESCRIPTION.text());
     private static final CommandLineArgument OPTIONAL_GETTERS   = new CommandLineArgument("properties-optional-getters",   OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS));
+    private static final CommandLineArgument OPTIONAL_ORDEFAULT = new CommandLineArgument("properties-optional-ordefault", OPTIONAL_ORDEFAULT_DESCRIPTION.text());
     private static final CommandLineArgument COLLECTION_SETTERS = new CommandLineArgument("properties-collection-setters", COLLECTION_SETTERS_DESCRIPTION.text());
     private static final CommandLineArgument REMOVE_SETTERS     = new CommandLineArgument("properties-remove-setters",     REMOVE_SETTERS_DESCRIPTION.format(COLLECTION_SETTERS));
     private static final CommandLineArgument PRIVATE_FIELDS     = new CommandLineArgument("properties-private-fields",     PRIVATE_FIELDS_DESCRIPTION.text());
@@ -129,7 +134,7 @@ extends AssignmentPlugin {
     public final List<CommandLineArgument> getPluginArguments() {
         return asList(NOTNULL_COLLECTIONS, DEFENSIVE_COPIES, UNMODIFIABLE_COLLECTIONS,
                       PRIVATE_FIELDS, FINAL_FIELDS,
-                      STRAIGHT_GETTERS, OPTIONAL_GETTERS,
+                      STRAIGHT_GETTERS, OPTIONAL_GETTERS, OPTIONAL_ORDEFAULT,
                       COLLECTION_SETTERS, REMOVE_SETTERS);
     }
 
@@ -162,6 +167,7 @@ extends AssignmentPlugin {
         PRIVATE_FIELDS.doOnActivation(this::setFieldsPrivate, clazz);
         FINAL_FIELDS.doOnActivation(this::setFieldsFinal, clazz);
         STRAIGHT_GETTERS.or(UNMODIFIABLE_COLLECTIONS).or(OPTIONAL_GETTERS).doOnActivation(this::refactorGetter, clazz);
+        OPTIONAL_ORDEFAULT.doOnActivation(this::generateOrDefaultGetters, clazz);
         COLLECTION_SETTERS.doOnActivation(this::addCollectionSetter, clazz);
         REMOVE_SETTERS.doOnActivation(this::removeSetter, clazz);
         return true;
@@ -281,6 +287,45 @@ extends AssignmentPlugin {
             javadocAppendSection($getter.javadoc(), REFACTORED_GETTER_INTRO);
             $getter.javadoc().addAll(originJavadoc);
             $getter.javadoc().append(REFACTORED_GETTER_OUTRO.text());
+        }
+    }
+
+    private final void generateOrDefaultGetters(final ClassOutline clazz) {
+        final var getters = generatedGettersOf(clazz);
+        getters.entrySet().removeIf(e -> !isOptionalMethod(e.getValue()));
+        for (final var getter : getters.entrySet()) {
+            final var $getOrDefault = this.generateOrDefaultGetter(clazz, getter);
+            this.generateOrDefaultGetter(clazz, getter, $getOrDefault);
+        }
+    }
+
+    private final JMethod generateOrDefaultGetter(final ClassOutline clazz, final Entry<? extends FieldOutline, ? extends JMethod> getter) {
+        // TODO: Skip if method already exists
+        // TODO: Javadoc
+        final var properties = generatedPropertiesOf(clazz);
+        final var $Class = clazz.implClass;
+        final var attribute = getter.getKey();
+        assertThat(properties).containsKey(attribute);
+        final var $property = properties.get(attribute);
+        final var $getter = getter.getValue();
+        // TODO: FINAL flag via xjc option
+        // TODO: FINAL'ise all other getter methods too
+        final var $getOrDefault = $Class.method(PUBLIC | FINAL, $property.type(), $getter.name() + "OrDefault");
+        final var $defaultValue = $getOrDefault.param(FINAL, deoptionalisedTypeFor($getter.type().boxify()).orElse($property.type()), "defaultValue");
+        $getOrDefault.body()._return($this.invoke($getter).invoke("orElse").arg($defaultValue));
+        return $getOrDefault;
+    }
+
+    private final void generateOrDefaultGetter(final ClassOutline clazz, final Entry<? extends FieldOutline, ? extends JMethod> getter, final JMethod $delegation) {
+        // TODO: Skip if method already exists
+        // TODO: Javadoc
+        final var $Class = clazz.implClass;
+        final var attribute = getter.getKey();
+        final var $getter = getter.getValue();
+        final var $defaultFallback = DefaultAnalysis.defaultExpressionFor(attribute, true, UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+        if ($defaultFallback.isPresent()) {
+            final var $getOrDefault = $Class.method($delegation.mods().getValue(), $delegation.type(), isCollectionMethod($delegation) ? $getter.name() + "OrEmpty" : $delegation.name());
+            $getOrDefault.body()._return($this.invoke($delegation).arg($defaultFallback.get()));
         }
     }
 

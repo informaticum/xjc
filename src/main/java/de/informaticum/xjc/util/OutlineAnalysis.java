@@ -1,5 +1,6 @@
 package de.informaticum.xjc.util;
 
+import static de.informaticum.xjc.util.OptionalAnalysis.deoptionalisedTypeFor;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessGetterName;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.stream;
@@ -88,7 +89,7 @@ public enum OutlineAnalysis {
     /**
      * Values of the returned {@link LinkedHashMap} might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according {@linkplain JFieldVar property}
      * (for whatever reason).
-     * 
+     *
      * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      */
     private static final LinkedHashMap<FieldOutline, JFieldVar> declaredPropertiesOf(final ClassOutline clazz) {
@@ -115,7 +116,7 @@ public enum OutlineAnalysis {
     /**
      * Values of the returned {@link LinkedHashMap} cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according {@linkplain JFieldVar
      * property} (for whatever reason), it is not contained in the returned result.
-     * 
+     *
      * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      */
     public static final LinkedHashMap<FieldOutline, JFieldVar> generatedPropertiesOf(final ClassOutline clazz) {
@@ -143,7 +144,7 @@ public enum OutlineAnalysis {
     /**
      * Values of the returned {@link LinkedHashMap} cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according {@linkplain JFieldVar
      * property} (for whatever reason), it is not contained in the returned result.
-     * 
+     *
      * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and super class' fields comes first.
      */
     public static final LinkedHashMap<FieldOutline, JFieldVar> superAndGeneratedPropertiesOf(final ClassOutline clazz) {
@@ -210,7 +211,12 @@ public enum OutlineAnalysis {
             final var getterName = guessGetterName(attribute);
             final var getter = getMethod(clazz, getterName);
             if (getter != null) {
-                assertThat(getter.type().boxify()).isEqualTo($property.type().boxify());
+                assertThat(
+                  // this is the obvious assertion:
+                  getter.type().boxify().equals($property.type().boxify()) ||
+                  // this is the alternative assertion (because PropertyPlugin modifies the getter methods):
+                  (deoptionalisedTypeFor(getter.type().boxify()).isPresent() && deoptionalisedTypeFor(getter.type().boxify()).get().boxify().equals($property.type().boxify()))
+                ).isTrue();
                 getters.put(attribute, getter);
             } else {
                 LOG.error("There is no getter method [{}] for property {} of class [{}].", getterName, $property.name(), clazz.implClass.fullName());
