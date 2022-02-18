@@ -31,7 +31,7 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.plugin.BasePlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.util.CollectionAnalysis;
-import de.informaticum.xjc.util.DefaultAnalysis;
+import de.informaticum.xjc.util.ExpressionAnalysis;
 
 public abstract class AssignmentPlugin
 extends BasePlugin {
@@ -61,7 +61,7 @@ extends BasePlugin {
      * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
      */
     public static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute) {
-        return DefaultAnalysis.defaultExpressionFor(attribute, NOTNULL_COLLECTIONS.getAsBoolean(), UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+        return ExpressionAnalysis.defaultExpressionFor(attribute, NOTNULL_COLLECTIONS.getAsBoolean(), UNMODIFIABLE_COLLECTIONS.getAsBoolean());
     }
 
     /**
@@ -87,7 +87,7 @@ extends BasePlugin {
      *         otherwise
      */
     public static final Optional<JExpression> cloneExpressionFor(final JType $Type, final JExpression $expression) {
-        return DEFENSIVE_COPIES.getAsBoolean() ? DefaultAnalysis.cloneExpressionFor($Type, $expression, UNMODIFIABLE_COLLECTIONS.getAsBoolean()) : Optional.empty();
+        return DEFENSIVE_COPIES.getAsBoolean() ? ExpressionAnalysis.cloneExpressionFor($Type, $expression, UNMODIFIABLE_COLLECTIONS.getAsBoolean()) : Optional.empty();
     }
 
     public static final JExpression effectiveExpressionForNonNull(final JType $Type, final JExpression $expression) {

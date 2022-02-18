@@ -17,10 +17,10 @@ import org.slf4j.Logger;
 /**
  * Util class (technically a non-instantiable enum container) to provide some helper functions according to default value expressions.
  */
-public enum DefaultAnalysis {
+public enum ExpressionAnalysis {
     ;
 
-    private static final Logger LOG = getLogger(DefaultAnalysis.class);
+    private static final Logger LOG = getLogger(ExpressionAnalysis.class);
     private static final String ILLEGAL_DEFAULT_VALUE = "Lexical representation of the existing default value for [{}] is [{}]!";
 
     /* Do not (!) assign the following values. Instead, let Java do the initialisation. */

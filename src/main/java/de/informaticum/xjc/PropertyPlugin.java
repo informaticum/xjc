@@ -96,7 +96,7 @@ import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.resources.PropertyPluginMessages;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
 import de.informaticum.xjc.util.CollectionAnalysis;
-import de.informaticum.xjc.util.DefaultAnalysis;
+import de.informaticum.xjc.util.ExpressionAnalysis;
 import org.slf4j.Logger;
 
 public final class PropertyPlugin
@@ -330,7 +330,7 @@ extends AssignmentPlugin {
         final var $Class = clazz.implClass;
         final var attribute = getter.getKey();
         final var $getter = getter.getValue();
-        final var $defaultFallback = DefaultAnalysis.defaultExpressionFor(attribute, true, UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+        final var $defaultFallback = ExpressionAnalysis.defaultExpressionFor(attribute, true, UNMODIFIABLE_COLLECTIONS.getAsBoolean());
         if ($defaultFallback.isPresent()) {
             final var $getOrDefault = $Class.method($delegation.mods().getValue(), $delegation.type(), isCollectionMethod($delegation) ? $getter.name() + "OrEmpty" : $delegation.name());
             $getOrDefault.body()._return($this.invoke($delegation).arg($defaultFallback.get()));
