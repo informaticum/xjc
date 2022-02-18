@@ -363,6 +363,7 @@ extends AssignmentPlugin {
             final var modifiers = PUBLIC | (FINAL_SETTERS.getAsBoolean() ? FINAL : NONE);
             final var $setter = $Class.method(modifiers, this.codeModel().VOID, setterName);
             // 3/3: Implement
+            // TODO: Javadoc about defensive copy 
             javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
             final var $value = $setter.param(FINAL, $property.type(), $property.name());
             accordingAssignment(collectionProperty, $setter, $value);

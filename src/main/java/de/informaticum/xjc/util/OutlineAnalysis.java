@@ -6,6 +6,7 @@ import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
+// TODO: Check all methods returning LinkedHashMap for variable name attribute/property/...
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -128,7 +129,7 @@ public enum OutlineAnalysis {
     /**
      * Values of the returned {@link LinkedHashMap} might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according {@linkplain JFieldVar property}
      * (for whatever reason).
-     * 
+     *
      * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and super class' fields comes first.
      */
     private static final LinkedHashMap<FieldOutline, JFieldVar> superAndDeclaredPropertiesOf(final ClassOutline clazz) {
