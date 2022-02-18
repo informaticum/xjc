@@ -92,6 +92,7 @@ import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
+import de.informaticum.xjc.plugin.AssignmentPlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.resources.PropertyPluginMessages;
 import de.informaticum.xjc.resources.ResourceBundleEntry;

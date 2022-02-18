@@ -1,4 +1,4 @@
-package de.informaticum.xjc;
+package de.informaticum.xjc.plugin;
 
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;
@@ -28,8 +28,6 @@ import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.plugin.BasePlugin;
-import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.util.CollectionAnalysis;
 import de.informaticum.xjc.util.ExpressionAnalysis;
 
