@@ -47,7 +47,7 @@ extends Plugin {
      *
      * @return all plug-in's command line arguments
      */
-    public List<? extends CommandLineArgument> getPluginArguments() {
+    public List<CommandLineArgument> getPluginArguments() {
         return emptyList();
     }
 
