@@ -10,7 +10,8 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 
 /**
- * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@link Optional} types.
+ * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, and
+ * {@link Optional} types.
  */
 public enum OptionalAnalysis {
     ;
@@ -57,7 +58,7 @@ public enum OptionalAnalysis {
             return model.ref(OptionalLong.class);
         } else {
             assertThat(Optional.empty()).withFailMessage(UNEXPECTED_MODIFICATION).isNotPresent();
-            assertThat(Optional.of("foobar")).withFailMessage(UNEXPECTED_MODIFICATION).hasValue("foobar");
+            assertThat(Optional.of("")).withFailMessage(UNEXPECTED_MODIFICATION).hasValue("");
             return model.ref(Optional.class).narrow($Type.boxify());
         }
     }
