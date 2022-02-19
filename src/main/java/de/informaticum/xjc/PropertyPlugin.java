@@ -57,6 +57,7 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_VALU
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_GETTER_JAVADOC;
+import static de.informaticum.xjc.util.CodeModelAnalysis.render;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseJavadoc;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
@@ -73,7 +74,6 @@ import static de.informaticum.xjc.util.OutlineAnalysis.generatedSettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
-import static de.informaticum.xjc.util.Printify.render;
 import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.asList;
 import static java.util.function.Predicate.not;

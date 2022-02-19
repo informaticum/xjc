@@ -15,10 +15,10 @@ import static de.informaticum.xjc.resources.AssignmentPluginMessages.OPTIONAL_AR
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.PRIMITVE_ARGUMENT;
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.REQUIRED_ARGUMENT;
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.UNMODIFIABLE_COLLECTIONS_DESCRIPTION;
+import static de.informaticum.xjc.util.CodeModelAnalysis.render;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
-import static de.informaticum.xjc.util.Printify.render;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map.Entry;
 import java.util.Optional;
