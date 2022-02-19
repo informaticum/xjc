@@ -354,7 +354,7 @@ extends AssignmentPlugin {
             assertThat($property.type().isPrimitive()).isFalse();
             final var setterName = guessSetterName(attribute);
             // 1/3: Prepare
-            if (getMethod(clazz, setterName, $property.type()) != null) {
+            if (getMethod(clazz, setterName, $property.type()).isPresent()) {
                 LOG.error(SKIP_SETTER, fullNameOf(clazz), setterName, $property.type(), $property.name(), BECAUSE_METHOD_ALREADY_EXISTS);
                 continue;
             }

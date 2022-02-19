@@ -143,7 +143,7 @@ extends AssignmentPlugin {
 
     private final void generateConstructor(final ClassOutline clazz, final String label, final Predicate<? super FieldOutline> passedAsParameter) {
         // 1/3: Prepare
-        if (getConstructor(clazz, filter(superAndGeneratedPropertiesOf(clazz), passedAsParameter)) != null) {
+        if (getConstructor(clazz, filter(superAndGeneratedPropertiesOf(clazz), passedAsParameter)).isPresent()) {
             LOG.warn(SKIP_CONSTRUCTOR, label, fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return;
         }
@@ -187,7 +187,7 @@ extends AssignmentPlugin {
 
     private final void generateCopyConstructor(final ClassOutline clazz) {
         // 1/3: Prepare
-        if (getConstructor(clazz, clazz.implClass) != null) {
+        if (getConstructor(clazz, clazz.implClass).isPresent()) {
             LOG.warn(SKIP_CONSTRUCTOR, "copy", fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return;
         }
@@ -218,10 +218,11 @@ extends AssignmentPlugin {
 
     private final void hideDefaultConstructor(final ClassOutline clazz) {
         // 1/2: Prepare
+        final var $constructorLookup = getConstructor(clazz);
         if (HIDE_DEFAULT_FACTORIES.or(REMOVE_DEFAULT_FACTORIES).getAsBoolean() && !GENERATE_VALUES_CONSTRUCTOR.and(GENERATE_BASIC_CONSTRUCTOR).and(GENERATE_BUILDER).getAsBoolean()) {
             LOG.error(ABORT_HIDING_OF_MISSING, "default", fullNameOf(clazz), BECAUSE_NO_ALTERNATIVE_EXISTS);
             return;
-        } else if (getConstructor(clazz) == null) {
+        } else if ($constructorLookup.isEmpty()) {
             LOG.warn(SKIP_HIDING_OF_MISSING, "default", fullNameOf(clazz));
             return;
         } else if (GENERATE_VALUES_CONSTRUCTOR.getAsBoolean() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
@@ -233,7 +234,7 @@ extends AssignmentPlugin {
         }
         LOG.info(HIDE_CONSTRUCTOR, "default", fullNameOf(clazz));
         // 2/2: Modify
-        final var $constructor = getConstructor(clazz);
+        final var $constructor = $constructorLookup.get();
         javadocAppendSection($constructor, PROTECTED_CONSTRUCTOR_JAVADOC);
         javadocAppendSection($constructor, ALTERNATIVES_BEGIN);
         if (GENERATE_VALUES_CONSTRUCTOR.or(GENERATE_BASIC_CONSTRUCTOR).getAsBoolean()) { $constructor.javadoc().append(ALTERNATIVES_CONSTRUCTOR.text()); }
@@ -258,7 +259,7 @@ extends AssignmentPlugin {
 
     private final void generateClone(final ClassOutline clazz) {
         // 1/4: Prepare
-        if (getMethod(clazz, clone) != null) {
+        if (getMethod(clazz, clone).isPresent()) {
             LOG.warn(SKIP_METHOD, CLONE_SIGNATURE, fullNameOf(clazz), BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
@@ -379,10 +380,9 @@ extends AssignmentPlugin {
 
     private final void hideDefaultFactory(final ClassOutline clazz) {
         final var $ObjectFactory = clazz._package().objectFactory();
-        final var $factory = getMethod($ObjectFactory, guessFactoryName(clazz));
-        if ($factory == null) {
-            //
-        } else {
+        final var $factoryLookup = getMethod($ObjectFactory, guessFactoryName(clazz));
+        if ($factoryLookup.isPresent()) {
+            final var $factory = $factoryLookup.get();
             LOG.info("Hide default factory [{}#{}()].", $ObjectFactory.fullName(), $factory.name());
             $factory.mods().setPrivate();
             $factory.annotate(SuppressWarnings.class).param("value", "unused");
@@ -398,10 +398,9 @@ extends AssignmentPlugin {
 
     private final void removeDefaultFactory(final ClassOutline clazz) {
         final var $objectFactory = clazz._package().objectFactory();
-        final var $factory = getMethod($objectFactory, guessFactoryName(clazz));
-        if ($factory == null) {
-            //
-        } else {
+        final var $factoryLookup = getMethod($objectFactory, guessFactoryName(clazz));
+        if ($factoryLookup.isPresent()) {
+            final var $factory = $factoryLookup.get();
             LOG.info("Remove default factory [{}#{}()].", $objectFactory.fullName(), $factory.name());
             $objectFactory.methods().remove($factory);
             assertThat(getMethod($objectFactory, guessFactoryName(clazz))).isNull();

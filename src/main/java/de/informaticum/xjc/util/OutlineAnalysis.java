@@ -9,6 +9,7 @@ import java.util.HashMap;
 // TODO: Check all methods returning LinkedHashMap for variable name attribute/property/...
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
@@ -167,36 +168,36 @@ public enum OutlineAnalysis {
         return all;
     }
 
-    public static final JMethod getConstructor(final ClassOutline clazz) {
+    public static final Optional<JMethod> getConstructor(final ClassOutline clazz) {
         return CodeModelAnalysis.getConstructor(clazz.implClass);
     }
 
-    public static final JMethod getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
+    public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
         return CodeModelAnalysis.getConstructor(clazz.implClass, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
-    public static final JMethod getConstructor(final ClassOutline clazz, final JType... argumentTypes) {
+    public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final JType... argumentTypes) {
         return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
     }
 
-    public static final JMethod getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
+    public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
         final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
         return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
     }
 
-    public static final JMethod getMethod(final ClassOutline clazz, final String name) {
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name) {
         return CodeModelAnalysis.getMethod(clazz.implClass, name);
     }
 
-    public static final JMethod getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
         return CodeModelAnalysis.getMethod(clazz.implClass, name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
-    public static final JMethod getMethod(final ClassOutline clazz, final String name, final JType... argumentTypes) {
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final JType... argumentTypes) {
         return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
     }
 
-    public static final JMethod getMethod(final ClassOutline clazz, final String name, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
         final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
         return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
     }
@@ -210,15 +211,16 @@ public enum OutlineAnalysis {
             final var attribute = property.getKey();
             final var $property = property.getValue();
             final var getterName = guessGetterName(attribute);
-            final var getter = getMethod(clazz, getterName);
-            if (getter != null) {
+            final var $getterLookup = getMethod(clazz, getterName);
+            if ($getterLookup.isPresent()) {
+                final var $getter = $getterLookup.get();
                 assertThat(
                   // this is the obvious assertion:
-                  getter.type().boxify().equals($property.type().boxify()) ||
+                  $getter.type().boxify().equals($property.type().boxify()) ||
                   // this is the alternative assertion (because PropertyPlugin modifies the getter methods):
-                  (deoptionalisedTypeFor(getter.type().boxify()).isPresent() && deoptionalisedTypeFor(getter.type().boxify()).get().boxify().equals($property.type().boxify()))
+                  (deoptionalisedTypeFor($getter.type().boxify()).isPresent() && deoptionalisedTypeFor($getter.type().boxify()).get().boxify().equals($property.type().boxify()))
                 ).isTrue();
-                getters.put(attribute, getter);
+                getters.put(attribute, $getter);
             } else {
                 LOG.error("There is no getter method [{}] for property {} of class [{}].", getterName, $property.name(), clazz.implClass.fullName());
             }
@@ -235,10 +237,11 @@ public enum OutlineAnalysis {
             final var attribute = property.getKey();
             final var $property = property.getValue();
             final var setterName = guessSetterName(attribute);
-            final var setter = getMethod(clazz, setterName, $property.type());
-            if (setter != null) {
-                assertThat(setter.type()).isEqualTo(clazz.implClass.owner().VOID);
-                setters.put(attribute, setter);
+            final var $setterLookup = getMethod(clazz, setterName, $property.type());
+            if ($setterLookup.isPresent()) {
+                final var $setter = $setterLookup.get();
+                assertThat($setter.type()).isEqualTo(clazz.implClass.owner().VOID);
+                setters.put(attribute, $setter);
             } else if (attribute.getPropertyInfo().isCollection()) {
                 LOG.info("Expectedly, there is no setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
             } else {

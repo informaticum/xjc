@@ -83,7 +83,7 @@ extends BasePlugin {
 
     private final void generateEquals(final ClassOutline clazz) {
         // 1/4: Prepare
-        if (getMethod(clazz, equals, Object.class) != null) {
+        if (getMethod(clazz, equals, Object.class).isPresent()) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
@@ -117,7 +117,7 @@ extends BasePlugin {
 
     private final void generateHashCode(final ClassOutline clazz) {
         // 1/4: Prepare
-        if (getMethod(clazz, hashCode) != null) {
+        if (getMethod(clazz, hashCode).isPresent()) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
@@ -143,7 +143,7 @@ extends BasePlugin {
 
     private final void generateToString(final ClassOutline clazz) {
         // 1/4: Prepare
-        if (getMethod(clazz, toString) != null) {
+        if (getMethod(clazz, toString).isPresent()) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
             return;
         }
