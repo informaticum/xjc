@@ -77,19 +77,19 @@ extends BasePlugin {
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>
      *
-     * @param $Type
+     * @param $type
      *            the type to analyse
      * @param $expression
      *            the actual expression
      * @return an {@link Optional} holding the clone expression for the actual expression if such clone expression exists; the {@linkplain Optional#empty() empty Optional}
      *         otherwise
      */
-    public static final Optional<JExpression> cloneExpressionFor(final JType $Type, final JExpression $expression) {
-        return DEFENSIVE_COPIES.getAsBoolean() ? ExpressionAnalysis.cloneExpressionFor($Type, $expression, UNMODIFIABLE_COLLECTIONS.getAsBoolean()) : Optional.empty();
+    public static final Optional<JExpression> cloneExpressionFor(final JType $type, final JExpression $expression) {
+        return DEFENSIVE_COPIES.getAsBoolean() ? ExpressionAnalysis.cloneExpressionFor($type, $expression, UNMODIFIABLE_COLLECTIONS.getAsBoolean()) : Optional.empty();
     }
 
-    public static final JExpression effectiveExpressionForNonNull(final JType $Type, final JExpression $expression) {
-        return cloneExpressionFor($Type, $expression).orElse($expression);
+    public static final JExpression effectiveExpressionForNonNull(final JType $type, final JExpression $expression) {
+        return cloneExpressionFor($type, $expression).orElse($expression);
     }
 
     protected static final void accordingInitialisation(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter) {
@@ -128,7 +128,7 @@ extends BasePlugin {
     protected static final void accordingAssignmentStatement(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter, final JExpression $expression) {
         final var attribute = property.getKey();
         final var $property = property.getValue();
-        final var codeModel = attribute.parent().parent().getCodeModel();
+        final var $model = attribute.parent().parent().getCodeModel();
         final var $default = defaultExpressionFor(attribute);
         final var $nonNull = effectiveExpressionForNonNull($property.type(), $expression);
         if ($property.type().isPrimitive()) {
@@ -146,7 +146,7 @@ extends BasePlugin {
             assertThat($expression).isNotEqualTo($null);
             $setter._throws(IllegalArgumentException.class);
             final var $condition = $setter.body()._if($expression.eq($null));
-            $condition._then()._throw(_new(codeModel.ref(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
+            $condition._then()._throw(_new($model.ref(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
             $condition._else().assign($this.ref($property), $nonNull);
         } else {
             assertThat(isOptional(attribute)).isTrue();

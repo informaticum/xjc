@@ -397,13 +397,13 @@ extends AssignmentPlugin {
     }
 
     private final void removeDefaultFactory(final ClassOutline clazz) {
-        final var $objectFactory = clazz._package().objectFactory();
-        final var $factoryLookup = getMethod($objectFactory, guessFactoryName(clazz));
+        final var $ObjectFactory = clazz._package().objectFactory();
+        final var $factoryLookup = getMethod($ObjectFactory, guessFactoryName(clazz));
         if ($factoryLookup.isPresent()) {
             final var $factory = $factoryLookup.get();
-            LOG.info("Remove default factory [{}#{}()].", $objectFactory.fullName(), $factory.name());
-            $objectFactory.methods().remove($factory);
-            assertThat(getMethod($objectFactory, guessFactoryName(clazz))).isNull();
+            LOG.info("Remove default factory [{}#{}()].", $ObjectFactory.fullName(), $factory.name());
+            $ObjectFactory.methods().remove($factory);
+            assertThat(getMethod($ObjectFactory, guessFactoryName(clazz))).isNull();
         }
     }
 

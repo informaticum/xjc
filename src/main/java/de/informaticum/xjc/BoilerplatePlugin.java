@@ -100,19 +100,19 @@ extends BasePlugin {
         $equals.body()._if($other.eq($null))._then()._return(lit(false));
         $equals.body()._if($this.eq($other))._then()._return(lit(true));
         $equals.body()._if(not($this.invoke("getClass").invoke(equals).arg($other.invoke("getClass"))))._then()._return(lit(false));
-        final var comparisons = new ArrayList<JExpression>();
+        final var $comparisons = new ArrayList<JExpression>();
         if (clazz.getSuperClass() != null) {
-            comparisons.add($super.invoke(equals).arg($other));
+            $comparisons.add($super.invoke(equals).arg($other));
         }
         final var properties = generatedPropertiesOf(clazz);
         if (!properties.isEmpty()) {
             final var $Objects = this.reference(Objects.class);
             final var $that = $equals.body().decl(FINAL, $Class, "that", cast($Class, $other));
             for (final var $property : properties.values()) {
-                comparisons.add($Objects.staticInvoke(equals).arg($this.ref($property)).arg($that.ref($property)));
+                $comparisons.add($Objects.staticInvoke(equals).arg($this.ref($property)).arg($that.ref($property)));
             }
         }
-        $equals.body()._return(comparisons.stream().reduce(JExpression::cand).orElse(lit(true)));
+        $equals.body()._return($comparisons.stream().reduce(JExpression::cand).orElse(lit(true)));
     }
 
     private final void generateHashCode(final ClassOutline clazz) {
@@ -157,18 +157,18 @@ extends BasePlugin {
         $toString.annotate(Override.class);
         // 4/4: Implement
         final var $Objects = this.reference(Objects.class);
-        final var segments = new ArrayList<JExpression>();
+        final var $segments = new ArrayList<JExpression>();
         for (final var property : generatedPropertiesOf(clazz).entrySet() /* TODO: Also consider constant fields */) {
             final var attribute = property.getKey();
             final var info = attribute.getPropertyInfo();
             final var $property = property.getValue();
-            segments.add(lit(info.getName(true) + ": ").plus($Objects.staticInvoke(toString).arg($this.ref($property))));
+            $segments.add(lit(info.getName(true) + ": ").plus($Objects.staticInvoke(toString).arg($this.ref($property))));
         }
         if (clazz.getSuperClass() != null) {
-            segments.add(lit("Super: ").plus($super.invoke(toString)));
+            $segments.add(lit("Super: ").plus($super.invoke(toString)));
         }
         final var $joiner = _new(this.reference(StringJoiner.class)).arg(", ").arg($Class.name() + "[").arg("]");
-        $toString.body()._return(segments.stream().reduce($joiner, (partial, segement) -> partial.invoke("add").arg(segement)).invoke(toString));
+        $toString.body()._return($segments.stream().reduce($joiner, ($partial, $segement) -> $partial.invoke("add").arg($segement)).invoke(toString));
     }
 
 }

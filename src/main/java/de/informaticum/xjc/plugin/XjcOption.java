@@ -60,8 +60,8 @@ extends BooleanSupplier {
         this.doOnActivation(execution, pakkage, fullNameOf(pakkage));
     }
 
-    public default <JT extends JType> void doOnActivation(final Consumer<? super JT> execution, final JT $Type) {
-        this.doOnActivation(execution, $Type, $Type.fullName());
+    public default <JT extends JType> void doOnActivation(final Consumer<? super JT> execution, final JT $type) {
+        this.doOnActivation(execution, $type, $type.fullName());
     }
 
     private <T, U> void doOnActivation(final BiConsumer<? super T, ? super U> execution, final T arg1, final U arg2, final String name) {
@@ -80,8 +80,8 @@ extends BooleanSupplier {
         this.doOnActivation(execution, pakkage, param, fullNameOf(pakkage));
     }
 
-    public default <JT extends JType, P> void doOnActivation(final BiConsumer<? super JT, ? super P> execution, final JT $Type, final P param) {
-        this.doOnActivation(execution, $Type, param, $Type.fullName());
+    public default <JT extends JType, P> void doOnActivation(final BiConsumer<? super JT, ? super P> execution, final JT $type, final P param) {
+        this.doOnActivation(execution, $type, param, $type.fullName());
     }
 
 }

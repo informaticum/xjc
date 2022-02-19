@@ -118,7 +118,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         return true;
     }
 
-    protected boolean runObjectFactory(final JDefinedClass $factory)
+    protected boolean runObjectFactory(final JDefinedClass $Factory)
     throws SAXException, Exception {
         return true;
     }

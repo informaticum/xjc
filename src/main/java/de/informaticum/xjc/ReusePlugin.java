@@ -35,19 +35,19 @@ extends BasePlugin {
     }
 
     @Override
-    protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        REUSE_QNAMES.doOnActivation(this::publicifyQNames, $factory);
+    protected final boolean runObjectFactory(final JDefinedClass $Factory) {
+        REUSE_QNAMES.doOnActivation(this::publicifyQNames, $Factory);
         return true;
     }
 
-    private final void publicifyQNames(final JDefinedClass $factory) {
+    private final void publicifyQNames(final JDefinedClass $Factory) {
         final var $QName = this.reference(QName.class);
-        $factory.fields().values().stream()
+        $Factory.fields().values().stream()
                 .filter($field -> $QName.isAssignableFrom($field.type().boxify()))
-                .forEach($qName -> {
-                    LOG.info(PUBLIC_QNAME, $factory.fullName(), $qName.name());
-                    javadocAppendSection($qName, PUBLIC_QNAMES_JAVADOC);
-                    $qName.mods().setPublic();
+                .forEach($qNameField -> {
+                    LOG.info(PUBLIC_QNAME, $Factory.fullName(), $qNameField.name());
+                    javadocAppendSection($qNameField, PUBLIC_QNAMES_JAVADOC);
+                    $qNameField.mods().setPublic();
                 });
     }
 

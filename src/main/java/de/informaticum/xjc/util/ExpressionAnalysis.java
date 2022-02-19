@@ -60,7 +60,7 @@ public enum ExpressionAnalysis {
      */
     public static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute, final boolean initCollections, final boolean unmodifiableCollections) {
         final var outline = attribute.parent().parent();
-        final var codeModel = outline.getCodeModel();
+        final var $model = outline.getCodeModel();
         final var property = attribute.getPropertyInfo();
         if (property.defaultValue != null) {
             assertThat(property.isCollection()).isFalse();
@@ -68,19 +68,19 @@ public enum ExpressionAnalysis {
             if ($default != null) { return Optional.of($default); }
             else { LOG.error(ILLEGAL_DEFAULT_VALUE, property.getName(false), null); }
         }
-        final var raw = attribute.getRawType();
+        final var $raw = attribute.getRawType();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugewiesen wird, ohne
         //       dass ein Default-Wert existiert. Das darf nicht passieren. Ein "Boolean" ist initial "null".
         // TODO: Consider property.isUnboxable()? What to do in that case?
         // TODO: Consider property.isOptionalPrimitive()? What to do in that case?
-        if      (raw.equals(codeModel.BOOLEAN)) { return Optional.of(lit(DEFAULT_BOOLEAN)); }
-        else if (raw.equals(codeModel.BYTE   )) { return Optional.of(lit(DEFAULT_BYTE   )); }
-        else if (raw.equals(codeModel.CHAR   )) { return Optional.of(lit(DEFAULT_CHAR   )); }
-        else if (raw.equals(codeModel.DOUBLE )) { return Optional.of(lit(DEFAULT_DOUBLE )); }
-        else if (raw.equals(codeModel.FLOAT  )) { return Optional.of(lit(DEFAULT_FLOAT  )); }
-        else if (raw.equals(codeModel.INT    )) { return Optional.of(lit(DEFAULT_INT    )); }
-        else if (raw.equals(codeModel.LONG   )) { return Optional.of(lit(DEFAULT_LONG   )); }
-        else if (raw.equals(codeModel.SHORT  )) { return Optional.of(lit(DEFAULT_SHORT  )); }
+        if      ($raw.equals($model.BOOLEAN)) { return Optional.of(lit(DEFAULT_BOOLEAN)); }
+        else if ($raw.equals($model.BYTE   )) { return Optional.of(lit(DEFAULT_BYTE   )); }
+        else if ($raw.equals($model.CHAR   )) { return Optional.of(lit(DEFAULT_CHAR   )); }
+        else if ($raw.equals($model.DOUBLE )) { return Optional.of(lit(DEFAULT_DOUBLE )); }
+        else if ($raw.equals($model.FLOAT  )) { return Optional.of(lit(DEFAULT_FLOAT  )); }
+        else if ($raw.equals($model.INT    )) { return Optional.of(lit(DEFAULT_INT    )); }
+        else if ($raw.equals($model.LONG   )) { return Optional.of(lit(DEFAULT_LONG   )); }
+        else if ($raw.equals($model.SHORT  )) { return Optional.of(lit(DEFAULT_SHORT  )); }
         else if (property.isCollection() && initCollections) {
             return Optional.of(unmodifiableCollections ? emptyImmutableInstanceOf(attribute.getRawType()) : emptyModifiableInstanceOf(attribute.getRawType()));
         } else {
@@ -103,23 +103,23 @@ public enum ExpressionAnalysis {
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>
      *
-     * @param $Type
+     * @param $type
      *            the type to analyse
      * @param $expression
      *            the actual expression
      * @return an {@link Optional} holding the clone expression for the actual expression if such clone expression exists; the {@linkplain Optional#empty() empty Optional}
      *         otherwise
      */
-    public static final Optional<JExpression> cloneExpressionFor(final JType $Type, final JExpression $expression, final boolean unmodifiableCollections) {
-        if ($Type.isArray()) {
+    public static final Optional<JExpression> cloneExpressionFor(final JType $type, final JExpression $expression, final boolean unmodifiableCollections) {
+        if ($type.isArray()) {
             // TODO: Deep copy (instead of shallow copy) for multi-dimensional arrays; Or even further, cloning the array's elements in general (a.k.a. deep clone)
-            return Optional.of(cast($Type, $expression.invoke("clone")));
-        } else if ($Type.owner().ref(Cloneable.class).isAssignableFrom($Type.boxify())) {
+            return Optional.of(cast($type, $expression.invoke("clone")));
+        } else if ($type.owner().ref(Cloneable.class).isAssignableFrom($type.boxify())) {
             // TODO: Get deep clone (instead of shallow copy) even if the origin type does not? (for example ArrayList#clone() only returns a shallow copy)
-            return Optional.of(cast($Type, $expression.invoke("clone")));
-        } else if (CollectionAnalysis.isCollectionType($Type)) {
+            return Optional.of(cast($type, $expression.invoke("clone")));
+        } else if (CollectionAnalysis.isCollectionType($type)) {
             // TODO: Cloning the collection's elements (a.k.a. deep clone instead of shallow copy)
-            return Optional.of(unmodifiableCollections ? unmodifiableViewFactoryFor($Type).arg($expression) : copyFactoryFor($Type).arg($expression));
+            return Optional.of(unmodifiableCollections ? unmodifiableViewFactoryFor($type).arg($expression) : copyFactoryFor($type).arg($expression));
         // TODO } else if (copy-constructor?) {
         // TODO } else if (copy-factory-method (in some util class)?) {
         }

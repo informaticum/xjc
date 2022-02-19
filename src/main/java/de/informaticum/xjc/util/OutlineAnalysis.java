@@ -6,7 +6,6 @@ import static de.informaticum.xjc.util.XjcPropertyGuesser.guessSetterName;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
-// TODO: Check all methods returning LinkedHashMap for variable name attribute/property/...
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;

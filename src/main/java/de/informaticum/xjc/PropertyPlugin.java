@@ -209,8 +209,8 @@ extends AssignmentPlugin {
             final var $property = properties.get(attribute);
             final var $getter = getter.getValue();
             final var originJavadoc = new ArrayList<>($getter.javadoc());
-            final var $ReturnType = $getter.type();
-            final var $OptionalType = optionalTypeFor($ReturnType);
+            final var $returnType = $getter.type();
+            final var $OptionalType = optionalTypeFor($returnType);
             final var $prop = $this.ref($property);
             final var $default = defaultExpressionFor(attribute);
             final var $nonNull = effectiveExpressionForNonNull($property.type(), $prop);
@@ -220,29 +220,29 @@ extends AssignmentPlugin {
             if ($property.type().isPrimitive()) {
                 assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
                 assertThat(isOptionalMethod($getter)).isFalse();
-                assertThat($ReturnType.isPrimitive()).isTrue();
-                assertThat($ReturnType.isReference()).isFalse();
+                assertThat($returnType.isPrimitive()).isTrue();
+                assertThat($returnType.isReference()).isFalse();
                 LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC);
-                supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
+                supersedeJavadoc(getter, $property, $returnType, STRAIGHT_GETTER_JAVADOC);
+                supersedeReturns(getter, $property, $returnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
                 eraseBody($getter)._return($nonNull);
             } else if (attributeInfo.isCollection()) {
                 assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
                 assertThat(isOptionalMethod($getter)).isFalse();
-                assertThat($ReturnType.isPrimitive()).isFalse();
-                assertThat($ReturnType.isReference()).isTrue();
+                assertThat($returnType.isPrimitive()).isFalse();
+                assertThat($returnType.isReference()).isTrue();
                 // TODO: if $copy is deep copy, the collection view should wrap $copy 
-                final var $view = unmodifiableViewFactoryFor($ReturnType).arg($prop);
+                final var $view = unmodifiableViewFactoryFor($returnType).arg($prop);
                 if ($default.isPresent() && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
-                    supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
+                    supersedeJavadoc(getter, $property, $returnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
+                    supersedeReturns(getter, $property, $returnType, UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $view));
                 } else if ($default.isPresent() ) {
                     assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
-                    supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
+                    supersedeJavadoc(getter, $property, $returnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
+                    supersedeReturns(getter, $property, $returnType, STRAIGHT_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $nonNull));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute) && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL, fullNameOf(clazz), $getter.name());
@@ -259,22 +259,22 @@ extends AssignmentPlugin {
                     $getter.type($OptionalType);
                 } else if (UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, UNMODIFIABLE_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
-                    supersedeReturns(getter, $property, $ReturnType, UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
+                    supersedeJavadoc(getter, $property, $returnType, UNMODIFIABLE_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
+                    supersedeReturns(getter, $property, $returnType, UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $null, $view));
                 } else {
                     assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
-                    supersedeReturns(getter, $property, $ReturnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
+                    supersedeJavadoc(getter, $property, $returnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
+                    supersedeReturns(getter, $property, $returnType, STRAIGHT_COLLECTION_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(($prop == $nonNull) ? $prop : cond($prop.eq($null), $null, $nonNull));
                 }
-            // } else if ($ReturnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.)
+            // } else if ($returnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.)
             } else {
                 assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
                 assertThat(isOptionalMethod($getter)).isFalse();
-                // assertThat($ReturnType.isPrimitive()).isFalse(); // TODO: return type may be primitive, even if property is not
-                // assertThat($ReturnType.isReference()).isTrue();  // TODO: return type may be primitive, even if property is not
+                // assertThat($returnType.isPrimitive()).isFalse(); // TODO: return type may be primitive, even if property is not
+                // assertThat($returnType.isReference()).isTrue();  // TODO: return type may be primitive, even if property is not
                 if ($default.isPresent()) {
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, render($default.get()), STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_VALUE);
@@ -289,8 +289,8 @@ extends AssignmentPlugin {
                     $getter.type($OptionalType);
                 } else {
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $getter.name());
-                    supersedeJavadoc(getter, $property, $ReturnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE);
-                    supersedeReturns(getter, $property, $ReturnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
+                    supersedeJavadoc(getter, $property, $returnType, STRAIGHT_GETTER_JAVADOC, NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE);
+                    supersedeReturns(getter, $property, $returnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(($prop == $nonNull) ? $prop : cond($prop.eq($null), $null, $nonNull));
                 }
             }
@@ -389,9 +389,9 @@ extends AssignmentPlugin {
     }
 
     private static final void supersedeJavadoc(final Entry<? extends FieldOutline, ? extends JMethod> getter,
-                                               final JFieldVar $property, final JType $Type,
+                                               final JFieldVar $property, final JType $type,
                                                final ResourceBundleEntry methodJavadoc, final ResourceBundleEntry... notes) {
-        supersedeJavadoc(getter, $property, $Type.erasure().name(), methodJavadoc, notes);
+        supersedeJavadoc(getter, $property, $type.erasure().name(), methodJavadoc, notes);
     }
 
     private static final void supersedeJavadoc(final Entry<? extends FieldOutline, ? extends JMethod> getter,
@@ -408,8 +408,8 @@ extends AssignmentPlugin {
         $javadoc.append(NOTES_END.text());
     }
 
-    private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter, final JFieldVar $property, final JType $Type, final ResourceBundleEntry returnJavadoc) {
-        supersedeReturns(getter, $property, $Type.erasure().name(), returnJavadoc);
+    private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter, final JFieldVar $property, final JType $type, final ResourceBundleEntry returnJavadoc) {
+        supersedeReturns(getter, $property, $type.erasure().name(), returnJavadoc);
     }
 
     private static void supersedeReturns(final Entry<? extends FieldOutline, ? extends JMethod> getter, final JFieldVar $property, final String noteParam, final ResourceBundleEntry returnJavadoc) {
