@@ -67,16 +67,28 @@ public enum OutlineAnalysis {
         return $Type.fullName();
     }
 
+    /**
+     * Returns {@code true} iff this attribute is mandatory.
+     * 
+     * @param attribute
+     *            the attribute to analyse
+     * @return {@code true} if this attribute is mandatory; {@code false} otherwise
+     * @see #isOptional(FieldOutline)
+     */
     public static final boolean isRequired(final FieldOutline attribute) {
         final var property = attribute.getPropertyInfo();
         if (property instanceof CElementPropertyInfo) {
+            // case (1/4): CElementPropertyInfo extends CPropertyInfo
             return ((CElementPropertyInfo) property).isRequired();
         } else if (property instanceof CReferencePropertyInfo) {
+            // case (2/4): CReferencePropertyInfo extends CPropertyInfo
             return ((CReferencePropertyInfo) property).isRequired();
         } else if (property instanceof CAttributePropertyInfo) {
+            // case (3/4): CAttributePropertyInfo extends CSingleTypePropertyInfo extends CPropertyInfo
             return ((CAttributePropertyInfo) property).isRequired();
         } else if (property instanceof CValuePropertyInfo) {
-            // Currently, there is no similar "#isRequired()" for "CValuePropertyInfo"
+            // case (4/4): CValuePropertyInfo extends CSingleTypePropertyInfo extends CPropertyInfo
+            // Currently, there is no similar "#isRequired()" for "CValuePropertyInfo", so this does not work:
             // return ((CValuePropertyInfo) property).isRequired();
             return false;
         } else {
@@ -84,6 +96,14 @@ public enum OutlineAnalysis {
         }
     }
 
+    /**
+     * Returns {@code true} iff this attribute is not mandatory.
+     * 
+     * @param attribute
+     *            the attribute to analyse
+     * @return {@code true} if this attribute is not mandatory; {@code false} otherwise
+     * @see #isRequired(FieldOutline)
+     */
     public static final boolean isOptional(final FieldOutline attribute) {
         return !isRequired(attribute);
     }
