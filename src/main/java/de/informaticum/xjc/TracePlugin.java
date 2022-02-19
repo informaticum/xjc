@@ -33,7 +33,7 @@ extends BasePlugin {
 
     @Override
     protected final boolean runObjectFactory(final JDefinedClass $factory) {
-        LOG.trace(CURRENT_ENTITY, "Object-Factory", fullNameOf($factory));
+        LOG.trace(CURRENT_ENTITY, "Object-Factory", $factory.fullName());
         return true;
     }
 

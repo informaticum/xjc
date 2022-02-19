@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.model.CAttributePropertyInfo;
 import com.sun.tools.xjc.model.CElementPropertyInfo;
@@ -37,16 +36,7 @@ public enum OutlineAnalysis {
      * @return the fully-qualified name of the given package
      */
     public static final String fullNameOf(final PackageOutline pakkage) {
-        return fullNameOf(pakkage._package());
-    }
-
-    /**
-     * @param $package
-     *            the requested package
-     * @return the fully-qualified name of the given package
-     */
-    public static final String fullNameOf(final JPackage $package) {
-        return $package.name();
+        return pakkage._package().name();
     }
 
     /**
@@ -55,16 +45,7 @@ public enum OutlineAnalysis {
      * @return the fully-qualified name of the given type
      */
     public static final String fullNameOf(final CustomizableOutline type) {
-        return fullNameOf(type.getImplClass());
-    }
-
-    /**
-     * @param $Type
-     *            the requested type
-     * @return the fully-qualified name of the given type
-     */
-    public static final String fullNameOf(final JType $Type) {
-        return $Type.fullName();
+        return type.getImplClass().fullName();
     }
 
     /**
