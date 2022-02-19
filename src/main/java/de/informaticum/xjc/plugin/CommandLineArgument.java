@@ -55,7 +55,7 @@ implements XjcOption {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return this.argument;
     }
 
