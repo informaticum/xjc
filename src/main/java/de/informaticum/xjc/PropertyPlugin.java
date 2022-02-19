@@ -281,7 +281,7 @@ extends AssignmentPlugin {
                     supersedeReturns(getter, $property, render($default.get()), STRAIGHT_DEFAULTED_VALUE_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $nonNull));
                 } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional(attribute)) {
-                    assertThat(isOptionalMethod($getter)).withFailMessage("This case is not considered yet ;-(").isFalse();
+                    assertThat(isOptionalMethod($getter)).withFailMessage("This case is not considered yet ;-(").isFalse(/* TODO: Handle getters that already return Optional */);
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $OptionalType, OPTIONAL_GETTER_JAVADOC, NOTE_EMPTY_CONTAINER);
                     supersedeReturns(getter, $property, $OptionalType, OPTIONAL_VALUE_JAVADOC_SUMMARY);
