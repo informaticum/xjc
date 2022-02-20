@@ -77,15 +77,7 @@ public enum CodeModelAnalysis {
     public static final boolean isPrimitiveOptionalType(final JType $type) {
         final var $model = $type.owner();
         final var $raw = $type.erasure();
-        if ($model.ref(OptionalDouble.class).equals($raw)) {
-            return true;
-        } else if ($model.ref(OptionalInt.class).equals($raw)) {
-            return true;
-        } else if ($model.ref(OptionalLong.class).equals($raw)) {
-            return true;
-        } else {
-            return false;
-        }
+        return $model.ref(OptionalDouble.class).equals($raw) || $model.ref(OptionalInt.class).equals($raw) || $model.ref(OptionalLong.class).equals($raw); 
     }
 
     /**
@@ -98,13 +90,7 @@ public enum CodeModelAnalysis {
     public static final boolean isOptionalType(final JType $type) {
         final var $model = $type.owner();
         final var $raw = $type.erasure();
-        if (isPrimitiveOptionalType($type)) {
-            return true;
-        } else if ($model.ref(Optional.class).equals($raw)) {
-            return true;
-        } else {
-            return false;
-        }
+        return isPrimitiveOptionalType($type) || $model.ref(Optional.class).equals($raw);
     }
 
     /**
