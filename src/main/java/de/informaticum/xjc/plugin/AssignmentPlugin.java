@@ -28,7 +28,6 @@ import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.util.CollectionAnalysis;
 import de.informaticum.xjc.util.ExpressionAnalysis;
 
 public abstract class AssignmentPlugin
@@ -47,8 +46,8 @@ extends BasePlugin {
      * <dd><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">the according Java default value</a> is chosen,</dd>
      * <dt>for any collection type</dt>
      * <dd>if {@link #NOTNULL_COLLECTIONS} {@linkplain CommandLineArgument#getAsBoolean() is activated}, the {@linkplain #UNMODIFIABLE_COLLECTIONS according}
-     * {@linkplain CollectionAnalysis#emptyModifiableInstanceOf(JType) modifiable} or
-     * {@linkplain CollectionAnalysis#emptyImmutableInstanceOf(JType) unmodifiable} empty instance will be chosen,</dd>
+     * {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#emptyModifiableInstanceOf(JType) modifiable} or
+     * {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#emptyImmutableInstanceOf(JType) unmodifiable} empty instance will be chosen,</dd>
      * <dt>in any other cases</dt>
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>
@@ -70,9 +69,9 @@ extends BasePlugin {
      * <dt>for any {@link Cloneable} type</dt>
      * <dd>a {@linkplain Object#clone() clone} of this instance (either shallow or deep clone, depending on the specific internal clone implementation),</dd>
      * <dt>for any collection type</dt>
-     * <dd>an {@linkplain #UNMODIFIABLE_COLLECTIONS according} {@linkplain CollectionAnalysis#copyFactoryFor(JType) modifiable} or
-     * {@linkplain CollectionAnalysis#unmodifiableViewFactoryFor(JType) unmodifiable} collection copy (not a real clone as the collection type may differ and collection elements
-     * won't be cloned),</dd>
+     * <dd>an {@linkplain #UNMODIFIABLE_COLLECTIONS according} {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#copyFactoryFor(JType) modifiable} or
+     * {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#unmodifiableViewFactoryFor(JType) unmodifiable} collection copy (not a real clone as the collection type may differ
+     * and collection elements won't be cloned),</dd>
      * <dt>in any other cases</dt>
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>

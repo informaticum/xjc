@@ -1,6 +1,6 @@
 package de.informaticum.xjc.util;
 
-import static de.informaticum.xjc.util.OptionalAnalysis.deoptionalisedTypeFor;
+import static de.informaticum.xjc.util.CodeModelAnalysis.deoptionalisedTypeFor;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;

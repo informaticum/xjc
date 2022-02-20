@@ -55,17 +55,17 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_VALU
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_GETTER_JAVADOC;
+import static de.informaticum.xjc.util.CodeModelAnalysis.deoptionalisedTypeFor;
+import static de.informaticum.xjc.util.CodeModelAnalysis.isCollectionMethod;
+import static de.informaticum.xjc.util.CodeModelAnalysis.isOptionalMethod;
+import static de.informaticum.xjc.util.CodeModelAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.render;
+import static de.informaticum.xjc.util.CodeModelAnalysis.unmodifiableViewFactoryFor;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseJavadoc;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
-import static de.informaticum.xjc.util.CollectionAnalysis.isCollectionMethod;
-import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
 import static de.informaticum.xjc.util.ExpressionAnalysis.$null;
 import static de.informaticum.xjc.util.ExpressionAnalysis.$this;
-import static de.informaticum.xjc.util.OptionalAnalysis.deoptionalisedTypeFor;
-import static de.informaticum.xjc.util.OptionalAnalysis.isOptionalMethod;
-import static de.informaticum.xjc.util.OptionalAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
@@ -96,7 +96,7 @@ import de.informaticum.xjc.plugin.AssignmentPlugin;
 import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.resources.PropertyPluginMessages;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
-import de.informaticum.xjc.util.CollectionAnalysis;
+import de.informaticum.xjc.util.CodeModelAnalysis;
 import de.informaticum.xjc.util.ExpressionAnalysis;
 import org.slf4j.Logger;
 
@@ -218,7 +218,7 @@ extends AssignmentPlugin {
             final var $optionalOf = $OptionalType.erasure().staticInvoke("of");
 
             if ($property.type().isPrimitive()) {
-                assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
+                assertThat($getter).matches(not(CodeModelAnalysis::isCollectionMethod));
                 assertThat(isOptionalMethod($getter)).isFalse();
                 assertThat($returnType.isPrimitive()).isTrue();
                 assertThat($returnType.isReference()).isFalse();
@@ -227,7 +227,7 @@ extends AssignmentPlugin {
                 supersedeReturns(getter, $property, $returnType, STRAIGHT_VALUE_JAVADOC_SUMMARY);
                 eraseBody($getter)._return($nonNull);
             } else if (attributeInfo.isCollection()) {
-                assertThat($getter).matches(CollectionAnalysis::isCollectionMethod);
+                assertThat($getter).matches(CodeModelAnalysis::isCollectionMethod);
                 assertThat(isOptionalMethod($getter)).isFalse();
                 assertThat($returnType.isPrimitive()).isFalse();
                 assertThat($returnType.isReference()).isTrue();
@@ -271,7 +271,7 @@ extends AssignmentPlugin {
                 }
             // } else if ($returnType.isArray()) { // TODO: handle array type similar to collections (defensive copies, non-modifiable, etc.)
             } else {
-                assertThat($getter).matches(not(CollectionAnalysis::isCollectionMethod));
+                assertThat($getter).matches(not(CodeModelAnalysis::isCollectionMethod));
                 assertThat(isOptionalMethod($getter)).isFalse();
                 // assertThat($returnType.isPrimitive()).isFalse(); // TODO: return type may be primitive, even if property is not
                 // assertThat($returnType.isReference()).isTrue();  // TODO: return type may be primitive, even if property is not

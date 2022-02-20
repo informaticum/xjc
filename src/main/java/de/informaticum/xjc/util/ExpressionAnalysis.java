@@ -5,10 +5,11 @@ import static com.sun.codemodel.JExpr._super;
 import static com.sun.codemodel.JExpr._this;
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JExpr.lit;
-import static de.informaticum.xjc.util.CollectionAnalysis.copyFactoryFor;
-import static de.informaticum.xjc.util.CollectionAnalysis.emptyImmutableInstanceOf;
-import static de.informaticum.xjc.util.CollectionAnalysis.emptyModifiableInstanceOf;
-import static de.informaticum.xjc.util.CollectionAnalysis.unmodifiableViewFactoryFor;
+import static de.informaticum.xjc.util.CodeModelAnalysis.copyFactoryFor;
+import static de.informaticum.xjc.util.CodeModelAnalysis.emptyImmutableInstanceOf;
+import static de.informaticum.xjc.util.CodeModelAnalysis.emptyModifiableInstanceOf;
+import static de.informaticum.xjc.util.CodeModelAnalysis.isCollectionType;
+import static de.informaticum.xjc.util.CodeModelAnalysis.unmodifiableViewFactoryFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Optional;
@@ -52,8 +53,9 @@ public enum ExpressionAnalysis {
      * <dt>for any primitive type</dt>
      * <dd><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">the according Java default value</a> is chosen,</dd>
      * <dt>for any collection type</dt>
-     * <dd>if requested (see parameter {@code initCollections}), the according {@linkplain CollectionAnalysis#emptyModifiableInstanceOf(JType) modifiable} or
-     * {@linkplain CollectionAnalysis#emptyImmutableInstanceOf(JType) unmodifiable} empty instance will be chosen (see parameter {@code unmodifiableCollections}),</dd>
+     * <dd>if requested (see parameter {@code initCollections}), the according {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#emptyModifiableInstanceOf(JType) modifiable}
+     * or {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#emptyImmutableInstanceOf(JType) unmodifiable} empty instance will be chosen (see parameter
+     * {@code unmodifiableCollections}),</dd>
      * <dt>in any other cases</dt>
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>
@@ -105,8 +107,8 @@ public enum ExpressionAnalysis {
      * <dt>for any {@link Cloneable} type</dt>
      * <dd>a clone of this instance (either shallow or deep clone, depending on the specific internal {@link Object#clone()} implementation),</dd>
      * <dt>for any collection type</dt>
-     * <dd>a {@linkplain CollectionAnalysis#copyFactoryFor(JType) modifiable} or {@linkplain CollectionAnalysis#unmodifiableViewFactoryFor(JType) unmodifiable} collection copy (see
-     * parameter {@code unmodifiableCollections})</dd>
+     * <dd>a {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#copyFactoryFor(JType) modifiable} or
+     * {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#unmodifiableViewFactoryFor(JType) unmodifiable} collection copy (see parameter {@code unmodifiableCollections})</dd>
      * <dd>note, the copy most likely won't be a real clone as the collection type may differ and collection elements won't be cloned),</dd>
      * <dt>in any other cases</dt>
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
@@ -126,7 +128,7 @@ public enum ExpressionAnalysis {
         } else if ($type.owner().ref(Cloneable.class).isAssignableFrom($type.boxify())) {
             // TODO: Get deep clone (instead of shallow copy) even if the origin type does not? (for example ArrayList#clone() only returns a shallow copy)
             return Optional.of(cast($type, $expression.invoke("clone")));
-        } else if (CollectionAnalysis.isCollectionType($type)) {
+        } else if (isCollectionType($type)) {
             // TODO: Cloning the collection's elements (a.k.a. deep clone instead of shallow copy)
             return Optional.of(unmodifiableCollections ? unmodifiableViewFactoryFor($type).arg($expression) : copyFactoryFor($type).arg($expression));
         // TODO } else if (copy-constructor?) {
