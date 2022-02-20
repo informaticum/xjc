@@ -13,10 +13,10 @@ import static de.informaticum.xjc.resources.AssignmentPluginMessages.OPTIONAL_AR
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.PRIMITVE_ARGUMENT;
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.REQUIRED_ARGUMENT;
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.UNMODIFIABLE_COLLECTIONS_DESCRIPTION;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.render;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$null;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$this;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +28,8 @@ import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.util.ExpressionAnalysis;
+import de.informaticum.xjc.util.CodeModelAnalysis;
+import de.informaticum.xjc.util.OutlineAnalysis;
 
 public abstract class AssignmentPlugin
 extends BasePlugin {
@@ -58,7 +59,7 @@ extends BasePlugin {
      * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
      */
     public static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute) {
-        return ExpressionAnalysis.defaultExpressionFor(attribute, NOTNULL_COLLECTIONS.getAsBoolean(), UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+        return OutlineAnalysis.defaultExpressionFor(attribute, NOTNULL_COLLECTIONS.getAsBoolean(), UNMODIFIABLE_COLLECTIONS.getAsBoolean());
     }
 
     /**
@@ -84,7 +85,7 @@ extends BasePlugin {
      *         otherwise
      */
     public static final Optional<JExpression> cloneExpressionFor(final JType $type, final JExpression $expression) {
-        return DEFENSIVE_COPIES.getAsBoolean() ? ExpressionAnalysis.cloneExpressionFor($type, $expression, UNMODIFIABLE_COLLECTIONS.getAsBoolean()) : Optional.empty();
+        return DEFENSIVE_COPIES.getAsBoolean() ? CodeModelAnalysis.cloneExpressionFor($type, $expression, UNMODIFIABLE_COLLECTIONS.getAsBoolean()) : Optional.empty();
     }
 
     public static final JExpression effectiveExpressionForNonNull(final JType $type, final JExpression $expression) {

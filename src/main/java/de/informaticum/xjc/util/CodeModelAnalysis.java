@@ -1,6 +1,10 @@
 package de.informaticum.xjc.util;
 
 import static com.sun.codemodel.JExpr._new;
+import static com.sun.codemodel.JExpr._null;
+import static com.sun.codemodel.JExpr._super;
+import static com.sun.codemodel.JExpr._this;
+import static com.sun.codemodel.JExpr.cast;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyNavigableSet;
@@ -28,6 +32,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JGenerable;
 import com.sun.codemodel.JInvocation;
@@ -43,6 +48,12 @@ public enum CodeModelAnalysis {
     private static final Class<?>[] DIAMOND = {};
 
     private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing constructor/factory-method has been modified ;-(";
+
+    public static final JExpression $super = _super();
+
+    public static final JExpression $this = _this();
+
+    public static final JExpression $null = _null();
 
     /**
      * Returns the erasure of all types.
@@ -288,6 +299,44 @@ public enum CodeModelAnalysis {
             throw new IllegalArgumentException("There is no unmodifiable-view-collection factory for type " + $type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
+    }
+
+    /**
+     * This method returns the clone expression for the given type and for the given actual expression if such clone expression exists. In detail, this means (in order):
+     * <dl>
+     * <dt>for any array</dt>
+     * <dd>a shallow {@linkplain Object#clone() clone} but not a deep clone (multi-dimensional arrays are not cloned in deep, neither are the arrays's elements),</dd>
+     * <dt>for any {@link Cloneable} type</dt>
+     * <dd>a clone of this instance (either shallow or deep clone, depending on the specific internal {@link Object#clone()} implementation),</dd>
+     * <dt>for any collection type</dt>
+     * <dd>a {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#copyFactoryFor(JType) modifiable} or
+     * {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#unmodifiableViewFactoryFor(JType) unmodifiable} collection copy (see parameter {@code unmodifiableCollections})</dd>
+     * <dd>note, the copy most likely won't be a real clone as the collection type may differ and collection elements won't be cloned),</dd>
+     * <dt>in any other cases</dt>
+     * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
+     * </dl>
+     *
+     * @param $type
+     *            the type to analyse
+     * @param $expression
+     *            the actual expression
+     * @return an {@link Optional} holding the clone expression for the actual expression if such clone expression exists; the {@linkplain Optional#empty() empty Optional}
+     *         otherwise
+     */
+    public static final Optional<JExpression> cloneExpressionFor(final JType $type, final JExpression $expression, final boolean unmodifiableCollections) {
+        if ($type.isArray()) {
+            // TODO: Deep copy (instead of shallow copy) for multi-dimensional arrays; Or even further, cloning the array's elements in general (a.k.a. deep clone)
+            return Optional.of(cast($type, $expression.invoke("clone")));
+        } else if ($type.owner().ref(Cloneable.class).isAssignableFrom($type.boxify())) {
+            // TODO: Get deep clone (instead of shallow copy) even if the origin type does not? (for example ArrayList#clone() only returns a shallow copy)
+            return Optional.of(cast($type, $expression.invoke("clone")));
+        } else if (isCollectionType($type)) {
+            // TODO: Cloning the collection's elements (a.k.a. deep clone instead of shallow copy)
+            return Optional.of(unmodifiableCollections ? unmodifiableViewFactoryFor($type).arg($expression) : copyFactoryFor($type).arg($expression));
+        // TODO } else if (copy-constructor?) {
+        // TODO } else if (copy-factory-method (in some util class)?) {
+        }
+        return Optional.empty();
     }
 
     /**

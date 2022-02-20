@@ -1,6 +1,9 @@
 package de.informaticum.xjc.util;
 
+import static com.sun.codemodel.JExpr.lit;
 import static de.informaticum.xjc.util.CodeModelAnalysis.deoptionalisedTypeFor;
+import static de.informaticum.xjc.util.CodeModelAnalysis.emptyImmutableInstanceOf;
+import static de.informaticum.xjc.util.CodeModelAnalysis.emptyModifiableInstanceOf;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
@@ -8,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
@@ -26,6 +30,7 @@ public enum OutlineAnalysis {
     ;
 
     private static final Logger LOG = LoggerFactory.getLogger(OutlineAnalysis.class);
+    private static final String ILLEGAL_DEFAULT_VALUE = "Lexical representation of the existing default value for [{}] is [{}]!";
 
     /**
      * @param pakkage
@@ -84,6 +89,72 @@ public enum OutlineAnalysis {
      */
     public static final boolean isOptional(final FieldOutline attribute) {
         return !isRequired(attribute);
+    }
+
+    /* Do not (!) assign the following values. Instead, let Java do the initialisation. */
+    /* In result, each field's value will be defaulted as specified by the JLS.         */
+    /* --> https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html     */
+    private static boolean DEFAULT_BOOLEAN; /* no assignment, defaulted by Java instead */
+    private static byte    DEFAULT_BYTE   ; /* no assignment, defaulted by Java instead */
+    private static char    DEFAULT_CHAR   ; /* no assignment, defaulted by Java instead */
+    private static double  DEFAULT_DOUBLE ; /* no assignment, defaulted by Java instead */
+    private static float   DEFAULT_FLOAT  ; /* no assignment, defaulted by Java instead */
+    private static int     DEFAULT_INT    ; /* no assignment, defaulted by Java instead */
+    private static long    DEFAULT_LONG   ; /* no assignment, defaulted by Java instead */
+    private static short   DEFAULT_SHORT  ; /* no assignment, defaulted by Java instead */
+
+    /**
+     * Returns the the default value for the given field if such value exists. In detail, this means (in order):
+     * <dl>
+     * <dt>for any XSD attribute with a given lexical value</dt>
+     * <dd>{@linkplain com.sun.tools.xjc.model.CDefaultValue#compute(com.sun.tools.xjc.outline.Outline) the according Java expression} is chosen if it can be computed,</dd>
+     * <dt>for any primitive type</dt>
+     * <dd><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">the according Java default value</a> is chosen,</dd>
+     * <dt>for any collection type</dt>
+     * <dd>if requested (see parameter {@code initCollections}), the according {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#emptyModifiableInstanceOf(JType) modifiable}
+     * or {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#emptyImmutableInstanceOf(JType) unmodifiable} empty instance will be chosen (see parameter
+     * {@code unmodifiableCollections}),</dd>
+     * <dt>in any other cases</dt>
+     * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
+     * </dl>
+     *
+     * @param attribute
+     *            the field to analyse
+     * @param initCollections
+     *            either to initialise collections or not
+     * @param unmodifiableCollections
+     *            if collections are initialised this specifies either to return an unmodifiable or a modifiable collection
+     * @return an {@link Optional} holding the default value for the given field if such value exists; the {@linkplain Optional#empty() empty Optional} otherwise
+     * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
+     */
+    public static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute, final boolean initCollections, final boolean unmodifiableCollections) {
+        final var outline = attribute.parent().parent();
+        final var $model = outline.getCodeModel();
+        final var property = attribute.getPropertyInfo();
+        if (property.defaultValue != null) {
+            assertThat(property.isCollection()).isFalse();
+            final var $default = property.defaultValue.compute(outline);
+            if ($default != null) { return Optional.of($default); }
+            else { LOG.error(ILLEGAL_DEFAULT_VALUE, property.getName(false), null); }
+        }
+        final var $raw = attribute.getRawType();
+        // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugewiesen wird, ohne
+        //       dass ein Default-Wert existiert. Das darf nicht passieren. Ein "Boolean" ist initial "null".
+        // TODO: Consider property.isUnboxable()? What to do in that case?
+        // TODO: Consider property.isOptionalPrimitive()? What to do in that case?
+        if      ($raw.equals($model.BOOLEAN)) { return Optional.of(lit(DEFAULT_BOOLEAN)); }
+        else if ($raw.equals($model.BYTE   )) { return Optional.of(lit(DEFAULT_BYTE   )); }
+        else if ($raw.equals($model.CHAR   )) { return Optional.of(lit(DEFAULT_CHAR   )); }
+        else if ($raw.equals($model.DOUBLE )) { return Optional.of(lit(DEFAULT_DOUBLE )); }
+        else if ($raw.equals($model.FLOAT  )) { return Optional.of(lit(DEFAULT_FLOAT  )); }
+        else if ($raw.equals($model.INT    )) { return Optional.of(lit(DEFAULT_INT    )); }
+        else if ($raw.equals($model.LONG   )) { return Optional.of(lit(DEFAULT_LONG   )); }
+        else if ($raw.equals($model.SHORT  )) { return Optional.of(lit(DEFAULT_SHORT  )); }
+        else if (property.isCollection() && initCollections) {
+            return Optional.of(unmodifiableCollections ? emptyImmutableInstanceOf(attribute.getRawType()) : emptyModifiableInstanceOf(attribute.getRawType()));
+        } else {
+            return Optional.empty();
+        }
     }
 
     /**

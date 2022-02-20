@@ -13,11 +13,11 @@ import static de.informaticum.xjc.resources.BoilerplatePluginMessages.GENERATE_T
 import static de.informaticum.xjc.resources.BoilerplatePluginMessages.HASHCODE_IMPLNOTE;
 import static de.informaticum.xjc.resources.BoilerplatePluginMessages.OPTION_DESCRIPTION;
 import static de.informaticum.xjc.resources.BoilerplatePluginMessages.TOSTRING_IMPLNOTE;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$super;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocInheritdoc;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$null;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$super;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$this;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;

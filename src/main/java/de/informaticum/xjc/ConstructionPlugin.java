@@ -32,11 +32,11 @@ import static de.informaticum.xjc.resources.ConstructionPluginMessages.INVALID_A
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.OPTION_DESCRIPTION;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.PROTECTED_CONSTRUCTOR_JAVADOC;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.VALUES_CONSTRUCTOR_DESCRIPTION;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$super;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.getMethod;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$null;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$super;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$this;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;

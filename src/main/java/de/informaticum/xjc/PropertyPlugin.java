@@ -55,6 +55,8 @@ import static de.informaticum.xjc.resources.PropertyPluginMessages.STRAIGHT_VALU
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY;
 import static de.informaticum.xjc.resources.PropertyPluginMessages.UNMODIFIABLE_GETTER_JAVADOC;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.deoptionalisedTypeFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.isCollectionMethod;
 import static de.informaticum.xjc.util.CodeModelAnalysis.isOptionalMethod;
@@ -64,8 +66,6 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.unmodifiableViewFactory
 import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
 import static de.informaticum.xjc.util.CodeRetrofit.eraseJavadoc;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$null;
-import static de.informaticum.xjc.util.ExpressionAnalysis.$this;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.generatedGettersOf;
@@ -97,7 +97,7 @@ import de.informaticum.xjc.plugin.CommandLineArgument;
 import de.informaticum.xjc.resources.PropertyPluginMessages;
 import de.informaticum.xjc.resources.ResourceBundleEntry;
 import de.informaticum.xjc.util.CodeModelAnalysis;
-import de.informaticum.xjc.util.ExpressionAnalysis;
+import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
 
 public final class PropertyPlugin
@@ -331,7 +331,7 @@ extends AssignmentPlugin {
         final var $Class = clazz.implClass;
         final var attribute = getter.getKey();
         final var $getter = getter.getValue();
-        final var $defaultFallback = ExpressionAnalysis.defaultExpressionFor(attribute, true, UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+        final var $defaultFallback = OutlineAnalysis.defaultExpressionFor(attribute, true, UNMODIFIABLE_COLLECTIONS.getAsBoolean());
         if ($defaultFallback.isPresent()) {
             final var $getOrDefault = $Class.method($delegation.mods().getValue(), $delegation.type(), isCollectionMethod($delegation) ? $getter.name() + "OrEmpty" : $delegation.name());
             $getOrDefault.body()._return($this.invoke($delegation).arg($defaultFallback.get()));
