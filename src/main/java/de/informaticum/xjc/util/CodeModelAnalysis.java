@@ -16,6 +16,18 @@ public enum CodeModelAnalysis {
     ;
 
     /**
+     * Returns the erasure of all types.
+     * 
+     * @param $types
+     *            the given types
+     * @return the erasure of all types
+     * @see JType#erasure()
+     */
+    public static JType[] erasure(final JType... $types) {
+        return stream($types).map(JType::erasure).toArray(JType[]::new);
+    }
+
+    /**
      * Looks for a constructor that has the specified method signature and returns it.
      *
      * @param $Class
@@ -23,15 +35,14 @@ public enum CodeModelAnalysis {
      * @param $argumentTypes
      *            the list of the constructor's argument types
      * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
+     * @see JDefinedClass#getConstructor(JType[])
      */
     public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JType... $argumentTypes) {
-        final var $constructor = $Class.getConstructor($argumentTypes);
-        if ($constructor != null) {
-            return Optional.of($constructor);
-        } else {
-            final var $rawTypes = stream($argumentTypes).map(JType::erasure).toArray(JType[]::new);
-            return Optional.ofNullable($Class.getConstructor($rawTypes));
+        var $constructor = $Class.getConstructor($argumentTypes);
+        if ($constructor == null) {
+            $constructor = $Class.getConstructor(erasure($argumentTypes));
         }
+        return Optional.ofNullable($constructor);
     }
 
     /**
@@ -44,15 +55,14 @@ public enum CodeModelAnalysis {
      * @param $argumentTypes
      *            the list of the method's argument types
      * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
+     * @see JDefinedClass#getMethod(String, JType[])
      */
     public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JType... $argumentTypes) {
-        final var $method = $Class.getMethod(name, $argumentTypes);
-        if ($method != null) {
-            return Optional.of($method);
-        } else {
-            final var $rawTypes = stream($argumentTypes).map(JType::erasure).toArray(JType[]::new);
-            return Optional.ofNullable($Class.getMethod(name, $rawTypes));
+        var $method = $Class.getMethod(name, $argumentTypes);
+        if ($method == null) {
+            $method = $Class.getMethod(name, erasure($argumentTypes));
         }
+        return Optional.ofNullable($method);
     }
 
     /**
