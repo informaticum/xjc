@@ -33,6 +33,8 @@ public enum OutlineAnalysis {
     private static final String ILLEGAL_DEFAULT_VALUE = "Lexical representation of the existing default value for [{}] is [{}]!";
 
     /**
+     * Returns the fully-qualified name of the given {@linkplain PackageOutline package}.
+     * 
      * @param pakkage
      *            the requested package
      * @return the fully-qualified name of the given package
@@ -42,6 +44,8 @@ public enum OutlineAnalysis {
     }
 
     /**
+     * Returns the fully-qualified name of the given {@linkplain CustomizableOutline type}.
+     * 
      * @param type
      *            the requested type
      * @return the fully-qualified name of the given type
@@ -51,11 +55,11 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Returns {@code true} iff this attribute is mandatory.
+     * Returns {@code true} iff this attribute is required (a.k.a. mandatory).
      * 
      * @param attribute
      *            the attribute to analyse
-     * @return {@code true} if this attribute is mandatory; {@code false} otherwise
+     * @return {@code true} if this attribute is required; {@code false} otherwise
      * @see #isOptional(FieldOutline)
      */
     public static final boolean isRequired(final FieldOutline attribute) {
@@ -71,7 +75,7 @@ public enum OutlineAnalysis {
             return ((CAttributePropertyInfo) property).isRequired();
         } else if (property instanceof CValuePropertyInfo) {
             // case (4/4): CValuePropertyInfo extends CSingleTypePropertyInfo extends CPropertyInfo
-            // Currently, there is no similar "#isRequired()" for "CValuePropertyInfo", so this does not work:
+            // There is no "#isRequired()" for "CValuePropertyInfo", so this does not work:
             // return ((CValuePropertyInfo) property).isRequired();
             return false;
         } else {
@@ -80,11 +84,11 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Returns {@code true} iff this attribute is not mandatory.
+     * Returns {@code true} iff this attribute is optional (a.k.a. not required/not mandatory).
      * 
      * @param attribute
      *            the attribute to analyse
-     * @return {@code true} if this attribute is not mandatory; {@code false} otherwise
+     * @return {@code true} if this attribute is optional; {@code false} otherwise
      * @see #isRequired(FieldOutline)
      */
     public static final boolean isOptional(final FieldOutline attribute) {

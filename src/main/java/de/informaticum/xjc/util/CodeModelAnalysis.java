@@ -68,6 +68,8 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Checks whether or not a given {@linkplain JType type} represents any of {@link OptionalDouble}, {@link OptionalInt}, or {@link OptionalLong}.
+     * 
      * @param $type
      *            the type to analyse
      * @return {@code true} iff the give type is assignable to {@link OptionalDouble}, {@link OptionalInt}, or {@link OptionalLong}
@@ -87,6 +89,8 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Checks whether or not a given {@linkplain JType type} represents any of {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional}.
+     * 
      * @param $type
      *            the type to analyse
      * @return {@code true} iff the give type is assignable to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional}
@@ -104,10 +108,12 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Identifies the according {@code OptionalX} container class for the given {@linkplain JType type}.
+     * 
      * @param $type
      *            the type to analyse
      * @return the according optional type (i.e., {@link JClass} of either {@link OptionalDouble} for {@code double}/{@link Double} type, {@link OptionalInt} for
-     *         {@code int}/{@link Integer} type, {@link OptionalLong} for {@code long}/{@link Long} type, or {@link Optional} in any other case)
+     *         {@code int}/{@link Integer} type, {@link OptionalLong} for {@code long}/{@link Long} type, or {@link Optional Optional<T>} in any other case)
      */
     public static final JClass optionalTypeFor(final JType $type) {
         final var $model = $type.owner();
@@ -132,11 +138,15 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Identifies the according {@linkplain JType value type} represented by the given {@code OptionalX} container class. If there is such value type, an {@link Optional} of that
+     * value type is returned. If the given {@linkplain JClass class} neither represents {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, nor {@link Optional
+     * Optional<T>} an {@linkplain Optional#empty() empty Optional} is returned.
+     * 
      * @param $Class
-     *            the class to deoptionalise
+     *            the {@code OptionalX} container class to deoptionalise
      * @return the deoptionalised type of the given class (i.e., {@link com.sun.codemodel.JCodeModel#DOUBLE double}/{@link com.sun.codemodel.JCodeModel#INT
-     *         int}/{@link com.sun.codemodel.JCodeModel#LONG long} for {@link OptionalDouble}/{@link OptionalInt}/{@link OptionalLong}, or {@code T} for bound {@code Optional<T>},
-     *         or {@code Object} for wildcard {@code Optional}/unbound {@code Optional})
+     *         int}/{@link com.sun.codemodel.JCodeModel#LONG long} for {@link OptionalDouble}/{@link OptionalInt}/{@link OptionalLong}, or {@code T} for bound {@link Optional
+     *         Optional<T>}, or {@code Object} for wildcard {@code Optional}/unbound {@code Optional})
      */
     public static final Optional<JType> deoptionalisedTypeFor(final JClass $Class) {
         final var $model = $Class.owner();
@@ -161,6 +171,8 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Checks whether or not a given {@linkplain JType type} represents a {@link Collection} type.
+     * 
      * @param $type
      *            the type to analyse
      * @return {@code true} iff the give type is assignable to {@link Collection}
@@ -378,15 +390,19 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Checks whether or not the return type of a given {@linkplain JMethod method} is an {@linkplain #isOptionalType(JType) optional type}.
+     * 
      * @param $method
      *            the method to analyse
-     * @return {@code true} iff the give method's return type is assignable to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional}
+     * @return {@code true} iff the give method's return type is assignable to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional Optional<T>}
      */
     public static final boolean isOptionalMethod(final JMethod $method) {
         return isOptionalType($method.type());
     }
 
     /**
+     * Checks whether or not the return type of a given {@linkplain JMethod method} is an {@linkplain #isCollectionType(JType) collection type}.
+     * 
      * @param $method
      *            the method to analyse
      * @return {@code true} iff the give method's return type is assignable to {@link Collection}
