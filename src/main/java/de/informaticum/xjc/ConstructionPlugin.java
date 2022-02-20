@@ -205,12 +205,11 @@ extends AssignmentPlugin {
         }
         $constructor.body()._if($blueprint.eq($null))._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required argument 'blueprint' must not be null!")));
         javadocAppendSection($constructor.javadoc().addThrows(IllegalArgumentException.class), ILLEGAL_VALUE);
-        final var fields = generatedPropertiesOf(clazz).entrySet();
+        final var $fields = generatedPropertiesOf(clazz).values();
         $constructor.javadoc().add(ASSIGN_ALL_FIELDS.text());
-        if (!fields.isEmpty()) {
+        if (!$fields.isEmpty()) {
             $constructor.body().directStatement("// below fields are assigned with their according blueprint value");
-            for (final var property : fields) {
-                final var $property = property.getValue();
+            for (final var $property : $fields) {
                 $constructor.body().assign($this.ref($property), cond($blueprint.ref($property).eq($null), $null, effectiveExpressionForNonNull($property.type(), $blueprint.ref($property))));
             }
         }
@@ -285,8 +284,7 @@ extends AssignmentPlugin {
             $body = $clone.body();
         }
         final var $instance = $body.decl(FINAL, $Class, "cloneInstance", cast($Class, $super.invoke(clone)));
-        for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            final var $property = property.getValue();
+        for (final var $property : generatedPropertiesOf(clazz).values()) {
             $body.assign($instance.ref($property), cond($this.ref($property).eq($null), $null, effectiveExpressionForNonNull($property.type(), $this.ref($property))));
         }
         $body._return($instance);

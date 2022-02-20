@@ -104,11 +104,11 @@ extends BasePlugin {
         if (clazz.getSuperClass() != null) {
             $comparisons.add($super.invoke(equals).arg($other));
         }
-        final var properties = generatedPropertiesOf(clazz);
-        if (!properties.isEmpty()) {
+        final var $properties = generatedPropertiesOf(clazz).values();
+        if (!$properties.isEmpty()) {
             final var $Objects = this.reference(Objects.class);
             final var $that = $equals.body().decl(FINAL, $Class, "that", cast($Class, $other));
-            for (final var $property : properties.values()) {
+            for (final var $property : $properties) {
                 $comparisons.add($Objects.staticInvoke(equals).arg($this.ref($property)).arg($that.ref($property)));
             }
         }
