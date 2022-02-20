@@ -9,7 +9,8 @@ import org.junit.Test;
 public class CodeRetrofitTest {
 
     @Test
-    public void testDeclaredBodyField() throws Exception {
+    public void testDeclaredBodyField()
+    throws Exception {
         assertThat(JMethod.class).withFailMessage("This assertion checks if the JMethod class still has a field with name %s. " +
                                                   "If this fails, the implementation of CodeRetrofit must be adopted.", BODY_FIELD)
                                  .hasDeclaredFields(BODY_FIELD);

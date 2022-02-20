@@ -326,7 +326,7 @@ public enum OutlineAnalysis {
      *            the filter to apply
      * @return a map of all values that satisfy the filter predicate
      */
-    public static final <K, T extends Map<? extends K, ?>> T filter(final T all, final Predicate<? super K> filter)  {
+    public static final <K, T extends Map<? extends K, ?>> T filter(final T all, final Predicate<? super K> filter) {
         // TODO: Is there anything we can reuse instead of providing this custom filter function?
         all.entrySet().removeIf(e -> filter.negate().test(e.getKey()));
         return all;

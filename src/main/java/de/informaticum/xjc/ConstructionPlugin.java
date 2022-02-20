@@ -83,9 +83,9 @@ extends AssignmentPlugin {
     private static final CommandLineArgument HIDE_DEFAULT_CONSTRUCTOR     = new CommandLineArgument("construction-hide-default-constructor", HIDDEN_CONSTRUCTOR_DESCRIPTION.text());
     private static final CommandLineArgument GENERATE_CLONE               = new CommandLineArgument("construction-clone",                    GENERATE_CLONE_DESCRIPTION.format(CLONE_SIGNATURE));
 
-    private static final CommandLineArgument GENERATE_BUILDER            = new CommandLineArgument("construction-builder",                  "Generate builder. Default: false");
-    private static final CommandLineArgument HIDE_DEFAULT_FACTORIES      = new CommandLineArgument("construction-hide-default-factories",   "Hides default factory methods of object factories. Default: false");
-    private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES    = new CommandLineArgument("construction-remove-default-factories", "Removes default factory methods of object factories. Default: false");
+    private static final CommandLineArgument GENERATE_BUILDER             = new CommandLineArgument("construction-builder",                  "Generate builder. Default: false");
+    private static final CommandLineArgument HIDE_DEFAULT_FACTORIES       = new CommandLineArgument("construction-hide-default-factories",   "Hides default factory methods of object factories. Default: false");
+    private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES     = new CommandLineArgument("construction-remove-default-factories", "Removes default factory methods of object factories. Default: false");
 
     private static final String GENERATE_CONSTRUCTOR = "Generate {} constructor for [{}].";
     private static final String SKIP_CONSTRUCTOR = "Skip creation of {} constructor for [{}] because {}.";
@@ -236,9 +236,9 @@ extends AssignmentPlugin {
         final var $constructor = $constructorLookup.get();
         javadocAppendSection($constructor, PROTECTED_CONSTRUCTOR_JAVADOC);
         javadocAppendSection($constructor, ALTERNATIVES_BEGIN);
-        if (GENERATE_VALUES_CONSTRUCTOR.or(GENERATE_BASIC_CONSTRUCTOR).getAsBoolean()) { $constructor.javadoc().append(ALTERNATIVES_CONSTRUCTOR.text()); }
-        if (GENERATE_BUILDER.getAsBoolean()                                          ) { $constructor.javadoc().append(ALTERNATIVES_BUILDER.format("Builder"));     }
-        if (!HIDE_DEFAULT_FACTORIES.or(REMOVE_DEFAULT_FACTORIES).getAsBoolean()      ) { $constructor.javadoc().append(ALTERNATIVES_FACTORY.text());     }
+        if (GENERATE_VALUES_CONSTRUCTOR.or(GENERATE_BASIC_CONSTRUCTOR).getAsBoolean()) { $constructor.javadoc().append(ALTERNATIVES_CONSTRUCTOR.text());        }
+        if (GENERATE_BUILDER.getAsBoolean()                                          ) { $constructor.javadoc().append(ALTERNATIVES_BUILDER.format("Builder")); }
+        if (!HIDE_DEFAULT_FACTORIES.or(REMOVE_DEFAULT_FACTORIES).getAsBoolean()      ) { $constructor.javadoc().append(ALTERNATIVES_FACTORY.text());            }
         $constructor.javadoc().append(ALTERNATIVES_END.text());
         $constructor.mods().setProtected();
     }

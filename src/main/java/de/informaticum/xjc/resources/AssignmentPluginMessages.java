@@ -20,6 +20,7 @@ implements ResourceBundleEntry {
     DEFAULTED_OPTIONAL_ARGUMENT,
     DEFAULTED_REQUIRED_ARGUMENT,
     ILLEGAL_VALUE,
+
     ;
 
     private static final ResourceBundle RB = getBundle(AssignmentPlugin.class.getName() + "Messages");

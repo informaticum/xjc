@@ -128,9 +128,9 @@ extends AssignmentPlugin {
     private static final CommandLineArgument FINAL_SETTERS      = new CommandLineArgument("properties-final-setters",      FINAL_SETTERS_DESCRIPTION.text());
     // TODO: What about unsetter?
 
-    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE = (x,y) -> x==y ? NOTE_LIVE_REFERENCE : NOTE_DEFENSIVE_COPY_COLLECTION;
-    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> HINT_REFERENCE = (x,y) -> x==y ? HINT_LIVE_REFERENCE : HINT_DEFENSIVE_COPY_COLLECTION;
-    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE_CONTAINER = (x,y) -> x==y ? NOTE_LIVE_REFERENCE_CONTAINER : NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER;
+    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE = (x,y) -> (x == y) ? NOTE_LIVE_REFERENCE : NOTE_DEFENSIVE_COPY_COLLECTION;
+    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> HINT_REFERENCE = (x,y) -> (x == y) ? HINT_LIVE_REFERENCE : HINT_DEFENSIVE_COPY_COLLECTION;
+    private static final BiFunction<JExpression, JExpression, PropertyPluginMessages> NOTE_REFERENCE_CONTAINER = (x,y) -> (x == y) ? NOTE_LIVE_REFERENCE_CONTAINER : NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER;
 
     @Override
     public final Entry<String, String> getOptionEntry() {
@@ -231,14 +231,14 @@ extends AssignmentPlugin {
                 assertThat(isOptionalMethod($getter)).isFalse();
                 assertThat($returnType.isPrimitive()).isFalse();
                 assertThat($returnType.isReference()).isTrue();
-                // TODO: if $copy is deep copy, the collection view should wrap $copy 
+                // TODO: if $copy is deep copy, the collection view should wrap $copy
                 final var $view = unmodifiableViewFactoryFor($returnType).arg($prop);
                 if ($default.isPresent() && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $returnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION);
                     supersedeReturns(getter, $property, $returnType, UNMODIFIABLE_COLLECTION_OR_EMPTY_JAVADOC_SUMMARY);
                     eraseBody($getter)._return(cond($prop.eq($null), $default.get(), $view));
-                } else if ($default.isPresent() ) {
+                } else if ($default.isPresent()) {
                     assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $getter.name());
                     supersedeJavadoc(getter, $property, $returnType, STRAIGHT_GETTER_JAVADOC, NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE.apply($prop, $nonNull), HINT_REFERENCE.apply($prop, $nonNull));
@@ -364,7 +364,7 @@ extends AssignmentPlugin {
             final var modifiers = PUBLIC | (FINAL_SETTERS.getAsBoolean() ? FINAL : NONE);
             final var $setter = $Class.method(modifiers, this.codeModel().VOID, setterName);
             // 3/3: Implement
-            // TODO: Javadoc about defensive copy 
+            // TODO: Javadoc about defensive copy
             javadocAppendSection($setter.javadoc(), COLLECTION_SETTERS_JAVADOC, $property.name());
             final var $value = $setter.param(FINAL, $property.type(), $property.name());
             accordingAssignment(collectionProperty, $setter, $value);
