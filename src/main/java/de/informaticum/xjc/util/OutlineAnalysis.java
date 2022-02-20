@@ -155,7 +155,7 @@ public enum OutlineAnalysis {
         else if ($raw.equals($model.LONG   )) { return Optional.of(lit(DEFAULT_LONG   )); }
         else if ($raw.equals($model.SHORT  )) { return Optional.of(lit(DEFAULT_SHORT  )); }
         else if (property.isCollection() && initCollections) {
-            return Optional.of(unmodifiableCollections ? emptyImmutableInstanceOf(attribute.getRawType()) : emptyModifiableInstanceOf(attribute.getRawType()));
+            return Optional.of(unmodifiableCollections ? emptyImmutableInstanceOf($raw) : emptyModifiableInstanceOf($raw));
         } else {
             return Optional.empty();
         }
