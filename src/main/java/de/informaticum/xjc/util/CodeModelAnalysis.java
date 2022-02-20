@@ -99,7 +99,7 @@ public enum CodeModelAnalysis {
      * @param $type
      *            the type to analyse
      * @return the according optional type (i.e., {@link JClass} of either {@link OptionalDouble} for {@code double}/{@link Double} type, {@link OptionalInt} for
-     *         {@code int}/{@link Integer} type, {@link OptionalLong} for {@code long}/{@link Long} type, or {@link Optional Optional<T>} in any other case)
+     *         {@code int}/{@link Integer} type, {@link OptionalLong} for {@code long}/{@link Long} type, or {@link Optional Optional&lt;T&gt;} in any other case)
      */
     public static final JClass optionalTypeFor(final JType $type) {
         final var $model = $type.owner();
@@ -126,13 +126,13 @@ public enum CodeModelAnalysis {
     /**
      * Identifies the according {@linkplain JType value type} represented by the given {@code OptionalX} container class. If there is such value type, an {@link Optional} of that
      * value type is returned. If the given {@linkplain JClass class} neither represents {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, nor {@link Optional
-     * Optional<T>} an {@linkplain Optional#empty() empty Optional} is returned.
+     * Optional&lt;T&gt;} an {@linkplain Optional#empty() empty Optional} is returned.
      * 
      * @param $Class
      *            the {@code OptionalX} container class to deoptionalise
      * @return the deoptionalised type of the given class (i.e., {@link com.sun.codemodel.JCodeModel#DOUBLE double}/{@link com.sun.codemodel.JCodeModel#INT
      *         int}/{@link com.sun.codemodel.JCodeModel#LONG long} for {@link OptionalDouble}/{@link OptionalInt}/{@link OptionalLong}, or {@code T} for bound {@link Optional
-     *         Optional<T>}, or {@code Object} for wildcard {@code Optional}/unbound {@code Optional})
+     *         Optional&lt;T&gt;}, or {@code Object} for wildcard {@code Optional}/unbound {@code Optional})
      */
     public static final Optional<JType> deoptionalisedTypeFor(final JClass $Class) {
         final var $model = $Class.owner();
@@ -380,7 +380,7 @@ public enum CodeModelAnalysis {
      * 
      * @param $method
      *            the method to analyse
-     * @return {@code true} iff the give method's return type is assignable to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional Optional<T>}
+     * @return {@code true} iff the give method's return type is assignable to {@link OptionalDouble}, {@link OptionalInt}, {@link OptionalLong}, or {@link Optional Optional&lt;T&gt;}
      */
     public static final boolean isOptionalMethod(final JMethod $method) {
         return isOptionalType($method.type());
