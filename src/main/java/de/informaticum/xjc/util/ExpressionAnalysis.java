@@ -1,5 +1,8 @@
 package de.informaticum.xjc.util;
 
+import static com.sun.codemodel.JExpr._null;
+import static com.sun.codemodel.JExpr._super;
+import static com.sun.codemodel.JExpr._this;
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JExpr.lit;
 import static de.informaticum.xjc.util.CollectionAnalysis.copyFactoryFor;
@@ -22,6 +25,12 @@ public enum ExpressionAnalysis {
 
     private static final Logger LOG = getLogger(ExpressionAnalysis.class);
     private static final String ILLEGAL_DEFAULT_VALUE = "Lexical representation of the existing default value for [{}] is [{}]!";
+
+    public static final JExpression $super = _super();
+
+    public static final JExpression $this = _this();
+
+    public static final JExpression $null = _null();
 
     /* Do not (!) assign the following values. Instead, let Java do the initialisation. */
     /* In result, each field's value will be defaulted as specified by the JLS.         */

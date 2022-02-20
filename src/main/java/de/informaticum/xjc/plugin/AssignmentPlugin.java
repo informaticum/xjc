@@ -3,8 +3,6 @@ package de.informaticum.xjc.plugin;
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JOp.cond;
-import static de.informaticum.xjc.plugin.TargetSugar.$null;
-import static de.informaticum.xjc.plugin.TargetSugar.$this;
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.DEFAULTED_OPTIONAL_ARGUMENT;
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.DEFAULTED_REQUIRED_ARGUMENT;
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
@@ -17,6 +15,8 @@ import static de.informaticum.xjc.resources.AssignmentPluginMessages.REQUIRED_AR
 import static de.informaticum.xjc.resources.AssignmentPluginMessages.UNMODIFIABLE_COLLECTIONS_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeModelAnalysis.render;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
+import static de.informaticum.xjc.util.ExpressionAnalysis.$null;
+import static de.informaticum.xjc.util.ExpressionAnalysis.$this;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
 import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static org.assertj.core.api.Assertions.assertThat;
