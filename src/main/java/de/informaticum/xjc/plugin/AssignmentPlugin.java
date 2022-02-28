@@ -201,7 +201,15 @@ extends BasePlugin {
         }
     }
 
-    private static final void accordingAssignmentJavadoc(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter) {
+    /**
+     * Appends the according Javadoc messages.
+     *
+     * @param property
+     *            the property to consider
+     * @param $setter
+     *            the method to append the Javadoc
+     */
+    protected static final void accordingAssignmentJavadoc(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter) {
         // TODO: Javadoc information about either defensive copy or live reference (with according side effects!)
         final var attribute = property.getKey();
         final var $property = property.getValue();

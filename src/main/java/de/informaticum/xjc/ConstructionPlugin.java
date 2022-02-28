@@ -53,6 +53,11 @@ import static de.informaticum.xjc.resources.ConstructionPluginMessages.TOBUILDER
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.TOBUILDER_METHOD_JAVADOC;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.TOBUILDER_METHOD_RETURN;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.VALUES_CONSTRUCTOR_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.WITHER_ABSTRACT_IMPLNOTE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.WITHER_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.WITHER_IMPLNOTE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.WITHER_JAVADOC;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.WITHER_RETURN;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$super;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
@@ -112,6 +117,10 @@ extends AssignmentPlugin {
     private static final String MODIFY_FACTORY = "Set {} of factory method [{}#{}(...)] onto [{}].";
     private static final String REMOVE_FACTORY = "Remove factory method [{}#{}(...)].";
 
+    private static final String MISSING_TOBUILDER_FACTORY = "Some of the code generated for the embedded Builder (i.e., the '#toBuilder()' method) is missing!";
+    private static final String MISSING_BUILDER_WITH_METHOD = "Some of the code generated for the embedded Builder (i.e., the 'Builder#withXyz(T)' method) is missing!";
+    private static final String MISSING_BUILDER_BUILD_METHOD = "Some of the code generated for the embedded Builder (i.e., the 'Builder#build()' method) is missing!";
+
     private static final String clone = "clone";
     private static final String CLONE_SIGNATURE = format("#%s()", clone);
     private static final String builder = "builder";
@@ -129,6 +138,7 @@ extends AssignmentPlugin {
     private static final CommandLineArgument PROTECTED_DEFAULT_CONSTRUCTOR = new CommandLineArgument("construction-hide-default-constructor", PROTECTED_DEFAULT_CONSTRUCTOR_DESCRIPTION.format(GENERATE_DEFAULT_CONSTRUCTOR));
     private static final CommandLineArgument GENERATE_CLONE                = new CommandLineArgument("construction-clone",                    CLONE_DESCRIPTION.format(CLONE_SIGNATURE));
     private static final CommandLineArgument GENERATE_BUILDER              = new CommandLineArgument("construction-builder",                  BUILDER_DESCRIPTION.format(GENERATE_VALUES_CONSTRUCTOR));
+    private static final CommandLineArgument GENERATE_WITHER               = new CommandLineArgument("construction-wither-methods",           WITHER_DESCRIPTION.format(BUILDER_DESCRIPTION));
     private static final CommandLineArgument HIDE_DEFAULT_FACTORIES        = new CommandLineArgument("construction-hide-default-factories",   HIDDEN_FACTORIES_DESCRIPTION.text());
     private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES      = new CommandLineArgument("construction-remove-default-factories", REMOVE_FACTORIES_DESCRIPTION.format(HIDE_DEFAULT_FACTORIES));
 
@@ -143,13 +153,15 @@ extends AssignmentPlugin {
                                 GENERATE_VALUES_CONSTRUCTOR, GENERATE_BASIC_CONSTRUCTOR,     // value constructor options
                                 GENERATE_COPY_CONSTRUCTOR,                                   // copy constructor options
                                 GENERATE_CLONE,                                              // clone options
-                                GENERATE_BUILDER,                                            // builder options
+                                GENERATE_BUILDER, GENERATE_WITHER,                           // builder options
                                 HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);           // factory options
         return concat(super.getPluginArguments().stream(), args.stream()).collect(toList());
     }
 
     @Override
     public final boolean prepareRun() {
+        // Wither methods require embedded Builder.
+        GENERATE_WITHER.activates(GENERATE_BUILDER);
         // Builders refer to the according all-value constructor, so {@link #GENERATE_VALUES_CONSTRUCTOR} must be
         // activated.
         GENERATE_BUILDER.activates(GENERATE_VALUES_CONSTRUCTOR);
@@ -175,6 +187,7 @@ extends AssignmentPlugin {
         PROTECTED_DEFAULT_CONSTRUCTOR.doOnActivation(this::hideDefaultConstructor, clazz);
         GENERATE_CLONE.doOnActivation(this::generateClone, clazz);
         GENERATE_BUILDER.doOnActivation(this::generateBuilder, clazz);
+        GENERATE_WITHER.doOnActivation(this::generateWithers, clazz);
         HIDE_DEFAULT_FACTORIES.doOnActivation(this::hideDefaultFactory, clazz);
         REMOVE_DEFAULT_FACTORIES.doOnActivation(this::removeDefaultFactory, clazz);
         return true;
@@ -446,8 +459,35 @@ extends AssignmentPlugin {
             $wither.body().invoke($super, $wither).arg($parameter);
             $wither.body()._return($this);
         }
-        // TODO: Generate immediate "withXYZ(xyz)"-Methoden: { return this.toBuilder().with(xyz).build(); }
         return $Builder;
+    }
+
+    private final void generateWithers(final ClassOutline clazz) {
+        final var $ImplClass = clazz.implClass;
+        final var modifiers = $ImplClass.mods().getValue() & ~STATIC; // exclude "static" modifier (happens for nested types)
+        final var $Builder = this.generateBuilder(clazz); // will immediately return because Builder already exists
+        final var $toBuilder = getMethod($ImplClass, toBuilder).orElseThrow(() -> new IllegalStateException(MISSING_TOBUILDER_FACTORY));
+        final var inheritedProperties = superAndGeneratedPropertiesOf(clazz.getSuperClass());
+        for (final var property : superAndGeneratedPropertiesOf(clazz).entrySet()) {
+            final var attribute = property.getKey();
+            final var $property = property.getValue();
+            final var $wither = $ImplClass.method(modifiers, $ImplClass, guessWitherName(attribute));
+            if (inheritedProperties.containsKey(attribute)) {
+                $wither.annotate(Override.class);
+            }
+            javadocSection($wither).append(WITHER_JAVADOC.format($property.name()));
+            javadocSection($wither.javadoc().addReturn()).append(WITHER_RETURN.format($property.name()));
+            final var $parameter = $wither.param(FINAL, $property.type(), $property.name());
+            accordingAssignmentJavadoc(property, $wither);
+            if ($wither.mods().isAbstract()) {
+                javadocSection($wither).append(WITHER_ABSTRACT_IMPLNOTE.text());
+            } else {
+                final var $builderWither = getMethod($Builder, guessWitherName(attribute), $property.type()).orElseThrow(() -> new IllegalStateException(MISSING_BUILDER_WITH_METHOD));
+                final var $builderBuild = getMethod($Builder, build).orElseThrow(() -> new IllegalStateException(MISSING_BUILDER_BUILD_METHOD));
+                javadocSection($wither).append(WITHER_IMPLNOTE.format(String.format("this.%s().%s(%s).%s()", $toBuilder.name(), $builderWither.name(), $parameter.name(), $builderBuild.name())));
+                $wither.body()._return($this.invoke($toBuilder).invoke($builderWither).arg($parameter).invoke($builderBuild));
+            }
+        }
     }
 
     private final void hideDefaultFactory(final ClassOutline clazz) {
