@@ -170,7 +170,7 @@ extends BasePlugin {
             // TODO: Handle primitive $property with non-primitive $expression (that may be 'null')
             $setter.body().assign($this.ref($property), $expression);
         } else if ($default.isPresent()) {
-            if ($expression.equals($null)) {
+            if (render($expression).equals(render($null))) {
                 // in this case "this.$property = ($expression == null) ? $default : $nonNull;" is effectively similar to: "this.$property = default;"
                 $setter.body().assign($this.ref($property), $default.get());
             } else {
@@ -188,10 +188,10 @@ extends BasePlugin {
             assertThat($default).isNotPresent();
             assertThat(isOptional(attribute)).isTrue();
             // This is the target expression: "this.$property = ($expression == $null) ? $null : $nonNull;" ...
-            if ($expression.equals($null)) {
+            if (render($expression).equals(render($null))) {
                 // ... but in this case, the target expression is effectively similar to: "this.$property = $null;"
                 $setter.body().assign($this.ref($property), $null);
-            } else if ($nonNull == $expression) {
+            } else if (render($expression).equals(render($nonNull))) {
                 // ... but in this case, the target expression is effectively similar to: "this.$property = $nonNull;"
                 $setter.body().assign($this.ref($property), $nonNull);
             } else {
