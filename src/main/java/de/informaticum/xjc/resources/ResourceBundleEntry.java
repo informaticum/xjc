@@ -10,7 +10,7 @@ public abstract interface ResourceBundleEntry {
     public abstract ResourceBundle bundle();
 
     public default String format(final Object... arguments) {
-        final var pattern = this.bundle().getString(this.name()).replaceAll(" +", " ").strip();
+        final var pattern = this.bundle().getString(this.name()).replaceAll(" +", " ");
         return MessageFormat.format(pattern, arguments);
     }
 

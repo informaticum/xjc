@@ -37,6 +37,8 @@ import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JGenerable;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
+import com.sun.codemodel.JMods;
 import com.sun.codemodel.JType;
 
 /**
@@ -54,6 +56,10 @@ public enum CodeModelAnalysis {
     public static final JExpression $this = _this();
 
     public static final JExpression $null = _null();
+
+    public static boolean isFinal(final JMods mods) {
+        return (mods.getValue() & JMod.FINAL) != 0;
+    }
 
     /**
      * Returns the erasure of all types.
@@ -300,7 +306,8 @@ public enum CodeModelAnalysis {
     }
 
     /**
-     * This method returns the clone expression for the given type and for the given actual expression if such clone expression exists. In detail, this means (in order):
+     * This method returns the clone expression for the given type and for the given actual {@linkplain JExpression expression} if such clone expression exists. In detail, this
+     * means (in order):
      * <dl>
      * <dt>for any array</dt>
      * <dd>a shallow {@linkplain Object#clone() clone} but not a deep clone (multi-dimensional arrays are not cloned in deep, neither are the arrays's elements),</dd>
@@ -313,6 +320,8 @@ public enum CodeModelAnalysis {
      * <dt>in any other cases</dt>
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>
+     *
+     * Note: The generated expression most likely cannot deal a {@code null} argument accordingly.
      *
      * @param $type
      *            the type to analyse

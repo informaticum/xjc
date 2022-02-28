@@ -7,7 +7,13 @@ import de.informaticum.xjc.TracePlugin;
 public enum TracePluginMessages
 implements ResourceBundleEntry {
 
+    /* A. Description of the XJC Plugin */
     OPTION_DESCRIPTION,
+
+    /* B. Description of the XJC Plugin's Options */
+
+    /* C.1. Main Javadoc Contents */
+    /* C.2. Javadoc Supply (@param, @throws, etc.) */
 
     ;
 

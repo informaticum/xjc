@@ -108,7 +108,7 @@ public enum OutlineAnalysis {
     private static short   DEFAULT_SHORT  ; /* no assignment, defaulted by Java instead */
 
     /**
-     * Returns the the default value for the given field if such value exists. In detail, this means (in order):
+     * Returns the default value for the given field if such value exists. In detail, this means (in order):
      * <dl>
      * <dt>for any XSD attribute with a given lexical value</dt>
      * <dd>{@linkplain com.sun.tools.xjc.model.CDefaultValue#compute(com.sun.tools.xjc.outline.Outline) the according Java expression} is chosen if it can be computed,</dd>

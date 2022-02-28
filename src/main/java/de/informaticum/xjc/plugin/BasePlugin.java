@@ -48,6 +48,13 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         // TODO: consider model manipulation ... (e.g., CPropertyInfo#setName(boolean, String)
     }
 
+    /**
+     * @see #prepareRun()
+     * @see #runPackage(PackageOutline)
+     * @see #runObjectFactory(JDefinedClass)
+     * @see #runClass(ClassOutline)
+     * @see #runEnum(EnumOutline)
+     */
     @Override
     public final boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {

@@ -7,13 +7,18 @@ import de.informaticum.xjc.plugin.AssignmentPlugin;
 public enum AssignmentPluginMessages
 implements ResourceBundleEntry {
 
+    /* A. Description of the XJC Plugin */
+
+    /* B. Description of the XJC Plugin's Options */
     NOTNULL_COLLECTIONS_DESCRIPTION,
     UNMODIFIABLE_COLLECTIONS_DESCRIPTION,
     DEFENSIVE_COPIES_DESCRIPTION,
 
-    NOTES_BEGIN,
+    /* C.1. Main Javadoc Contents */
+    INITIALISATION_BEGIN,
     FIELD_INITIALISATION,
-    NOTES_END,
+    INITIALISATION_END,
+    /* C.2. Javadoc Supply (@param, @throws, etc.) */
     PRIMITVE_ARGUMENT,
     OPTIONAL_ARGUMENT,
     REQUIRED_ARGUMENT,

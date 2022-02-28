@@ -1,9 +1,9 @@
 package de.informaticum.xjc;
 
 import static de.informaticum.xjc.resources.ReusePluginMessages.OPTION_DESCRIPTION;
-import static de.informaticum.xjc.resources.ReusePluginMessages.PUBLIC_QNAMES_JAVADOC;
+import static de.informaticum.xjc.resources.ReusePluginMessages.PUBLIC_QNAMES_IMPLNOTE;
 import static de.informaticum.xjc.resources.ReusePluginMessages.REUSE_QNAMES_DESCRIPTION;
-import static de.informaticum.xjc.util.CodeRetrofit.javadocAppendSection;
+import static de.informaticum.xjc.util.CodeRetrofit.javadocSection;
 import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -46,7 +46,7 @@ extends BasePlugin {
                 .filter($field -> $QName.isAssignableFrom($field.type().boxify()))
                 .forEach($qNameField -> {
                     LOG.info(PUBLIC_QNAME, $Factory.fullName(), $qNameField.name());
-                    javadocAppendSection($qNameField, PUBLIC_QNAMES_JAVADOC);
+                    javadocSection($qNameField).append(PUBLIC_QNAMES_IMPLNOTE.text());
                     $qNameField.mods().setPublic();
                 });
     }

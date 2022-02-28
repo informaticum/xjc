@@ -3,18 +3,46 @@ package de.informaticum.xjc.util;
 import static java.lang.String.format;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCommentPart;
+import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JMethod;
-import de.informaticum.xjc.resources.ResourceBundleEntry;
 
 public enum CodeRetrofit {
     ;
 
-    static final String BODY_FIELD = "body";
+    /*pkg*/ static final String BODY_FIELD = "body";
+
+    private static final String JAVADOC_HARD_BREAK = format("%n%n");
+    private static final String JAVADOC_SOFT_BREAK = format("%n");
 
     public static final <JCP extends JCommentPart> JCP eraseJavadoc(final JCP $javadoc) {
+        // TODO: even replace with custom JDocComment to support @implNote?
         $javadoc.clear();
         return $javadoc;
+    }
+
+    public static final JDocComment javadocSection(final JDocCommentable $target) {
+        return javadocSection($target.javadoc());
+    }
+
+    public static final JCommentPart javadocSection(final JCommentPart $javadoc) {
+        return ($javadoc.isEmpty()) ? $javadoc : $javadoc.append(JAVADOC_HARD_BREAK);
+    }
+
+    public static final JDocComment javadocSection(final JDocComment $javadoc) {
+        return ($javadoc.isEmpty()) ? $javadoc : $javadoc.append(JAVADOC_HARD_BREAK);
+    }
+
+    public static final JDocComment javadocBreak(final JDocCommentable $target) {
+        return javadocBreak($target.javadoc());
+    }
+
+    public static final JCommentPart javadocBreak(final JCommentPart $javadoc) {
+        return ($javadoc.isEmpty()) ? $javadoc : $javadoc.append(JAVADOC_SOFT_BREAK);
+    }
+
+    public static final JDocComment javadocBreak(final JDocComment $javadoc) {
+        return ($javadoc.isEmpty()) ? $javadoc : $javadoc.append(JAVADOC_SOFT_BREAK);
     }
 
     public static final JBlock eraseBody(final JMethod $method) {
@@ -26,25 +54,6 @@ public enum CodeRetrofit {
         } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
             throw new RuntimeException(seriousProblem);
         }
-    }
-
-    public static final void javadocDelimiter(final JCommentPart $javadoc) {
-        if (!$javadoc.isEmpty()) {
-            $javadoc.add(format("%n%n<p>"));
-        }
-    }
-
-    public static final void javadocInheritdoc(final JCommentPart $javadoc) {
-        $javadoc.add($javadoc.isEmpty() ? "{@inheritDoc}" : format("%n%n{@inheritDoc}"));
-    }
-
-    public static final void javadocAppendSection(final JDocCommentable $target, final ResourceBundleEntry key, final Object... arguments) {
-        javadocAppendSection($target.javadoc(), key, arguments);
-    }
-
-    public static final void javadocAppendSection(final JCommentPart $javadoc, final ResourceBundleEntry key, final Object... arguments) {
-        javadocDelimiter($javadoc);
-        $javadoc.add(key.format(arguments));
     }
 
 }
