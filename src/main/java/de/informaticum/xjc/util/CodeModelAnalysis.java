@@ -424,20 +424,68 @@ public enum CodeModelAnalysis {
         return isCollectionType($method.type());
     }
 
+    /**
+     * Reflectively inspects all exception classes currently thrown by the given {@linkplain JMethod method/constructor}.
+     * 
+     * @param $method
+     *            the method/constructor to analyse
+     * @return set of all exception types thrown by the given method/constructor
+     */
     public static final Set<JClass> allThrows(final JMethod $method) {
         try {
             final var internalBodyField = JMethod.class.getDeclaredField("_throws");
             internalBodyField.setAccessible(true);
             final var $throws = (Set<JClass>) internalBodyField.get($method);
-            return $throws == null ? emptySet() : $throws;
+            return $throws == null ? emptySet() : unmodifiableSet($throws);
         } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
             throw new RuntimeException(seriousProblem);
         }
     }
 
+    /**
+     * Reflectively identifies if a given {@linkplain JMethod method/constructor} throws a specific exception type.
+     * 
+     * @param $method
+     *            the method/constructor to analyse
+     * @return {@code true} iff the method/constructor throws a specific exception type
+     * @see #allThrows(JMethod)
+     */
     public static final boolean doesThrow(final JMethod $method, final JClass exception) {
         return allThrows($method).contains(exception);
     }
+
+    /**
+     * Adds {@linkplain #allThrows(JMethod) all thrown exception types} of the origin method/constructor into the calling method/constructor.
+     * 
+     * @param $origin
+     *            the origin method/constructor
+     * @param $caller
+     *            the calling method/constructor
+     * @see #relayThrows(JMethod, JMethod, String)
+     */
+    public static final void relayThrows(final JMethod $origin, final JMethod $caller) {
+        relayThrows($origin, $caller, null);
+    }
+
+    /**
+     * Adds {@linkplain #allThrows(JMethod) all thrown exception types} of the origin method/constructor into the calling method/constructor.
+     * 
+     * @param $origin
+     *            the origin method/constructor
+     * @param $caller
+     *            the calling method/constructor
+     * @param reason
+     *            the Javadoc message to append for each relayed exception type (may be {@code null} to skip Javadoc appending)
+     */
+    public static final void relayThrows(final JMethod $origin, final JMethod $caller, final String reason) {
+        for (final var $throwable : allThrows($origin)) {
+            $caller._throws($throwable);
+            if (reason != null) {
+                $caller.javadoc().addThrows($throwable).append(reason);
+            }
+        }
+    }
+
     /**
      * @param $component
      *            the requested code component
