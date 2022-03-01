@@ -18,6 +18,7 @@ import static de.informaticum.xjc.resources.AssignmentPluginMessages.UNMODIFIABL
 import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.cloneExpressionFor;
+import static de.informaticum.xjc.util.CodeModelAnalysis.doesThrow;
 import static de.informaticum.xjc.util.CodeModelAnalysis.render;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocBreak;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocSection;
@@ -181,6 +182,7 @@ extends BasePlugin {
             assertThat($default).isNotPresent();
             assertThat($expression).isNotEqualTo($null);
             $setter._throws(IllegalArgumentException.class);
+            assertThat(doesThrow($setter, $model.ref(IllegalArgumentException.class))).isTrue();
             final var $condition = $setter.body()._if($expression.eq($null));
             $condition._then()._throw(_new($model.ref(IllegalArgumentException.class)).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
             $condition._else().assign($this.ref($property), $nonNull);
