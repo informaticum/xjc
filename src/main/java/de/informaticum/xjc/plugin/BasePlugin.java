@@ -49,15 +49,13 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     }
 
     /**
-     * @see #prepareRun()
-     * @see #runPackage(PackageOutline)
-     * @see #runObjectFactory(JDefinedClass)
-     * @see #runClass(ClassOutline)
-     * @see #runEnum(EnumOutline)
+     * @see #sayHi() 1. say hi
+     * @see #run() 2. execute the specific add-on's implementation
      */
     @Override
     public final boolean run(final Outline outline, final Options options, final ErrorHandler errorHandler)
     throws SAXException {
+        // TODO: do something with the options (e.g., change the #sayHi() behaviour)
         try {
             this.currentOutline = outline;
             this.currentOptions = options;
@@ -99,7 +97,14 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         sink.accept(       "#################################################################################");
     }
 
-    private final boolean run()
+    /**
+     * @see #prepareRun() 1. prepares the run
+     * @see #runPackage(PackageOutline) 2.a. runs each package
+     * @see #runObjectFactory(JDefinedClass) 2.b. runs each object factory
+     * @see #runClass(ClassOutline) 3. runs each class
+     * @see #runEnum(EnumOutline) 4. runs each enum class
+     */
+    protected boolean run()
     throws SAXException, Exception {
         var result = this.prepareRun();
         for (final var pakkage : this.currentOutline.getAllPackageContexts()) {
