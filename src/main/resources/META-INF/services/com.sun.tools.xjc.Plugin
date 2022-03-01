@@ -1,5 +1,5 @@
-de.informaticum.xjc.BoilerplatePlugin
-de.informaticum.xjc.ConstructionPlugin
-de.informaticum.xjc.PropertyPlugin
-de.informaticum.xjc.ReusePlugin
-de.informaticum.xjc.TracePlugin
+de.informaticum.xjc.plugins.BoilerplatePlugin
+de.informaticum.xjc.plugins.ConstructionPlugin
+de.informaticum.xjc.plugins.PropertyPlugin
+de.informaticum.xjc.plugins.ReusePlugin
+de.informaticum.xjc.plugins.TracePlugin

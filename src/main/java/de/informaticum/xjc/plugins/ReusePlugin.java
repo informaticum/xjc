@@ -1,8 +1,8 @@
-package de.informaticum.xjc;
+package de.informaticum.xjc.plugins;
 
-import static de.informaticum.xjc.resources.ReusePluginMessages.OPTION_DESCRIPTION;
-import static de.informaticum.xjc.resources.ReusePluginMessages.PUBLIC_QNAMES_IMPLNOTE;
-import static de.informaticum.xjc.resources.ReusePluginMessages.REUSE_QNAMES_DESCRIPTION;
+import static de.informaticum.xjc.plugins.ReusePluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.plugins.ReusePluginMessages.PUBLIC_QNAMES_IMPLNOTE;
+import static de.informaticum.xjc.plugins.ReusePluginMessages.REUSE_QNAMES_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocSection;
 import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;

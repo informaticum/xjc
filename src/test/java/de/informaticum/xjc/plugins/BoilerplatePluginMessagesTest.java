@@ -1,4 +1,4 @@
-package de.informaticum.xjc.resources;
+package de.informaticum.xjc.plugins;
 
 import static java.util.Arrays.asList;
 import org.junit.runner.RunWith;

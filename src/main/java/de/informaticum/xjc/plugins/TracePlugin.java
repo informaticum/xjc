@@ -1,6 +1,6 @@
-package de.informaticum.xjc;
+package de.informaticum.xjc.plugins;
 
-import static de.informaticum.xjc.resources.TracePluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.plugins.TracePluginMessages.OPTION_DESCRIPTION;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;

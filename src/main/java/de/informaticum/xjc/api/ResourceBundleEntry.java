@@ -1,4 +1,4 @@
-package de.informaticum.xjc.resources;
+package de.informaticum.xjc.api;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;

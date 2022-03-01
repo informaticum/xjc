@@ -1,11 +1,9 @@
-package de.informaticum.xjc;
+package de.informaticum.xjc.api;
 
 import static java.util.Arrays.asList;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
 import java.util.Map.Entry;
-import de.informaticum.xjc.api.BasePlugin;
-import de.informaticum.xjc.api.CommandLineArgument;
 
 public final class FooPlugin
 extends BasePlugin {

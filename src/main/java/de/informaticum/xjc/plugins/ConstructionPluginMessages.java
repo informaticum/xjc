@@ -1,8 +1,8 @@
-package de.informaticum.xjc.resources;
+package de.informaticum.xjc.plugins;
 
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
-import de.informaticum.xjc.ConstructionPlugin;
+import de.informaticum.xjc.api.ResourceBundleEntry;
 
 public enum ConstructionPluginMessages
 implements ResourceBundleEntry {

@@ -1,4 +1,4 @@
-package de.informaticum.xjc.resources;
+package de.informaticum.xjc.plugins;
 
 import static java.util.Arrays.asList;
 import org.junit.runner.RunWith;
@@ -7,19 +7,19 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class AssignmentPluginMessagesTest
-extends ResourceBundleKeyTest<AssignmentPluginMessages> {
+public class PropertyPluginMessagesTest
+extends ResourceBundleKeyTest<PropertyPluginMessages> {
 
     @Parameters(name = "{0}")
-    public static Iterable<AssignmentPluginMessages> keys() {
-        return asList(AssignmentPluginMessages.values());
+    public static Iterable<PropertyPluginMessages> keys() {
+        return asList(PropertyPluginMessages.values());
     }
 
     @Parameter(0)
-    public AssignmentPluginMessages key;
+    public PropertyPluginMessages key;
 
     @Override
-    protected AssignmentPluginMessages getSUT() {
+    protected PropertyPluginMessages getSUT() {
         return this.key;
     }
 

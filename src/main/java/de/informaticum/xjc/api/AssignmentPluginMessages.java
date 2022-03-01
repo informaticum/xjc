@@ -1,8 +1,7 @@
-package de.informaticum.xjc.resources;
+package de.informaticum.xjc.api;
 
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
-import de.informaticum.xjc.api.AssignmentPlugin;
 
 public enum AssignmentPluginMessages
 implements ResourceBundleEntry {

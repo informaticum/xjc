@@ -1,4 +1,4 @@
-package de.informaticum.xjc;
+package de.informaticum.xjc.plugins;
 
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.cast;
@@ -6,13 +6,13 @@ import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JOp.not;
-import static de.informaticum.xjc.resources.BoilerplatePluginMessages.EQUALS_IMPLNOTE;
-import static de.informaticum.xjc.resources.BoilerplatePluginMessages.GENERATE_EQUALS_DESCRIPTION;
-import static de.informaticum.xjc.resources.BoilerplatePluginMessages.GENERATE_HASHCODE_DESCRIPTION;
-import static de.informaticum.xjc.resources.BoilerplatePluginMessages.GENERATE_TOSTRING_DESCRIPTION;
-import static de.informaticum.xjc.resources.BoilerplatePluginMessages.HASHCODE_IMPLNOTE;
-import static de.informaticum.xjc.resources.BoilerplatePluginMessages.OPTION_DESCRIPTION;
-import static de.informaticum.xjc.resources.BoilerplatePluginMessages.TOSTRING_IMPLNOTE;
+import static de.informaticum.xjc.plugins.BoilerplatePluginMessages.EQUALS_IMPLNOTE;
+import static de.informaticum.xjc.plugins.BoilerplatePluginMessages.GENERATE_EQUALS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.BoilerplatePluginMessages.GENERATE_HASHCODE_DESCRIPTION;
+import static de.informaticum.xjc.plugins.BoilerplatePluginMessages.GENERATE_TOSTRING_DESCRIPTION;
+import static de.informaticum.xjc.plugins.BoilerplatePluginMessages.HASHCODE_IMPLNOTE;
+import static de.informaticum.xjc.plugins.BoilerplatePluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.plugins.BoilerplatePluginMessages.TOSTRING_IMPLNOTE;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$super;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
