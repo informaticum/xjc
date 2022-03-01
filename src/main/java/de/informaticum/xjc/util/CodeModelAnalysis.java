@@ -176,6 +176,24 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Identifies/supposes the type parameter for the given class. If there is no type parameter, {@link Object} is supposed. If there is exactly one type parameter, that parameter
+     * is returned. If there are more than one type parameter, the first parameter is returned.
+     * 
+     * @param $Class
+     *            the class to analyse
+     * @return the identified/supposed type parameter
+     */
+    public static final JClass typeParameterOf(final JClass $Class) {
+        final var $model = $Class.owner();
+        final var $Narrowed = $Class.getTypeParameters();
+        if ($Narrowed.isEmpty()) {
+            return $model.ref(Object.class);
+        } else {
+            return $Narrowed.get(0);
+        }
+    }
+
+    /**
      * @param $type
      *            the collection type to analyse
      * @return the according invocation code to create an unmodifiable empty instance of the given type
@@ -406,6 +424,20 @@ public enum CodeModelAnalysis {
         return isCollectionType($method.type());
     }
 
+    public static final Set<JClass> allThrows(final JMethod $method) {
+        try {
+            final var internalBodyField = JMethod.class.getDeclaredField("_throws");
+            internalBodyField.setAccessible(true);
+            final var $throws = (Set<JClass>) internalBodyField.get($method);
+            return $throws == null ? emptySet() : $throws;
+        } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
+            throw new RuntimeException(seriousProblem);
+        }
+    }
+
+    public static final boolean doesThrow(final JMethod $method, final JClass exception) {
+        return allThrows($method).contains(exception);
+    }
     /**
      * @param $component
      *            the requested code component
