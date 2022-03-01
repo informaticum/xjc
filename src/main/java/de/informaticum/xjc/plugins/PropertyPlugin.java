@@ -431,7 +431,7 @@ extends AssignmentPlugin {
     }
 
     private final void refactorGetter(final ClassOutline clazz) {
-        assertThat(STRAIGHT_GETTERS.getAsBoolean()).isTrue();
+        assertThat(STRAIGHT_GETTERS.isActivated()).isTrue();
         final var properties = generatedPropertiesOf(clazz);
         for (final var getter : generatedGettersOf(clazz).entrySet()) {
             assertThat(properties).containsKey(getter.getKey());
@@ -450,25 +450,25 @@ extends AssignmentPlugin {
                 assertThat(isOptionalMethod($.$getter)).isFalse();
                 assertThat($.$returnType.isPrimitive()).isFalse();
                 assertThat($.$returnType.isReference()).isTrue();
-                if ($.$default.isPresent() && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
+                if ($.$default.isPresent() && UNMODIFIABLE_COLLECTIONS.isActivated()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.DEFAULTED_UNMODIFIABLE_COLLECTION_PROPERTY.supersedeGetter($);
                 } else if ($.$default.isPresent()) {
-                    assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
+                    assertThat(UNMODIFIABLE_COLLECTIONS.isActivated()).isFalse();
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.DEFAULTED_MODIFIABLE_COLLECTION_PROPERTY.supersedeGetter($);
-                } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional($.attribute) && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
+                } else if (OPTIONAL_GETTERS.isActivated() && isOptional($.attribute) && UNMODIFIABLE_COLLECTIONS.isActivated()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.OPTIONAL_UNMODIFIABLE_COLLECTION_PROPERTY.supersedeGetter($);
-                } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional($.attribute)) {
-                    assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
+                } else if (OPTIONAL_GETTERS.isActivated() && isOptional($.attribute)) {
+                    assertThat(UNMODIFIABLE_COLLECTIONS.isActivated()).isFalse();
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.OPTIONAL_MODIFIABLE_COLLECTION_PROPERTY.supersedeGetter($);
-                } else if (UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
+                } else if (UNMODIFIABLE_COLLECTIONS.isActivated()) {
                     LOG.debug(REFACTOR_AS_UNMODIFIABLE, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.UNMODIFIABLE_COLLECTION_PROPERTY.supersedeGetter($);
                 } else {
-                    assertThat(UNMODIFIABLE_COLLECTIONS.getAsBoolean()).isFalse();
+                    assertThat(UNMODIFIABLE_COLLECTIONS.isActivated()).isFalse();
                     LOG.debug(REFACTOR_JUST_STRAIGHT, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.MODIFIABLE_COLLECTION_PROPERTY.supersedeGetter($);
                 }
@@ -481,7 +481,7 @@ extends AssignmentPlugin {
                 if ($.$default.isPresent()) {
                     LOG.debug(REFACTOR_AS_DEFAULTED, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.DEFAULTED_PROPERTY.supersedeGetter($);
-                } else if (OPTIONAL_GETTERS.getAsBoolean() && isOptional($.attribute)) {
+                } else if (OPTIONAL_GETTERS.isActivated() && isOptional($.attribute)) {
                     assertThat(isOptionalMethod($.$getter)).withFailMessage("This case is not considered yet ;-(").isFalse(/* TODO: Handle getters that already return Optional */);
                     LOG.debug(REFACTOR_AS_OPTIONAL, fullNameOf(clazz), $.$getter.name());
                     GetterRefactoring.OPTIONAL_PROPERTY.supersedeGetter($);
@@ -530,7 +530,7 @@ extends AssignmentPlugin {
         final var $getOrDefault = $Class.method(methodMods, methodType, methodName);
         final var $defaultValue = $getOrDefault.param(FINAL, argType, "defaultValue");
         javadocSection($getOrDefault.javadoc().addParam($defaultValue)).append(ORDEFAULT_PARAM.format($property.name()));
-        if (attributeInfo.isCollection() && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
+        if (attributeInfo.isCollection() && UNMODIFIABLE_COLLECTIONS.isActivated()) {
             javadocSection($getOrDefault).append(UNMODIFIABLE_ORDEFAULT_JAVADOC.format($property.name(), $defaultValue.name()));
             javadocSection($getOrDefault.javadoc().addReturn()).append(UNMODIFIABLE_ORDEFAULT_RETURN.format($property.name(), $defaultValue.name()));
         } else {
@@ -557,10 +557,10 @@ extends AssignmentPlugin {
         }
         // 1/2: Create
         LOG.info(GENERATE_ORDEFAULT, fullNameOf(clazz), methodName, "", $property.name());
-        final var $defaultFallback = OutlineAnalysis.defaultExpressionFor(attribute, true, UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+        final var $defaultFallback = OutlineAnalysis.defaultExpressionFor(attribute, true, UNMODIFIABLE_COLLECTIONS.isActivated());
         if ($defaultFallback.isPresent()) {
             final var $getOrDefault = $Class.method(methodMods, methodType, methodName);
-            if (attributeInfo.isCollection() && UNMODIFIABLE_COLLECTIONS.getAsBoolean()) {
+            if (attributeInfo.isCollection() && UNMODIFIABLE_COLLECTIONS.isActivated()) {
                 javadocSection($getOrDefault).append(UNMODIFIABLE_ORBUILTIN_JAVADOC.format($property.name(), render($defaultFallback.get())));
                 javadocSection($getOrDefault).append(ORDEFAULT_IMPLNOTE.format());
                 javadocSection($getOrDefault.javadoc().addReturn()).append(UNMODIFIABLE_ORBUILTIN_RETURN.format($property.name(), render($defaultFallback.get())));

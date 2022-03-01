@@ -74,7 +74,7 @@ extends BasePlugin {
      * @see #UNMODIFIABLE_COLLECTIONS
      */
     protected static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute) {
-        return OutlineAnalysis.defaultExpressionFor(attribute, NOTNULL_COLLECTIONS.getAsBoolean(), UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+        return OutlineAnalysis.defaultExpressionFor(attribute, NOTNULL_COLLECTIONS.isActivated(), UNMODIFIABLE_COLLECTIONS.isActivated());
     }
 
     /**
@@ -92,7 +92,7 @@ extends BasePlugin {
      * @see de.informaticum.xjc.util.CodeModelAnalysis#cloneExpressionFor(JType, JExpression, boolean)
      */
     protected static final JExpression effectiveExpressionForNonNull(final JType $type, final JExpression $expression) {
-        return DEFENSIVE_COPIES.getAsBoolean() ? cloneExpressionFor($type, $expression, UNMODIFIABLE_COLLECTIONS.getAsBoolean()).orElse($expression) : $expression;
+        return DEFENSIVE_COPIES.isActivated() ? cloneExpressionFor($type, $expression, UNMODIFIABLE_COLLECTIONS.isActivated()).orElse($expression) : $expression;
     }
 
     /**

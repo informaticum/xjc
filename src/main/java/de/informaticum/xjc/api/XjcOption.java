@@ -3,14 +3,14 @@ package de.informaticum.xjc.api;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.function.BiConsumer;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
 
-public abstract interface XjcOption
-extends BooleanSupplier {
+public abstract interface XjcOption {
+
+    public abstract boolean isActivated();
 
     public abstract String getArgument();
 
@@ -19,8 +19,8 @@ extends BooleanSupplier {
             @Override public final String getArgument() {
                 return XjcOption.this.getArgument() + "||" + other.getArgument();
             }
-            @Override public final boolean getAsBoolean() {
-                return XjcOption.this.getAsBoolean() || other.getAsBoolean();
+            @Override public final boolean isActivated() {
+                return XjcOption.this.isActivated() || other.isActivated();
             }
         };
     }
@@ -30,14 +30,14 @@ extends BooleanSupplier {
             @Override public final String getArgument() {
                 return XjcOption.this.getArgument() + "&&" + other.getArgument();
             }
-            @Override public final boolean getAsBoolean() {
-                return XjcOption.this.getAsBoolean() && other.getAsBoolean();
+            @Override public final boolean isActivated() {
+                return XjcOption.this.isActivated() && other.isActivated();
             }
         };
     }
 
     public default void doOnActivation(final Runnable execution) {
-        if (this.getAsBoolean()) {
+        if (this.isActivated()) {
             execution.run();
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}], because it has not been activated.", this.getArgument());
@@ -45,7 +45,7 @@ extends BooleanSupplier {
     }
 
     private <T> void doOnActivation(final Consumer<? super T> execution, final T arg, final String name) {
-        if (this.getAsBoolean()) {
+        if (this.isActivated()) {
             execution.accept(arg);
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);
@@ -65,7 +65,7 @@ extends BooleanSupplier {
     }
 
     private <T, U> void doOnActivation(final BiConsumer<? super T, ? super U> execution, final T arg1, final U arg2, final String name) {
-        if (this.getAsBoolean()) {
+        if (this.isActivated()) {
             execution.accept(arg1, arg2);
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);

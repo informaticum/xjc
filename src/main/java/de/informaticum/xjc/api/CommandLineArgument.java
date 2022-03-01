@@ -30,7 +30,7 @@ implements XjcOption {
     }
 
     @Override
-    public final boolean getAsBoolean() {
+    public final boolean isActivated() {
         return this.activated;
     }
 

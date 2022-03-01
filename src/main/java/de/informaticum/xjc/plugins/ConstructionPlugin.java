@@ -310,14 +310,14 @@ extends AssignmentPlugin {
         final var $ImplClass = clazz.implClass;
         final var $constructorLookup = getConstructor(clazz);
         final var anyOtherConstructorExists = stream(spliteratorUnknownSize($ImplClass.constructors(), 0), false).anyMatch(c -> c.params().size() > 0);
-        final var builderExists = GENERATE_BUILDER.getAsBoolean();
+        final var builderExists = GENERATE_BUILDER.isActivated();
         if ($constructorLookup.isEmpty()) {
             LOG.warn(SKIP_HIDING_OF_MISSING, "default", fullNameOf(clazz));
             return;
-        } else if (GENERATE_VALUES_CONSTRUCTOR.getAsBoolean() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
+        } else if (GENERATE_VALUES_CONSTRUCTOR.isActivated() && superAndGeneratedPropertiesOf(clazz).isEmpty()) {
             LOG.warn(SKIP_HIDING_OF_SIMILAR, "default", fullNameOf(clazz), "all-values");
             return;
-        } else if (GENERATE_BASIC_CONSTRUCTOR.getAsBoolean() && filter(superAndGeneratedPropertiesOf(clazz), OutlineAnalysis::isRequired).isEmpty()) {
+        } else if (GENERATE_BASIC_CONSTRUCTOR.isActivated() && filter(superAndGeneratedPropertiesOf(clazz), OutlineAnalysis::isRequired).isEmpty()) {
             LOG.warn(SKIP_HIDING_OF_SIMILAR, "default", fullNameOf(clazz), "required-values");
             return;
         } else if (!anyOtherConstructorExists && !builderExists) {
@@ -383,7 +383,7 @@ extends AssignmentPlugin {
         }
         final var $replica = $body.decl(FINAL, $Class, "replica", cast($Class, $super.invoke(clone)));
         for (final var $property : generatedPropertiesOf(clazz).values()) {
-            final var $cloneExpression = cloneExpressionFor($property.type(), $this.ref($property), UNMODIFIABLE_COLLECTIONS.getAsBoolean());
+            final var $cloneExpression = cloneExpressionFor($property.type(), $this.ref($property), UNMODIFIABLE_COLLECTIONS.isActivated());
             $body.assign($replica.ref($property), cond($this.ref($property).eq($null), $null, $cloneExpression.orElse($this.ref($property))));
         }
         $body._return($replica);
@@ -489,7 +489,7 @@ extends AssignmentPlugin {
             accordingAssignment(property, $wither, $parameter, NO_DEFAULT_VALUE, cloneExpressionFor(property.getValue().type(), $parameter, NO_IMMUTABLE_VIEW).orElse($parameter));
             accordingAssignmentJavadoc(property, $wither);
             $wither.body()._return($this);
-            if (GENERATE_ADDITIONAL_WITHER.getAsBoolean() && attribute.getPropertyInfo().isCollection()) {
+            if (GENERATE_ADDITIONAL_WITHER.isActivated() && attribute.getPropertyInfo().isCollection()) {
                 // (E.1) Generate Builder's "adder"-method for declared Collection<T> property [XyzClass.Builder#addAbc(T)]
                 final var $adder = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessAdderName(attribute));
                 javadocSection($adder).append(BUILDER_ADDER_JAVADOC.format($property.name()));
@@ -517,7 +517,7 @@ extends AssignmentPlugin {
             final var $parameter = $wither.param(FINAL, $property.type(), $property.name());
             $wither.body().invoke($super, $wither).arg($parameter);
             $wither.body()._return($this);
-            if (GENERATE_ADDITIONAL_WITHER.getAsBoolean() && attribute.getPropertyInfo().isCollection()) {
+            if (GENERATE_ADDITIONAL_WITHER.isActivated() && attribute.getPropertyInfo().isCollection()) {
                 // (E.1) Override Builder's "adder"-method for each inherited Collection<T> property [XyzClass.Builder#addAbc(T)]
                 final var $adder = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessAdderName(attribute));
                 $adder.annotate(Override.class); // also inherits method's and @param's Javadoc
@@ -561,7 +561,7 @@ extends AssignmentPlugin {
                 javadocSection($wither).append(WITHER_IMPLNOTE.format(String.format("this.%s().%s(%s).%s()", $implClassToBuilder.name(), $builderWither.name(), $parameter.name(), $builderBuild.name())));
                 $wither.body()._return($this.invoke($implClassToBuilder).invoke($builderWither).arg($parameter).invoke($builderBuild));
             }
-            if (GENERATE_ADDITIONAL_WITHER.getAsBoolean() && attribute.getPropertyInfo().isCollection()) {
+            if (GENERATE_ADDITIONAL_WITHER.isActivated() && attribute.getPropertyInfo().isCollection()) {
                 // (B) generate/implement "adder" factory method
                 final var $adder = $ImplClass.method(modifiers, $ImplClass, guessWithAdditionalName(attribute));
                 if (inheritedProperties.containsKey(attribute)) {
@@ -606,7 +606,7 @@ extends AssignmentPlugin {
         final var $factoryLookup = getMethod($ObjectFactory, guessFactoryName(clazz));
         if ($factoryLookup.isPresent()) {
             final var anyOtherConstructorExists = stream(spliteratorUnknownSize($ImplClass.constructors(), 0), false).anyMatch(c -> c.params().size() > 0);
-            final var builderExists = GENERATE_BUILDER.getAsBoolean();
+            final var builderExists = GENERATE_BUILDER.isActivated();
             final var $factory = $factoryLookup.get();
             LOG.info(MODIFY_FACTORY, "accessibility", $ObjectFactory.fullName(), $factory.name(), "private");
             $factory.mods().setPrivate();
