@@ -143,7 +143,7 @@ extends AssignmentPlugin {
     private static final CommandLineArgument FINAL_SETTERS      = new CommandLineArgument("properties-final-setters",      FINAL_SETTERS_DESCRIPTION.text());
     private static final CommandLineArgument STRAIGHT_GETTERS   = new CommandLineArgument("properties-straight-getters",   STRAIGHT_GETTERS_DESCRIPTION.text());
     private static final CommandLineArgument OPTIONAL_GETTERS   = new CommandLineArgument("properties-optional-getters",   OPTIONAL_GETTERS_DESCRIPTION.format(STRAIGHT_GETTERS));
-    private static final CommandLineArgument OPTIONAL_ORDEFAULT = new CommandLineArgument("properties-optional-ordefault", OPTIONAL_ORDEFAULT_DESCRIPTION.text());
+    private static final CommandLineArgument OPTIONAL_ORDEFAULT = new CommandLineArgument("properties-optional-ordefault", OPTIONAL_ORDEFAULT_DESCRIPTION.format(OPTIONAL_GETTERS));
     private static final CommandLineArgument COLLECTION_SETTERS = new CommandLineArgument("properties-collection-setters", COLLECTION_SETTERS_DESCRIPTION.text());
     private static final CommandLineArgument REMOVE_SETTERS     = new CommandLineArgument("properties-remove-setters",     REMOVE_SETTERS_DESCRIPTION.format(FINAL_SETTERS, COLLECTION_SETTERS));
     private static final CommandLineArgument PRIVATE_FIELDS     = new CommandLineArgument("properties-private-fields",     PRIVATE_FIELDS_DESCRIPTION.text());
@@ -159,7 +159,7 @@ extends AssignmentPlugin {
     public final List<CommandLineArgument> getPluginArguments() {
         final var args = asList(PRIVATE_FIELDS, FINAL_FIELDS,                                          // field options
                                 STRAIGHT_GETTERS, OPTIONAL_GETTERS, OPTIONAL_ORDEFAULT, FINAL_GETTERS, // getter options
-                                COLLECTION_SETTERS, REMOVE_SETTERS, FINAL_SETTERS);                    // setter options
+                                COLLECTION_SETTERS, FINAL_SETTERS, REMOVE_SETTERS);                    // setter options
         return concat(super.getPluginArguments().stream(), args.stream()).collect(toList());
     }
 
