@@ -56,7 +56,7 @@ public enum OutlineAnalysis {
 
     /**
      * Returns {@code true} iff this attribute is required (a.k.a. mandatory).
-     * 
+     *
      * @param attribute
      *            the attribute to analyse
      * @return {@code true} if this attribute is required; {@code false} otherwise
@@ -85,7 +85,7 @@ public enum OutlineAnalysis {
 
     /**
      * Returns {@code true} iff this attribute is optional (a.k.a. not required/not mandatory).
-     * 
+     *
      * @param attribute
      *            the attribute to analyse
      * @return {@code true} if this attribute is optional; {@code false} otherwise
@@ -193,6 +193,31 @@ public enum OutlineAnalysis {
     public static final String WITH = "with";
 
     /**
+     * @see #guessWitherName(FieldOutline)
+     */
+    public static final String WITHOUT = "without";
+
+    /**
+     * @see #guessAdderName(FieldOutline)
+     */
+    public static final String ADD = "add";
+
+    /**
+     * @see #guessRemoverName(FieldOutline)
+     */
+    public static final String REMOVE = "remove";
+
+    /**
+     * @see #guessWithAdditionalName(FieldOutline)
+     */
+    private static final String WITH_ADDITIONAL = "withAdditional";
+
+    /**
+     * @see #guessWithoutSpecificName(FieldOutline)
+     */
+    private static final String WITHOUT_SPECIFIC = "withoutSpecific";
+
+    /**
      * Guesses the name of the according getter method for a given field. Whether or not the field is boolean, the return value may start with prefix {@value #IS} or with prefix
      * {@value #GET}. Further, the value of {@link com.sun.tools.xjc.Options#enableIntrospection} is also considered to decide that prefix. Doing so, this method should return
      * similar values compared to the names used for the generated getter methods.
@@ -233,6 +258,61 @@ public enum OutlineAnalysis {
      */
     public static final String guessWitherName(final FieldOutline attribute) {
         return WITH + attribute.getPropertyInfo().getName(true);
+    }
+
+    /**
+     * Guesses the name of the according withouter method for a given field. The return value will start with prefix {@value #WITHOUT}.
+     *
+     * @param attribute
+     *            the given field
+     * @return the name of the according withouter method
+     */
+    public static final String guessWithouterName(final FieldOutline attribute) {
+        return WITHOUT + attribute.getPropertyInfo().getName(true);
+    }
+
+    /**
+     * Guesses the name of the according adder method for a given field. The return value will start with prefix {@value #ADD}.
+     *
+     * @param attribute
+     *            the given field
+     * @return the name of the according adder method
+     */
+    public static final String guessAdderName(final FieldOutline attribute) {
+        return ADD + attribute.getPropertyInfo().getName(true);
+    }
+
+    /**
+     * Guesses the name of the according remover method for a given field. The return value will start with prefix {@value #REMOVE}.
+     *
+     * @param attribute
+     *            the given field
+     * @return the name of the according adder method
+     */
+    public static final String guessRemoverName(final FieldOutline attribute) {
+        return REMOVE + attribute.getPropertyInfo().getName(true);
+    }
+
+    /**
+     * Guesses the name of the according adder method for a given field. The return value will start with prefix {@value #WITH_ADDITIONAL}.
+     *
+     * @param attribute
+     *            the given field
+     * @return the name of the according adder method
+     */
+    public static final String guessWithAdditionalName(final FieldOutline attribute) {
+        return WITH_ADDITIONAL + attribute.getPropertyInfo().getName(true);
+    }
+
+    /**
+     * Guesses the name of the according remover method for a given field. The return value will start with prefix {@value #WITHOUT_SPECIFIC}.
+     *
+     * @param attribute
+     *            the given field
+     * @return the name of the according remover method
+     */
+    public static final String guessWithoutSpecificName(final FieldOutline attribute) {
+        return WITHOUT_SPECIFIC + attribute.getPropertyInfo().getName(true);
     }
 
     /**

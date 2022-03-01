@@ -13,12 +13,19 @@ import static com.sun.codemodel.JOp.not;
 import static de.informaticum.xjc.BoilerplatePlugin.BECAUSE_METHOD_ALREADY_EXISTS;
 import static de.informaticum.xjc.BoilerplatePlugin.GENERATE_METHOD;
 import static de.informaticum.xjc.BoilerplatePlugin.SKIP_METHOD;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ADDER_ABSTRACT_IMPLNOTE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ADDER_IMPLNOTE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ADDER_JAVADOC;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ADDER_RETURN;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.ADDITIONAL_WITHER_DESCRIPTION;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVE_BUILDER;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVE_CONSTRUCTORS;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.ALTERNATIVE_INSTANTIATION;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BASIC_CONSTRUCTOR_DESCRIPTION;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BLUEPRINT_ARGUMENT;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_ABSTRACT_IMPLNOTE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_ADDER_JAVADOC;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_ADDER_RETURN;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_BLUEPRINT_CONSTRUCTOR;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_BLUEPRINT_PARAM;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_BUILD_ABSTRACT_IMPLNOTE;
@@ -33,6 +40,8 @@ import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_J
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_METHOD_IMPLNOTE;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_METHOD_JAVADOC;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_METHOD_RETURN;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_REMOVER_JAVADOC;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_REMOVER_RETURN;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_WITHER_JAVADOC;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.BUILDER_WITHER_RETURN;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.CLONE_DESCRIPTION;
@@ -50,6 +59,10 @@ import static de.informaticum.xjc.resources.ConstructionPluginMessages.OPTION_DE
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.PRIVATE_FACTORY_IMPLNOTE;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.PROTECTED_CONSTRUCTOR_IMPLNOTE;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.PROTECTED_DEFAULT_CONSTRUCTOR_DESCRIPTION;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.REMOVER_ABSTRACT_IMPLNOTE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.REMOVER_IMPLNOTE;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.REMOVER_JAVADOC;
+import static de.informaticum.xjc.resources.ConstructionPluginMessages.REMOVER_RETURN;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.REMOVE_FACTORIES_DESCRIPTION;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.TOBUILDER_METHOD_ABSTRACT_IMPLNOTE;
 import static de.informaticum.xjc.resources.ConstructionPluginMessages.TOBUILDER_METHOD_IMPLNOTE;
@@ -152,6 +165,7 @@ extends AssignmentPlugin {
     private static final CommandLineArgument GENERATE_CLONE                = new CommandLineArgument("construction-clone",                    CLONE_DESCRIPTION.format(CLONE_SIGNATURE));
     private static final CommandLineArgument GENERATE_BUILDER              = new CommandLineArgument("construction-builder",                  BUILDER_DESCRIPTION.format(GENERATE_VALUES_CONSTRUCTOR));
     private static final CommandLineArgument GENERATE_FACTORY_WITHER       = new CommandLineArgument("construction-factory-withers",          FACTORY_WITHER_DESCRIPTION.format(GENERATE_BUILDER));
+    private static final CommandLineArgument GENERATE_ADDITIONAL_WITHER    = new CommandLineArgument("construction-additional-withers",       ADDITIONAL_WITHER_DESCRIPTION.format(GENERATE_BUILDER, GENERATE_FACTORY_WITHER));
     private static final CommandLineArgument HIDE_DEFAULT_FACTORIES        = new CommandLineArgument("construction-hide-default-factories",   HIDDEN_FACTORIES_DESCRIPTION.text());
     private static final CommandLineArgument REMOVE_DEFAULT_FACTORIES      = new CommandLineArgument("construction-remove-default-factories", REMOVE_FACTORIES_DESCRIPTION.format(HIDE_DEFAULT_FACTORIES));
 
@@ -162,12 +176,12 @@ extends AssignmentPlugin {
 
     @Override
     public final List<CommandLineArgument> getPluginArguments() {
-        final var args = asList(GENERATE_DEFAULT_CONSTRUCTOR, PROTECTED_DEFAULT_CONSTRUCTOR, // default constructor options
-                                GENERATE_VALUES_CONSTRUCTOR, GENERATE_BASIC_CONSTRUCTOR,     // value constructor options
-                                GENERATE_COPY_CONSTRUCTOR,                                   // copy constructor options
-                                GENERATE_CLONE,                                              // clone options
-                                GENERATE_BUILDER, GENERATE_FACTORY_WITHER,                   // builder/factory method options
-                                HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);           // ObjectFactory options
+        final var args = asList(GENERATE_DEFAULT_CONSTRUCTOR, PROTECTED_DEFAULT_CONSTRUCTOR,           // default constructor options
+                                GENERATE_VALUES_CONSTRUCTOR, GENERATE_BASIC_CONSTRUCTOR,               // value constructor options
+                                GENERATE_COPY_CONSTRUCTOR,                                             // copy constructor options
+                                GENERATE_CLONE,                                                        // clone options
+                                GENERATE_BUILDER, GENERATE_FACTORY_WITHER, GENERATE_ADDITIONAL_WITHER, // builder/factory method options
+                                HIDE_DEFAULT_FACTORIES, REMOVE_DEFAULT_FACTORIES);                     // ObjectFactory options
         return concat(super.getPluginArguments().stream(), args.stream()).collect(toList());
     }
 
@@ -470,6 +484,23 @@ extends AssignmentPlugin {
             accordingAssignment(property, $wither, $parameter, NO_DEFAULT_VALUE, cloneExpressionFor(property.getValue().type(), $parameter, NO_IMMUTABLE_VIEW).orElse($parameter));
             accordingAssignmentJavadoc(property, $wither);
             $wither.body()._return($this);
+            if (GENERATE_ADDITIONAL_WITHER.getAsBoolean() && attribute.getPropertyInfo().isCollection()) {
+                // (E.1) Generate Builder's "adder"-method for declared Collection<T> property [XyzClass.Builder#addAbc(T)]
+                final var $adder = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessAdderName(attribute));
+                javadocSection($adder).append(BUILDER_ADDER_JAVADOC.format($property.name()));
+                javadocSection($adder.javadoc().addReturn()).append(BUILDER_ADDER_RETURN.text());
+                final var $adderParam = $adder.param(FINAL, typeParameterOf($property.type().boxify()), $property.name());
+                $adder.body()._if($this.ref($property).eq($null))._then().assign($this.ref($property), copyFactoryFor($property.type()));
+                $adder.body().add($this.ref($property).invoke("add").arg($adderParam));
+                $adder.body()._return($this);
+                // (E.2) Generate Builder's "remover"-method for declared Collection<T> property [XyzClass.Builder#removeAbc(T)]
+                final var $remover = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessRemoverName(attribute));
+                javadocSection($remover).append(BUILDER_REMOVER_JAVADOC.format($property.name()));
+                javadocSection($remover.javadoc().addReturn()).append(BUILDER_REMOVER_RETURN.text());
+                final var $removerParam = $remover.param(FINAL, typeParameterOf($property.type().boxify()), $property.name());
+                $remover.body()._if(not($this.ref($property).eq($null)))._then().add($this.ref($property).invoke("remove").arg($removerParam));
+                $remover.body()._return($this);
+            }
         }
         // 5/5: Handle inherited fields
         for (final var property : superAndGeneratedPropertiesOf(clazz.getSuperClass()).entrySet()) {
@@ -481,6 +512,20 @@ extends AssignmentPlugin {
             final var $parameter = $wither.param(FINAL, $property.type(), $property.name());
             $wither.body().invoke($super, $wither).arg($parameter);
             $wither.body()._return($this);
+            if (GENERATE_ADDITIONAL_WITHER.getAsBoolean() && attribute.getPropertyInfo().isCollection()) {
+                // (E.1) Override Builder's "adder"-method for each inherited Collection<T> property [XyzClass.Builder#addAbc(T)]
+                final var $adder = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessAdderName(attribute));
+                $adder.annotate(Override.class); // also inherits method's and @param's Javadoc
+                final var $adderParam = $adder.param(FINAL, typeParameterOf($property.type().boxify()), $property.name());
+                $adder.body().invoke($super, $adder).arg($adderParam);
+                $adder.body()._return($this);
+                // (E.2) Override Builder's "remover"-method for each inherited Collection<T> property [XyzClass.Builder#removeAbc(T)]
+                final var $remover = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessRemoverName(attribute));
+                $remover.annotate(Override.class); // also inherits method's and @param's Javadoc
+                final var $removerParam = $remover.param(FINAL, typeParameterOf($property.type().boxify()), $property.name());
+                $remover.body().invoke($super, $remover).arg($removerParam);
+                $remover.body()._return($this);
+            }
         }
         return $Builder;
     }
@@ -494,6 +539,7 @@ extends AssignmentPlugin {
         for (final var property : superAndGeneratedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
+            // (A) generate/implement "wither" factory method
             final var $wither = $ImplClass.method(modifiers, $ImplClass, guessWitherName(attribute));
             if (inheritedProperties.containsKey(attribute)) {
                 $wither.annotate(Override.class);
@@ -509,6 +555,42 @@ extends AssignmentPlugin {
                 final var $builderBuild = getMethod($Builder, build).orElseThrow(() -> new IllegalStateException(MISSING_BUILDER_BUILD_METHOD));
                 javadocSection($wither).append(WITHER_IMPLNOTE.format(String.format("this.%s().%s(%s).%s()", $implClassToBuilder.name(), $builderWither.name(), $parameter.name(), $builderBuild.name())));
                 $wither.body()._return($this.invoke($implClassToBuilder).invoke($builderWither).arg($parameter).invoke($builderBuild));
+            }
+            if (GENERATE_ADDITIONAL_WITHER.getAsBoolean() && attribute.getPropertyInfo().isCollection()) {
+                // (B) generate/implement "adder" factory method
+                final var $adder = $ImplClass.method(modifiers, $ImplClass, guessWithAdditionalName(attribute));
+                if (inheritedProperties.containsKey(attribute)) {
+                    $adder.annotate(Override.class);
+                }
+                javadocSection($adder).append(ADDER_JAVADOC.format($property.name()));
+                javadocSection($adder.javadoc().addReturn()).append(ADDER_RETURN.format($property.name()));
+                final var $addParameter = $adder.param(FINAL, typeParameterOf($property.type().boxify()), $property.name());
+                // TODO: parameter Javadoc (must be different to the collection field Javadoc! nullable?)
+                if ($adder.mods().isAbstract()) {
+                    javadocSection($adder).append(ADDER_ABSTRACT_IMPLNOTE.text());
+                } else {
+                    final var $builderAdder = getMethod($Builder, guessAdderName(attribute), typeParameterOf($property.type().boxify())).orElseThrow(() -> new IllegalStateException(MISSING_BUILDER_WITH_METHOD));
+                    final var $builderBuild = getMethod($Builder, build).orElseThrow(() -> new IllegalStateException(MISSING_BUILDER_BUILD_METHOD));
+                    javadocSection($adder).append(ADDER_IMPLNOTE.format(String.format("this.%s().%s(%s).%s()", $implClassToBuilder.name(), $builderAdder.name(), $parameter.name(), $builderBuild.name())));
+                    $adder.body()._return($this.invoke($implClassToBuilder).invoke($builderAdder).arg($addParameter).invoke($builderBuild));
+                }
+                // (C) generate/implement "remover" factory method
+                final var $remover = $ImplClass.method(modifiers, $ImplClass, guessWithoutSpecificName(attribute));
+                if (inheritedProperties.containsKey(attribute)) {
+                    $remover.annotate(Override.class);
+                }
+                javadocSection($remover).append(REMOVER_JAVADOC.format($property.name()));
+                javadocSection($remover.javadoc().addReturn()).append(REMOVER_RETURN.format($property.name()));
+                final var $removeParameter = $remover.param(FINAL, typeParameterOf($property.type().boxify()), $property.name());
+                // TODO: parameter Javadoc (must be different to the collection field Javadoc! nullable?)
+                if ($remover.mods().isAbstract()) {
+                    javadocSection($remover).append(REMOVER_ABSTRACT_IMPLNOTE.text());
+                } else {
+                    final var $builderRemover = getMethod($Builder, guessRemoverName(attribute), typeParameterOf($property.type().boxify())).orElseThrow(() -> new IllegalStateException(MISSING_BUILDER_WITH_METHOD));
+                    final var $builderBuild = getMethod($Builder, build).orElseThrow(() -> new IllegalStateException(MISSING_BUILDER_BUILD_METHOD));
+                    javadocSection($remover).append(REMOVER_IMPLNOTE.format(String.format("this.%s().%s(%s).%s()", $implClassToBuilder.name(), $builderRemover.name(), $parameter.name(), $builderBuild.name())));
+                    $remover.body()._return($this.invoke($implClassToBuilder).invoke($builderRemover).arg($removeParameter).invoke($builderBuild));
+                }
             }
         }
     }
