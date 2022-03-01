@@ -202,6 +202,11 @@ extends AssignmentPlugin {
         PROTECTED_DEFAULT_CONSTRUCTOR.activates(GENERATE_DEFAULT_CONSTRUCTOR);
         // To generate #clone() methods correctly, all potential cloneable classes must implement Cloneable interface.
         GENERATE_CLONE.doOnActivation(() -> this.outline().getClasses().forEach(c -> this.addInterface(c, Cloneable.class)));
+        // What about final classes in general? Unfortunately, in a multi-XJC-run maven build some XJC runs may generate final
+        // classes but other runs require non-final ;-(
+        //   Collection<? extends ClassOutline> classes = new ArrayList<>(this.outline().getClasses());
+        //   classes.forEach(c -> { if (!c.implClass.isAbstract()) { c.implClass.mods().setFinal(true); }});
+        //   classes.forEach(c -> { if (c.getSuperClass() != null) { c.getSuperClass().implClass.mods().setFinal(false); }});
         return true;
     }
 
