@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugin;
+package de.informaticum.xjc.api;
 
 import org.xml.sax.ErrorHandler;
 

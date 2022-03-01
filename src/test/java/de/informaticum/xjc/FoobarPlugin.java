@@ -2,7 +2,7 @@ package de.informaticum.xjc;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
-import de.informaticum.xjc.plugin.BasePlugin;
+import de.informaticum.xjc.api.BasePlugin;
 
 public final class FoobarPlugin
 extends BasePlugin {

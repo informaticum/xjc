@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugin;
+package de.informaticum.xjc.api;
 
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;

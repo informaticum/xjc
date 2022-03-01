@@ -31,8 +31,8 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.outline.ClassOutline;
-import de.informaticum.xjc.plugin.BasePlugin;
-import de.informaticum.xjc.plugin.CommandLineArgument;
+import de.informaticum.xjc.api.BasePlugin;
+import de.informaticum.xjc.api.CommandLineArgument;
 import org.slf4j.Logger;
 
 public final class BoilerplatePlugin

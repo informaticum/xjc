@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugin;
+package de.informaticum.xjc.api;
 
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;

@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugin;
+package de.informaticum.xjc.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import com.sun.codemodel.JClass;

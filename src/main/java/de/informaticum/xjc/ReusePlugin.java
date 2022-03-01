@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JDefinedClass;
-import de.informaticum.xjc.plugin.BasePlugin;
-import de.informaticum.xjc.plugin.CommandLineArgument;
+import de.informaticum.xjc.api.BasePlugin;
+import de.informaticum.xjc.api.CommandLineArgument;
 import org.slf4j.Logger;
 
 public final class ReusePlugin

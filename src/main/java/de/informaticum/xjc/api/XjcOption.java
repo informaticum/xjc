@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugin;
+package de.informaticum.xjc.api;
 
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;

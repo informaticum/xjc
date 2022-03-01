@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugin;
+package de.informaticum.xjc.api;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;

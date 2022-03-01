@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugin;
+package de.informaticum.xjc.api;
 
 import static de.informaticum.xjc.util.CustomizableOutlineComparator.sorted;
 import static de.informaticum.xjc.util.PackageOutlineComparator.sorted;

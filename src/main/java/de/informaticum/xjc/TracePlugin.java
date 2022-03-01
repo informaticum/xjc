@@ -9,7 +9,7 @@ import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
-import de.informaticum.xjc.plugin.BasePlugin;
+import de.informaticum.xjc.api.BasePlugin;
 import org.slf4j.Logger;
 
 public final class TracePlugin
