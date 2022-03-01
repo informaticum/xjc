@@ -1,5 +1,7 @@
 package de.informaticum.xjc.plugin;
 
+import static de.informaticum.xjc.util.CustomizableOutlineComparator.sorted;
+import static de.informaticum.xjc.util.PackageOutlineComparator.sorted;
 import static java.lang.String.format;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.function.Consumer;
@@ -99,22 +101,22 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
 
     /**
      * @see #prepareRun() 1. prepares the run
-     * @see #runPackage(PackageOutline) 2.a. runs each package
-     * @see #runObjectFactory(JDefinedClass) 2.b. runs each object factory
-     * @see #runClass(ClassOutline) 3. runs each class
-     * @see #runEnum(EnumOutline) 4. runs each enum class
+     * @see #runPackage(PackageOutline) 2.a. runs each package (in lexicological order of the package name)
+     * @see #runObjectFactory(JDefinedClass) 2.b. runs each object factory (in lexicological order of the according package name)
+     * @see #runClass(ClassOutline) 3. runs each class (in order of the class hierarchy)
+     * @see #runEnum(EnumOutline) 4. runs each enum class (in order of the class hierarchy, effectively in lexicological order of the class name)
      */
     protected boolean run()
     throws SAXException, Exception {
         var result = this.prepareRun();
-        for (final var pakkage : this.currentOutline.getAllPackageContexts()) {
+        for (final var pakkage : sorted(this.currentOutline.getAllPackageContexts())) {
             result &= this.runPackage(pakkage);
             result &= this.runObjectFactory(pakkage.objectFactory());
         }
-        for (final var clazz : this.currentOutline.getClasses()) {
+        for (final var clazz : sorted(this.currentOutline.getClasses() /* sorted list guarantees execution in hierarchical order */ )) {
             result &= this.runClass(clazz);
         }
-        for (final var enumeration : this.currentOutline.getEnums()) {
+        for (final var enumeration : sorted(this.currentOutline.getEnums())) {
             result &= this.runEnum(enumeration);
         }
         return result;
