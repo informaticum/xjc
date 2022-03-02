@@ -36,7 +36,6 @@ import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.util.CodeModelAnalysis;
 import de.informaticum.xjc.util.OutlineAnalysis;
 
 public abstract class AssignmentPlugin
@@ -159,8 +158,10 @@ extends BasePlugin {
      *            the method to put the assignment statements into
      * @param $expression
      *            the current expression to use for the property assignment
-     * @param $default the default value the given expression represents {@link CodeModelAnalysis#$null} or is {@code null} at runtime
-     * @param $nonNull the effective expression to represent the non-null-case
+     * @param $default
+     *            the default fallback value
+     * @param $nonNull
+     *            the effective expression to represent the non-null-case
      */
     protected static final void accordingAssignment(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter,
                                                     final JExpression $expression, final Optional<JExpression> $default, final JExpression $nonNull) {
@@ -212,10 +213,24 @@ extends BasePlugin {
      *            the method to append the Javadoc
      */
     protected static final void accordingAssignmentJavadoc(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter) {
-        // TODO: Javadoc information about either defensive copy or live reference (with according side effects!)
+        final var $default = defaultExpressionFor(property.getKey());
+        accordingAssignmentJavadoc(property, $setter, $default);
+    }
+
+    /**
+     * Appends the according Javadoc messages.
+     *
+     * @param property
+     *            the property to consider
+     * @param $setter
+     *            the method to append the Javadoc
+     * @param $default
+     *            the default fallback value
+     */
+    protected static final void accordingAssignmentJavadoc(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter,
+                                                           final Optional<JExpression> $default) {
         final var attribute = property.getKey();
         final var $property = property.getValue();
-        final var $default = defaultExpressionFor(attribute);
         if ($property.type().isPrimitive()) {
             javadocSection($setter.javadoc().addParam(property.getValue())).append(PRIMITVE_ARGUMENT.format(property.getValue().name()));
         } else if ($default.isPresent()) {

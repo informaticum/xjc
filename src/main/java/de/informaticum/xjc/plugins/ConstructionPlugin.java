@@ -487,7 +487,7 @@ extends AssignmentPlugin {
             final var NO_DEFAULT_VALUE = Optional.<JExpression>empty(); // no default value to prevent origin-vs-builder-divergence
             final var NO_IMMUTABLE_VIEW = false; // no immutable view to allow subsequent modification
             accordingAssignment(property, $wither, $parameter, NO_DEFAULT_VALUE, cloneExpressionFor(property.getValue().type(), $parameter, NO_IMMUTABLE_VIEW).orElse($parameter));
-            accordingAssignmentJavadoc(property, $wither);
+            accordingAssignmentJavadoc(property, $wither, NO_DEFAULT_VALUE);
             $wither.body()._return($this);
             if (GENERATE_ADDITIONAL_WITHER.isActivated() && attribute.getPropertyInfo().isCollection()) {
                 // (E.1) Generate Builder's "adder"-method for declared Collection<T> property [XyzClass.Builder#addAbc(T)]
