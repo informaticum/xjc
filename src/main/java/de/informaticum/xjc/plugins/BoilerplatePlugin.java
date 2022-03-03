@@ -25,6 +25,7 @@ import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -154,6 +155,7 @@ extends BasePlugin {
         $toString.annotate(Override.class);
         javadocSection($toString).append(TOSTRING_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
         // 2/2: Implement
+        final var $Arrays = this.reference(Arrays.class);
         final var $Objects = this.reference(Objects.class);
         final var $StringJoiner = this.reference(StringJoiner.class);
         final var $segments = new ArrayList<JExpression>();
@@ -161,7 +163,10 @@ extends BasePlugin {
             final var attribute = property.getKey();
             final var info = attribute.getPropertyInfo();
             final var $property = property.getValue();
-            $segments.add(lit(info.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($property))));
+            // TODO: Consider Arrays.deepToString()?
+            // TODO: Chunk array string if too long?
+            final var $rendering = $property.type().isArray() ? $Arrays.staticInvoke("toString") : $Objects.staticInvoke("toString");
+            $segments.add(lit(info.getName(true) + ": ").plus($rendering.arg($this.ref($property))));
         }
         if (clazz.getSuperClass() != null) {
             $segments.add(lit("Super: ").plus($super.invoke(toString)));
