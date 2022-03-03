@@ -16,8 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Dependency Versions -->
-    <version.apache-codegen>3.5.0</version.apache-codegen>
-    <version.assertj>3.22.0</version.assertj>
+    <version.apache-codegen>3.5.1</version.apache-codegen>
   </properties>
 
   <dependencyManagement>
@@ -35,10 +34,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-xjc</artifactId>
       <scope>provided</scope>
@@ -46,16 +41,22 @@
     <!-- dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
+      <scope>provided</scope>
     </dependency -->
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>${version.assertj}</version>
     </dependency>
   </dependencies>
 
@@ -99,6 +100,7 @@
          !-->
         <version>3.1.2</version>
         <configuration>
+          <!-- Do not fail, because everything is managed. Just give a little information. -->
           <failOnWarning>false</failOnWarning>
         </configuration>
         <executions>
