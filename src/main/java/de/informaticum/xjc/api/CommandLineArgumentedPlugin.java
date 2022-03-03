@@ -9,6 +9,9 @@ import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 
+/**
+ * Enhanced {@linkplain Plugin XJC plugin}, providing convenient methods to handle the plugin's arguments.
+ */
 public abstract class CommandLineArgumentedPlugin
 extends Plugin {
 
@@ -34,6 +37,8 @@ extends Plugin {
     }
 
     /**
+     * @implNote The current implementation returns the value attribute of {@link #getOptionEntry()}.
+     *
      * @return the description of this XJC add-on
      * @see #getOptionEntry()
      * @see #getOptionName()

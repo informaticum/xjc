@@ -7,6 +7,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.function.Consumer;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
@@ -17,6 +18,9 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+/**
+ * Base class for custom {@linkplain Plugin XJC plugins}.
+ */
 public abstract class BasePlugin
 extends CommandLineArgumentedPlugin
 implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
@@ -100,11 +104,18 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     }
 
     /**
+     * This method is called by {@link #run(Outline, Options, ErrorHandler)}. Can be overridden.
+     *
      * @see #prepareRun() 1. prepares the run
      * @see #runPackage(PackageOutline) 2.a. runs each package (in lexicological order of the package name)
      * @see #runObjectFactory(JDefinedClass) 2.b. runs each object factory (in lexicological order of the according package name)
      * @see #runClass(ClassOutline) 3. runs each class (in order of the class hierarchy)
      * @see #runEnum(EnumOutline) 4. runs each enum class (in order of the class hierarchy, effectively in lexicological order of the class name)
+     * @return {@code true} if the add-on executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error, thrown by any of the sub-methods
+     * @throws Exception
+     *             indication of a fatal irrecoverable error, thrown by any of the sub-methods
      */
     protected boolean run()
     throws SAXException, Exception {
@@ -122,26 +133,79 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         return result;
     }
 
+    /**
+     * This method is called by {@link #run()} (step 1 of 4). Can be overridden.
+     *
+     * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error
+     * @throws Exception
+     *             indication of a fatal irrecoverable error
+     */
     protected boolean prepareRun()
     throws SAXException, Exception {
         return true;
     }
 
+    /**
+     * This method is called by {@link #run()} (step 2.a of 4). Can be overridden.
+     *
+     * @param pakkage
+     *            the package-outline to consider
+     * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error
+     * @throws Exception
+     *             indication of a fatal irrecoverable error
+     */
     protected boolean runPackage(final PackageOutline pakkage)
     throws SAXException, Exception {
         return true;
     }
 
+    /**
+     * This method is called by {@link #run()} (step 2.b of 4). Can be overridden.
+     *
+     * @param $Factory
+     *            the object-factory to consider
+     * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error
+     * @throws Exception
+     *             indication of a fatal irrecoverable error
+     */
     protected boolean runObjectFactory(final JDefinedClass $Factory)
     throws SAXException, Exception {
         return true;
     }
 
+    /**
+     * This method is called by {@link #run()} (step 3 of 4). Can be overridden.
+     *
+     * @param clazz
+     *            the class-outline to consider
+     * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error
+     * @throws Exception
+     *             indication of a fatal irrecoverable error
+     */
     protected boolean runClass(final ClassOutline clazz)
     throws SAXException, Exception {
         return true;
     }
 
+    /**
+     * This method is called by {@link #run()} (step 4 of 4). Can be overridden.
+     *
+     * @param enumeration
+     *            the enum-outline to consider
+     * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error
+     * @throws Exception
+     *             indication of a fatal irrecoverable error
+     */
     protected boolean runEnum(final EnumOutline enumeration)
     throws SAXException, Exception {
         return true;

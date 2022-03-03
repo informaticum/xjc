@@ -3,6 +3,9 @@ package de.informaticum.xjc.api;
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 
+/**
+ * Enumeration of all i18n messages used by the {@link AssignmentPlugin}.
+ */
 public enum AssignmentPluginMessages
 implements ResourceBundleEntry {
 
