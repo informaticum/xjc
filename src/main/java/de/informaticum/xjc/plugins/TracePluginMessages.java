@@ -4,6 +4,9 @@ import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
 
+/**
+ * Enumeration of all i18n messages used by the {@link TracePlugin}.
+ */
 public enum TracePluginMessages
 implements ResourceBundleEntry {
 
@@ -17,7 +20,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    private static final ResourceBundle RB = getBundle(TracePlugin.class.getName() + "Messages");
+    private static final ResourceBundle RB = getBundle(TracePluginMessages.class.getName());
 
     @Override
     public final ResourceBundle bundle() {

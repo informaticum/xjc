@@ -30,7 +30,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    private static final ResourceBundle RB = getBundle(AssignmentPlugin.class.getName() + "Messages");
+    private static final ResourceBundle RB = getBundle(AssignmentPluginMessages.class.getName());
 
     @Override
     public final ResourceBundle bundle() {

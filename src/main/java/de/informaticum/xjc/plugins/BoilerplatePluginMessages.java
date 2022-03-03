@@ -4,6 +4,9 @@ import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
 
+/**
+ * Enumeration of all i18n messages used by the {@link BoilerplatePlugin}.
+ */
 public enum BoilerplatePluginMessages
 implements ResourceBundleEntry {
 
@@ -23,7 +26,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    private static final ResourceBundle RB = getBundle(BoilerplatePlugin.class.getName() + "Messages");
+    private static final ResourceBundle RB = getBundle(BoilerplatePluginMessages.class.getName());
 
     @Override
     public final ResourceBundle bundle() {

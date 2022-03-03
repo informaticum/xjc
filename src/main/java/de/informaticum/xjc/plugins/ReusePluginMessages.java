@@ -4,6 +4,9 @@ import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
 
+/**
+ * Enumeration of all i18n messages used by the {@link ReusePlugin}.
+ */
 public enum ReusePluginMessages
 implements ResourceBundleEntry {
 
@@ -19,7 +22,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    private static final ResourceBundle RB = getBundle(ReusePlugin.class.getName() + "Messages");
+    private static final ResourceBundle RB = getBundle(ReusePluginMessages.class.getName());
 
     @Override
     public final ResourceBundle bundle() {
