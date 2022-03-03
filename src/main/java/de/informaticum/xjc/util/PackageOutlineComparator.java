@@ -12,11 +12,16 @@ import com.sun.tools.xjc.outline.PackageOutline;
 /**
  * Simple {@link Comparator} to directly {@linkplain #sorted(Collection) sort} any collection of packages in {@linkplain #compare(PackageOutline, PackageOutline) its natural
  * order}.
+ *
+ * @see #INSTANCE
  */
 public enum PackageOutlineComparator
 implements Comparator<PackageOutline> {
 
-    SINGLETON;
+    /**
+     * Singleton instance of {@link PackageOutlineComparator}.
+     */
+    INSTANCE;
 
     /**
      * @implNote The comparison is quite simply delegated to {@link com.sun.codemodel.JPackage#compareTo(com.sun.codemodel.JPackage)}.
@@ -37,12 +42,14 @@ implements Comparator<PackageOutline> {
      *
      * @param unsorted
      *            the unsorted collection of packages to sort
+     * @param <T>
+     *            the specific subtype of {@link PackageOutline}
      * @return a list of packages, with all elements in order
      * @see #compare(PackageOutline, PackageOutline)
      */
     public final static <T extends PackageOutline> List<T> sorted(final Collection<T> unsorted) {
         final var sorted = new ArrayList<>(unsorted);
-        Collections.sort(sorted, PackageOutlineComparator.SINGLETON);
+        Collections.sort(sorted, PackageOutlineComparator.INSTANCE);
         return sorted;
     }
 
@@ -51,6 +58,8 @@ implements Comparator<PackageOutline> {
      *
      * @param unsorted
      *            the unsorted bunch of packages to sort
+     * @param <T>
+     *            the specific subtype of {@link PackageOutline}
      * @return a list of packages, with all elements in order
      * @see #compare(PackageOutline, PackageOutline)
      */

@@ -12,11 +12,16 @@ import com.sun.tools.xjc.outline.CustomizableOutline;
 /**
  * In object oriented programming languages, the class hierarchy is a partially ordered set -- and this {@link Comparator} {@linkplain #sorted(Collection) sorts} any collection of
  * classes {@linkplain #compare(CustomizableOutline, CustomizableOutline) accordingly}.
+ *
+ * @see #INSTANCE
  */
 public enum CustomizableOutlineComparator
 implements Comparator<CustomizableOutline> {
 
-    SINGLETON;
+    /**
+     * Singleton instance of {@link PackageOutlineComparator}.
+     */
+    INSTANCE;
 
     /**
      * @implNote The comparison is quite simply delegated to {@link de.informaticum.xjc.util.JClassComparator#compare(com.sun.codemodel.JClass, com.sun.codemodel.JClass)}.
@@ -28,7 +33,7 @@ implements Comparator<CustomizableOutline> {
         } else if (left == null) {
             return -1;
         } else {
-            return JClassComparator.SINGLETON.compare(left.getImplClass(), right.getImplClass());
+            return JClassComparator.INSTANCE.compare(left.getImplClass(), right.getImplClass());
         }
     }
 
@@ -37,12 +42,14 @@ implements Comparator<CustomizableOutline> {
      *
      * @param unsorted
      *            the unsorted collection of classes to sort
+     * @param <T>
+     *            the specific subtype of {@link CustomizableOutline}
      * @return a list of classes, with all elements in order
      * @see #compare(CustomizableOutline, CustomizableOutline)
      */
     public final static <T extends CustomizableOutline> List<T> sorted(final Collection<T> unsorted) {
         final var sorted = new ArrayList<>(unsorted);
-        Collections.sort(sorted, CustomizableOutlineComparator.SINGLETON);
+        Collections.sort(sorted, CustomizableOutlineComparator.INSTANCE);
         return sorted;
     }
 
@@ -51,6 +58,8 @@ implements Comparator<CustomizableOutline> {
      *
      * @param unsorted
      *            the unsorted bunch of classes to sort
+     * @param <T>
+     *            the specific subtype of {@link CustomizableOutline}
      * @return a list of classes, with all elements in order
      * @see #compare(CustomizableOutline, CustomizableOutline)
      */

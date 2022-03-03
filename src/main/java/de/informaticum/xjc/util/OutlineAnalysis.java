@@ -26,6 +26,9 @@ import com.sun.tools.xjc.outline.PackageOutline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@code com.sun.tools.xjc.outline.*} types.
+ */
 public enum OutlineAnalysis {
     ;
 
@@ -34,7 +37,7 @@ public enum OutlineAnalysis {
 
     /**
      * Returns the fully-qualified name of the given {@linkplain PackageOutline package}.
-     * 
+     *
      * @param pakkage
      *            the requested package
      * @return the fully-qualified name of the given package
@@ -45,7 +48,7 @@ public enum OutlineAnalysis {
 
     /**
      * Returns the fully-qualified name of the given {@linkplain CustomizableOutline type}.
-     * 
+     *
      * @param type
      *            the requested type
      * @return the fully-qualified name of the given type
@@ -332,7 +335,7 @@ public enum OutlineAnalysis {
         return CREATE + clazz.target.getSqueezedName();
     }
 
-    /**
+    /*
      * Values of the returned {@link LinkedHashMap} might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according {@linkplain JFieldVar property}
      * (for whatever reason).
      *
@@ -360,10 +363,16 @@ public enum OutlineAnalysis {
     }
 
     /**
+     * Returns all declared properties of a given {@link ClassOutline class outline}, but only those with an according generated according field variable.
+     *
      * Values of the returned {@link LinkedHashMap} cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according {@linkplain JFieldVar
      * property} (for whatever reason), it is not contained in the returned result.
      *
      * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @return a map of all declared properties (each with its according field-outline and the generated field-variable)
      */
     public static final LinkedHashMap<FieldOutline, JFieldVar> generatedPropertiesOf(final ClassOutline clazz) {
         final var properties = declaredPropertiesOf(clazz);
@@ -371,7 +380,7 @@ public enum OutlineAnalysis {
         return properties;
     }
 
-    /**
+    /*
      * Values of the returned {@link LinkedHashMap} might be {@code null}: A {@linkplain FieldOutline field outline} might not map onto an according {@linkplain JFieldVar property}
      * (for whatever reason).
      *
@@ -388,10 +397,16 @@ public enum OutlineAnalysis {
     }
 
     /**
+     * Returns all declared properties and all super properties of a given {@link ClassOutline class outline}, but only those with an according generated according field variable.
+     *
      * Values of the returned {@link LinkedHashMap} cannot be {@code null}: If a {@linkplain FieldOutline field outline} is not mapped onto an according {@linkplain JFieldVar
      * property} (for whatever reason), it is not contained in the returned result.
      *
      * Further, the result map is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()} and super class' fields comes first.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @return a map of all declared and all super properties (each with its according field-outline and the generated field-variable)
      */
     public static final LinkedHashMap<FieldOutline, JFieldVar> superAndGeneratedPropertiesOf(final ClassOutline clazz) {
         final var properties = superAndDeclaredPropertiesOf(clazz);
@@ -400,54 +415,142 @@ public enum OutlineAnalysis {
     }
 
     /**
+     * Runs a filter predicate in order to remove all entries where the entry's key does not match.
+     *
      * @param all
      *            a map of all values so far
      * @param filter
      *            the filter to apply
+     * @param <K>
+     *            map key type
+     * @param <M>
+     *            map type
      * @return a map of all values that satisfy the filter predicate
      */
-    public static final <K, T extends Map<? extends K, ?>> T filter(final T all, final Predicate<? super K> filter) {
+    public static final <K, M extends Map<? extends K, ?>> M filter(final M all, final Predicate<? super K> filter) {
         // TODO: Is there anything we can reuse instead of providing this custom filter function?
         all.entrySet().removeIf(e -> filter.negate().test(e.getKey()));
         return all;
     }
 
+    /**
+     * Inspects the default constructor of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @return the default constructor if it exists
+     */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz) {
         return CodeModelAnalysis.getConstructor(clazz.implClass);
     }
 
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param argumentTypes
+     *            the constructor's signature types
+     * @return the specific value constructor if it exists
+     */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
         return CodeModelAnalysis.getConstructor(clazz.implClass, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param argumentTypes
+     *            the constructor's signature types
+     * @return the specific value constructor if it exists
+     */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final JType... argumentTypes) {
         return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
     }
 
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param properties
+     *            the properties indicating the constructor's signature types
+     * @return the specific value constructor if it exists
+     */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
         final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
         return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
     }
 
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @return the specific method if it exists
+     */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name) {
         return CodeModelAnalysis.getMethod(clazz.implClass, name);
     }
 
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param argumentTypes
+     *            the method's signature types
+     * @return the specific method if it exists
+     */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
         return CodeModelAnalysis.getMethod(clazz.implClass, name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param argumentTypes
+     *            the method's signature types
+     * @return the specific method if it exists
+     */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final JType... argumentTypes) {
         return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
     }
 
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param properties
+     *            the properties indicating the method's signature types
+     * @return the specific method if it exists
+     */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
         final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
         return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
     }
 
     /**
+     * Returns all declared fields and each according getter method of a given {@link ClassOutline class outline}.
+     *
      * The returned {@link LinkedHashMap} is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @return a map of all declared fields and according getter method
      */
     public static final LinkedHashMap<FieldOutline, JMethod> generatedGettersOf(final ClassOutline clazz) {
         final var getters = new LinkedHashMap<FieldOutline, JMethod>();
@@ -473,7 +576,13 @@ public enum OutlineAnalysis {
     }
 
     /**
+     * Returns all declared fields and each according setter method of a given {@link ClassOutline class outline}.
+     *
      * The returned {@link LinkedHashMap} is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @return a map of all declared fields and according setter method
      */
     public static final LinkedHashMap<FieldOutline, JMethod> generatedSettersOf(final ClassOutline clazz) {
         final var setters = new LinkedHashMap<FieldOutline, JMethod>();

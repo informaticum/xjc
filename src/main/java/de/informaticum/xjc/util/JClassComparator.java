@@ -12,11 +12,16 @@ import com.sun.codemodel.JClass;
 /**
  * In object oriented programming languages, the class hierarchy is a partially ordered set -- and this {@link Comparator} {@linkplain #sorted(Collection) sorts} any collection of
  * classes {@linkplain #compare(JClass, JClass) accordingly}.
+ *
+ * @see #INSTANCE
  */
 public enum JClassComparator
 implements Comparator<JClass> {
 
-    SINGLETON;
+    /**
+     * Singleton instance of {@link PackageOutlineComparator}.
+     */
+    INSTANCE;
 
     /**
      * @implNote This implementation compares two {@linkplain JClass classes}. In detail, a class {@code x} is declared smaller than another class {@code y} if it has less super
@@ -41,12 +46,14 @@ implements Comparator<JClass> {
      *
      * @param unsorted
      *            the unsorted collection of classes to sort
+     * @param <T>
+     *            the specific subtype of {@link JClass}
      * @return a list of classes, with all elements in order
      * @see #compare(JClass, JClass)
      */
     public final static <T extends JClass> List<T> sorted(final Collection<T> unsorted) {
         final var sorted = new ArrayList<>(unsorted);
-        Collections.sort(sorted, SINGLETON);
+        Collections.sort(sorted, INSTANCE);
         return sorted;
     }
 
@@ -55,6 +62,8 @@ implements Comparator<JClass> {
      *
      * @param unsorted
      *            the unsorted bunch of classes to sort
+     * @param <T>
+     *            the specific subtype of {@link JClass}
      * @return a list of classes, with all elements in order
      * @see #compare(JClass, JClass)
      */

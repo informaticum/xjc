@@ -51,14 +51,163 @@ public enum CodeModelAnalysis {
 
     private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing constructor/factory-method has been modified ;-(";
 
+    /**
+     * Syntactic sugar, actually just a synonym of {@link com.sun.codemodel.JExpr#_super()}.
+     */
     public static final JExpression $super = _super();
 
+    /**
+     * Syntactic sugar, actually just a synonym of {@link com.sun.codemodel.JExpr#_this()}.
+     */
     public static final JExpression $this = _this();
 
+    /**
+     * Syntactic sugar, actually just a synonym of {@link com.sun.codemodel.JExpr#_null()}.
+     */
     public static final JExpression $null = _null();
 
+    private static boolean hasModifier(final JMods mods, final int lookup) {
+        return (mods.getValue() & lookup) != 0;
+    }
+
+    /**
+     * Checks whether or not a given {@linkplain JMods modifier group} includes the {@link JMod#PUBLIC} value.
+     * 
+     * @param mods
+     *            the modifier group to analyse
+     * @return {@code true} iff the given modifier group includes {@code public}
+     * @see #isProtected(JMods)
+     * @see #isPrivate(JMods)
+     * @see #isFinal(JMods)
+     * @see #isStatic(JMods)
+     * @see JMods#isAbstract()
+     * @see JMods#isNative()
+     * @see JMods#isSynchronized()
+     * @see #isTransient(JMods)
+     * @see #isVolatile(JMods)
+     */
+    public static boolean isPublic(final JMods mods) {
+        return hasModifier(mods, JMod.PUBLIC);
+    }
+
+    /**
+     * Checks whether or not a given {@linkplain JMods modifier group} includes the {@link JMod#PROTECTED} value.
+     * 
+     * @param mods
+     *            the modifier group to analyse
+     * @return {@code true} iff the given modifier group includes {@code protected}
+     * @see #isPublic(JMods)
+     * @see #isPrivate(JMods)
+     * @see #isFinal(JMods)
+     * @see #isStatic(JMods)
+     * @see JMods#isAbstract()
+     * @see JMods#isNative()
+     * @see JMods#isSynchronized()
+     * @see #isTransient(JMods)
+     * @see #isVolatile(JMods)
+     */
+    public static boolean isProtected(final JMods mods) {
+        return hasModifier(mods, JMod.PROTECTED);
+    }
+
+    /**
+     * Checks whether or not a given {@linkplain JMods modifier group} includes the {@link JMod#PRIVATE} value.
+     * 
+     * @param mods
+     *            the modifier group to analyse
+     * @return {@code true} iff the given modifier group includes {@code private}
+     * @see #isPublic(JMods)
+     * @see #isProtected(JMods)
+     * @see #isFinal(JMods)
+     * @see #isStatic(JMods)
+     * @see JMods#isAbstract()
+     * @see JMods#isNative()
+     * @see JMods#isSynchronized()
+     * @see #isTransient(JMods)
+     * @see #isVolatile(JMods)
+     */
+    public static boolean isPrivate(final JMods mods) {
+        return hasModifier(mods, JMod.PRIVATE);
+    }
+
+    /**
+     * Checks whether or not a given {@linkplain JMods modifier group} includes the {@link JMod#FINAL} value.
+     * 
+     * @param mods
+     *            the modifier group to analyse
+     * @return {@code true} iff the given modifier group includes {@code final}
+     * @see #isPublic(JMods)
+     * @see #isProtected(JMods)
+     * @see #isPrivate(JMods)
+     * @see #isStatic(JMods)
+     * @see JMods#isAbstract()
+     * @see JMods#isNative()
+     * @see JMods#isSynchronized()
+     * @see #isTransient(JMods)
+     * @see #isVolatile(JMods)
+     */
     public static boolean isFinal(final JMods mods) {
-        return (mods.getValue() & JMod.FINAL) != 0;
+        return hasModifier(mods, JMod.FINAL);
+    }
+
+    /**
+     * Checks whether or not a given {@linkplain JMods modifier group} includes the {@link JMod#STATIC} value.
+     * 
+     * @param mods
+     *            the modifier group to analyse
+     * @return {@code true} iff the given modifier group includes {@code static}
+     * @see #isPublic(JMods)
+     * @see #isProtected(JMods)
+     * @see #isPrivate(JMods)
+     * @see #isFinal(JMods)
+     * @see JMods#isAbstract()
+     * @see JMods#isNative()
+     * @see JMods#isSynchronized()
+     * @see #isTransient(JMods)
+     * @see #isVolatile(JMods)
+     */
+    public static boolean isStatic(final JMods mods) {
+        return hasModifier(mods, JMod.STATIC);
+    }
+
+    /**
+     * Checks whether or not a given {@linkplain JMods modifier group} includes the {@link JMod#TRANSIENT} value.
+     * 
+     * @param mods
+     *            the modifier group to analyse
+     * @return {@code true} iff the given modifier group includes {@code transient}
+     * @see #isPublic(JMods)
+     * @see #isProtected(JMods)
+     * @see #isPrivate(JMods)
+     * @see #isFinal(JMods)
+     * @see #isStatic(JMods)
+     * @see JMods#isAbstract()
+     * @see JMods#isNative()
+     * @see JMods#isSynchronized()
+     * @see #isVolatile(JMods)
+     */
+    public static boolean isTransient(final JMods mods) {
+        return hasModifier(mods, JMod.TRANSIENT);
+    }
+
+    /**
+     * Checks whether or not a given {@linkplain JMods modifier group} includes the {@link JMod#VOLATILE} value.
+     * 
+     * @param mods
+     *            the modifier group to analyse
+     * @return {@code true} iff the given modifier group includes {@code volatile}
+     * @see #isPublic(JMods)
+     * @see #isProtected(JMods)
+     * @see #isPrivate(JMods)
+     * @see #isFinal(JMods)
+     * @see #isStatic(JMods)
+     * @see JMods#isAbstract()
+     * @see JMods#isNative()
+     * @see JMods#isSynchronized()
+     * @see #isTransient(JMods)
+     */
+    public static boolean isVolatile(final JMods mods) {
+        return hasModifier(mods, JMod.VOLATILE);
     }
 
     /**
@@ -345,6 +494,8 @@ public enum CodeModelAnalysis {
      *            the type to analyse
      * @param $expression
      *            the actual expression
+     * @param unmodifiableCollections
+     *            switch to turn on/off the collection clones as being unmodifiable
      * @return an {@link Optional} holding the clone expression for the actual expression if such clone expression exists; the {@linkplain Optional#empty() empty Optional}
      *         otherwise
      */
@@ -447,6 +598,8 @@ public enum CodeModelAnalysis {
      * 
      * @param $method
      *            the method/constructor to analyse
+     * @param exception
+     *            the exception type to look for 
      * @return {@code true} iff the method/constructor throws a specific exception type
      * @see #allThrows(JMethod)
      */
