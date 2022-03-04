@@ -96,6 +96,7 @@ extends BasePlugin {
         $equals.annotate(Override.class);
         javadocSection($equals).append(EQUALS_IMPLNOTE.format($other.name())); // No further method/@param Javadoc; will be inherited instead
         // 2/2: Implement
+        final var $Arrays = this.reference(Arrays.class);
         final var $Objects = this.reference(Objects.class);
         $equals.body()._if($other.eq($null))._then()._return(lit(false));
         $equals.body()._if($this.eq($other))._then()._return(lit(true));
@@ -111,7 +112,9 @@ extends BasePlugin {
                 if ($property.type().isPrimitive()) {
                     $comparisons.add($this.ref($property).eq($that.ref($property)));
                 } else {
-                    $comparisons.add($Objects.staticInvoke("equals").arg($this.ref($property)).arg($that.ref($property)));
+                    final var $comparing = $property.type().isArray() ? ($property.type().elementType().isPrimitive() ? $Arrays.staticInvoke("equals") : $Arrays.staticInvoke("deepEquals"))
+                                                                      : $Objects.staticInvoke("equals");
+                    $comparisons.add($comparing.arg($this.ref($property)).arg($that.ref($property)));
                 }
             }
         }
