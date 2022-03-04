@@ -22,10 +22,9 @@ implements ResourceBundleEntry {
     INITIALISATION_END,
     /* C.2. Javadoc Supply (@param, @throws, etc.) */
     PRIMITVE_ARGUMENT,
+    DEFAULTED_ARGUMENT,
     OPTIONAL_ARGUMENT,
     REQUIRED_ARGUMENT,
-    DEFAULTED_OPTIONAL_ARGUMENT,
-    DEFAULTED_REQUIRED_ARGUMENT,
     ILLEGAL_VALUE,
 
     ;

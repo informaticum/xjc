@@ -3,8 +3,7 @@ package de.informaticum.xjc.api;
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JOp.cond;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.DEFAULTED_OPTIONAL_ARGUMENT;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.DEFAULTED_REQUIRED_ARGUMENT;
+import static de.informaticum.xjc.api.AssignmentPluginMessages.DEFAULTED_ARGUMENT;
 import static de.informaticum.xjc.api.AssignmentPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
 import static de.informaticum.xjc.api.AssignmentPluginMessages.FIELD_INITIALISATION;
 import static de.informaticum.xjc.api.AssignmentPluginMessages.ILLEGAL_VALUE;
@@ -261,8 +260,6 @@ extends BasePlugin {
         if ($property.type().isPrimitive()) {
             javadocSection($setter.javadoc().addParam(property.getValue())).append(PRIMITVE_ARGUMENT.format(property.getValue().name()));
         } else if ($default.isPresent()) {
-            // TODO: Different Javadoc message for collection types?
-            final var DEFAULTED_ARGUMENT = isRequired(property.getKey()) ? DEFAULTED_REQUIRED_ARGUMENT : DEFAULTED_OPTIONAL_ARGUMENT;
             javadocSection($setter.javadoc().addParam(property.getValue())).append(DEFAULTED_ARGUMENT.format(property.getValue().name(), render($default.get())));
         } else if (isRequired(attribute)) {
             assertThat($default).isNotPresent();
