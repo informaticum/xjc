@@ -165,7 +165,8 @@ extends BasePlugin {
             final var $property = property.getValue();
             // TODO: Consider Arrays.deepToString()?
             // TODO: Chunk array string if too long?
-            final var $rendering = $property.type().isArray() ? $Arrays.staticInvoke("toString") : $Objects.staticInvoke("toString");
+            final var $rendering = $property.type().isArray() ? ($property.type().elementType().isPrimitive() ? $Arrays.staticInvoke("toString") : $Arrays.staticInvoke("deepToString"))
+                                                              : $Objects.staticInvoke("toString");
             $segments.add(lit(info.getName(true) + ": ").plus($rendering.arg($this.ref($property))));
         }
         if (clazz.getSuperClass() != null) {
