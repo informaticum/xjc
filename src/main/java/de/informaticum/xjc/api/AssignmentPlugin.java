@@ -256,21 +256,24 @@ extends BasePlugin {
     protected static final void accordingAssignmentJavadoc(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter,
                                                            final Optional<JExpression> $default) {
         final var attribute = property.getKey();
+        // TODO: skip Javadoc's encloserName if $setter is declared in the same class as the $property
+        final var encloserName = attribute.parent().implClass.binaryName();
         final var $property = property.getValue();
+        final var propertyName = $property.name();
         if ($property.type().isPrimitive()) {
-            javadocSection($setter.javadoc().addParam(property.getValue())).append(PRIMITVE_ARGUMENT.format(property.getValue().name()));
+            javadocSection($setter.javadoc().addParam($property)).append(PRIMITVE_ARGUMENT.format(encloserName, propertyName));
         } else if ($default.isPresent()) {
-            javadocSection($setter.javadoc().addParam(property.getValue())).append(DEFAULTED_ARGUMENT.format(property.getValue().name(), render($default.get())));
+            javadocSection($setter.javadoc().addParam($property)).append(DEFAULTED_ARGUMENT.format(encloserName, propertyName, render($default.get())));
         } else if (isRequired(attribute)) {
             assertThat($default).isNotPresent();
-            javadocSection($setter.javadoc().addParam(property.getValue())).append(REQUIRED_ARGUMENT.format(property.getValue().name()));
+            javadocSection($setter.javadoc().addParam($property)).append(REQUIRED_ARGUMENT.format(encloserName, propertyName));
             if ($setter.javadoc().addThrows(IllegalArgumentException.class).isEmpty()) {
                 javadocSection($setter.javadoc().addThrows(IllegalArgumentException.class)).append(ILLEGAL_VALUE.text());
             }
         } else {
             assertThat($default).isNotPresent();
             assertThat(isOptional(attribute)).isTrue();
-            javadocSection($setter.javadoc().addParam(property.getValue())).append(OPTIONAL_ARGUMENT.format(property.getValue().name()));
+            javadocSection($setter.javadoc().addParam($property)).append(OPTIONAL_ARGUMENT.format(encloserName, propertyName));
         }
     }
 
