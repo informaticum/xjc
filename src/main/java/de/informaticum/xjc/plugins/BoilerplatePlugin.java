@@ -22,6 +22,7 @@ import static de.informaticum.xjc.util.OutlineAnalysis.generatedPropertiesOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JInvocation;
 import com.sun.tools.xjc.outline.ClassOutline;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
@@ -68,14 +70,14 @@ extends BasePlugin {
 
     @Override
     public final boolean prepareRun() {
-        GENERATE_EQUALS.activates(GENERATE_HASHCODE);
+        GENERATE_EQUALS  .activates(GENERATE_HASHCODE);
         GENERATE_HASHCODE.activates(GENERATE_EQUALS);
         return true;
     }
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        GENERATE_EQUALS.doOnActivation(this::generateEquals, clazz);
+        GENERATE_EQUALS  .doOnActivation(this::generateEquals,   clazz);
         GENERATE_HASHCODE.doOnActivation(this::generateHashCode, clazz);
         GENERATE_TOSTRING.doOnActivation(this::generateToString, clazz);
         return true;
@@ -96,11 +98,11 @@ extends BasePlugin {
         $equals.annotate(Override.class);
         javadocSection($equals).append(EQUALS_IMPLNOTE.format($other.name())); // No further method/@param Javadoc; will be inherited instead
         // 2/2: Implement
-        final var $Arrays = this.reference(Arrays.class);
-        final var $Objects = this.reference(Objects.class);
         $equals.body()._if($other.eq($null))._then()._return(lit(false));
         $equals.body()._if($this.eq($other))._then()._return(lit(true));
-        $equals.body()._if(not($this.invoke("getClass").invoke("equals").arg($other.invoke("getClass"))))._then()._return(lit(false));
+        $equals.body()._if(not($this.invoke("getClass").invoke(equals).arg($other.invoke("getClass"))))._then()._return(lit(false));
+        final var $Arrays = this.reference(Arrays.class);
+        final var $Objects = this.reference(Objects.class);
         final var $comparisons = new ArrayList<JExpression>();
         if (clazz.getSuperClass() != null) {
             $comparisons.add($super.invoke(equals).arg($other));
@@ -110,11 +112,18 @@ extends BasePlugin {
             final var $that = $equals.body().decl(FINAL, $ImplClass, "that", cast($ImplClass, $other));
             for (final var $property : $properties) {
                 if ($property.type().isPrimitive()) {
+                    // compare primitive fields directly
                     $comparisons.add($this.ref($property).eq($that.ref($property)));
+                } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
+                    // invoke Arrays#equals(primitive[],primitive[]) comparison for arrays of primitive types
+                    $comparisons.add($Arrays.staticInvoke("equals").arg($this.ref($property)).arg($that.ref($property)));
+                } else if ($property.type().isArray()) {
+                    // invoke Arrays#deepEquals(Object[],Object[]) comparison for arrays of non-primitive types
+                    assertThat($property.type().elementType().isPrimitive()).isFalse();
+                    $comparisons.add($Arrays.staticInvoke("deepEquals").arg($this.ref($property)).arg($that.ref($property)));
                 } else {
-                    final var $comparing = $property.type().isArray() ? ($property.type().elementType().isPrimitive() ? $Arrays.staticInvoke("equals") : $Arrays.staticInvoke("deepEquals"))
-                                                                      : $Objects.staticInvoke("equals");
-                    $comparisons.add($comparing.arg($this.ref($property)).arg($that.ref($property)));
+                    // invoke Objects#equals(Object,Object) in any other case
+                    $comparisons.add($Objects.staticInvoke("equals").arg($this.ref($property)).arg($that.ref($property)));
                 }
             }
         }
@@ -134,15 +143,38 @@ extends BasePlugin {
         $hashCode.annotate(Override.class);
         javadocSection($hashCode).append(HASHCODE_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
         // 2/2: Implement
-        final var $Objects = this.reference(Objects.class);
-        final var $hash = $Objects.staticInvoke("hash");
+        final var $Arrays = this.reference(Arrays.class);
+        final var $hashes = new ArrayList<JInvocation>();
         if (clazz.getSuperClass() != null) {
-            $hash.arg($super.invoke(hashCode));
+            $hashes.add($super.invoke(hashCode));
         }
         for (final var $property : generatedPropertiesOf(clazz).values()) {
-            $hash.arg($this.ref($property));
+            if ($property.type().isPrimitive()) {
+                // invoke Primitivewrapper#hashCode(primitive) calculation for primitive fields
+                $hashes.add($property.type().boxify().staticInvoke("hashCode").arg($this.ref($property)));
+            } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
+                // invoke Arrays#hashCode(primitive[]) calculation for arrays of primitive types
+                $hashes.add($Arrays.staticInvoke("hashCode").arg($this.ref($property)));
+            } else if ($property.type().isArray()) {
+                // invoke Arrays#deepHashCode(Object[]) calculation for non-arrays of primitive types
+                assertThat($property.type().elementType().isPrimitive()).isFalse();
+                $hashes.add($Arrays.staticInvoke("deepHashCode").arg($this.ref($property)));
+            } else {
+                // invoke Object#hashCode() in any other case
+                $hashes.add($this.ref($property).invoke(hashCode));
+            }
         }
-        $hashCode.body()._return($hash.listArgs().length > 0 ? $hash : $this.invoke("getClass").invoke("hashCode"));
+        if ($hashes.isEmpty()) {
+            // if there is no hashCode source at all, calculate the class' hashCode
+            $hashCode.body()._return($this.invoke("getClass").invoke(hashCode));
+        } else if ($hashes.size() == 1) {
+            // if there is one calculation only, return this value immediately
+            $hashCode.body()._return($hashes.get(0));
+        } else {
+            // invoke Arrays#hashCode(int[]) in any other case
+            final var intArray = $hashes.stream().reduce(_new(this.codeModel().INT.array()), JInvocation::arg);
+            $hashCode.body()._return($Arrays.staticInvoke("hashCode").arg(intArray));
+        }
     }
 
     private final void generateToString(final ClassOutline clazz) {
@@ -161,22 +193,31 @@ extends BasePlugin {
         final var $Arrays = this.reference(Arrays.class);
         final var $Objects = this.reference(Objects.class);
         final var $StringJoiner = this.reference(StringJoiner.class);
-        final var $segments = new ArrayList<JExpression>();
+        final var $pieces = new ArrayList<JExpression>();
         for (final var property : generatedPropertiesOf(clazz).entrySet() /* TODO: Also consider constant fields */) {
             final var attribute = property.getKey();
             final var info = attribute.getPropertyInfo();
             final var $property = property.getValue();
-            // TODO: Consider Arrays.deepToString()?
-            // TODO: Chunk array string if too long?
-            final var $rendering = $property.type().isArray() ? ($property.type().elementType().isPrimitive() ? $Arrays.staticInvoke("toString") : $Arrays.staticInvoke("deepToString"))
-                                                              : $Objects.staticInvoke("toString");
-            $segments.add(lit(info.getName(true) + ": ").plus($rendering.arg($this.ref($property))));
+            if ($property.type().isPrimitive()) {
+                // invoke Primitivewrapper#toString(primitive) calculation for primitive fields
+                $pieces.add(lit(info.getName(true) + ": ").plus($property.type().boxify().staticInvoke("toString").arg($this.ref($property))));
+            } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
+                // invoke Arrays#toString(Object[]) calculation for arrays of primitive types
+                $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
+            } else if ($property.type().isArray()) {
+                assertThat($property.type().elementType().isPrimitive()).isFalse();
+                // invoke Arrays#deepToString(Object[]) calculation for arrays of primitive types
+                $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("deepToString").arg($this.ref($property))));
+            } else {
+                // invoke Objects#toString(Object) in any other case
+                $pieces.add(lit(info.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($property))));
+            }
         }
         if (clazz.getSuperClass() != null) {
-            $segments.add(lit("Super: ").plus($super.invoke(toString)));
+            $pieces.add(lit("Super: ").plus($super.invoke(toString)));
         }
         final var $joiner = _new($StringJoiner).arg(", ").arg($ImplClass.name() + "[").arg("]");
-        $toString.body()._return($segments.stream().reduce($joiner, ($partial, $segement) -> $partial.invoke("add").arg($segement)).invoke("toString"));
+        $toString.body()._return($pieces.stream().reduce($joiner, ($partial, $segement) -> $partial.invoke("add").arg($segement)).invoke("toString"));
     }
 
 }
