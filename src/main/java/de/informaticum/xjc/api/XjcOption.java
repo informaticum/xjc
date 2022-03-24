@@ -3,8 +3,8 @@ package de.informaticum.xjc.api;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.CustomizableOutline;
@@ -59,7 +59,7 @@ public abstract interface XjcOption {
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      */
     public default void doOnActivation(final Runnable execution) {
         if (this.isActivated()) {
@@ -71,7 +71,7 @@ public abstract interface XjcOption {
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param <R>
      *            the type of the action's result
      * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
@@ -85,104 +85,124 @@ public abstract interface XjcOption {
         }
     }
 
-    private <T> void doOnActivation(final Consumer<? super T> execution, final T arg, final String name) {
+    private <T, R> Optional<R> doOnActivation(final Function<? super T, ? extends R> execution, final T arg, final String name) {
         if (this.isActivated()) {
-            execution.accept(arg);
+            return Optional.ofNullable(execution.apply(arg));
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);
+            return Optional.empty();
         }
     }
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param clazz
      *            the execution's argument
      * @param <CO>
-     *            the type of the execution's argument
+     *            the type of the action's argument
+     * @param <R>
+     *            the type of the action's result
+     * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
      */
-    public default <CO extends CustomizableOutline> void doOnActivation(final Consumer<? super CO> execution, final CO clazz) {
-        this.doOnActivation(execution, clazz, fullNameOf(clazz));
+    public default <CO extends CustomizableOutline, R> Optional<R> doOnActivation(final Function<? super CO, ? extends R> execution, final CO clazz) {
+        return this.doOnActivation(execution, clazz, fullNameOf(clazz));
     }
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param pakkage
      *            the execution's argument
      * @param <PO>
-     *            the type of the execution's argument
+     *            the type of the action's argument
+     * @param <R>
+     *            the type of the action's result
+     * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
      */
-    public default <PO extends PackageOutline> void doOnActivation(final Consumer<? super PO> execution, final PO pakkage) {
-        this.doOnActivation(execution, pakkage, fullNameOf(pakkage));
+    public default <PO extends PackageOutline, R> Optional<R> doOnActivation(final Function<? super PO, ? extends R> execution, final PO pakkage) {
+        return this.doOnActivation(execution, pakkage, fullNameOf(pakkage));
     }
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param $type
      *            the execution's argument
      * @param <JT>
-     *            the type of the execution's argument
+     *            the type of the action's argument
+     * @param <R>
+     *            the type of the action's result
+     * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
      */
-    public default <JT extends JType> void doOnActivation(final Consumer<? super JT> execution, final JT $type) {
-        this.doOnActivation(execution, $type, $type.fullName());
+    public default <JT extends JType, R> Optional<R> doOnActivation(final Function<? super JT, ? extends R> execution, final JT $type) {
+        return this.doOnActivation(execution, $type, $type.fullName());
     }
 
-    private <T, U> void doOnActivation(final BiConsumer<? super T, ? super U> execution, final T arg1, final U arg2, final String name) {
+    private <T, P, R> Optional<R> doOnActivation(final BiFunction<? super T, ? super P, ? extends R> execution, final T arg, final P param, final String name) {
         if (this.isActivated()) {
-            execution.accept(arg1, arg2);
+            return Optional.ofNullable(execution.apply(arg, param));
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);
+            return Optional.empty();
         }
     }
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param clazz
-     *            the execution's first argument
+     *            the execution's argument
      * @param <CO>
-     *            the type of the execution's first argument
+     *            the type of the action's argument
      * @param param
      *            the execution's second argument
      * @param <P>
-     *            the type of the execution's second argument
+     *            the type of the action's second argument
+     * @param <R>
+     *            the type of the action's result
+     * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
      */
-    public default <CO extends CustomizableOutline, P> void doOnActivation(final BiConsumer<? super CO, ? super P> execution, final CO clazz, final P param) {
-        this.doOnActivation(execution, clazz, param, fullNameOf(clazz));
+    public default <CO extends CustomizableOutline, P, R> Optional<R> doOnActivation(final BiFunction<? super CO, ? super P, ? extends R> execution, final CO clazz, final P param) {
+        return this.doOnActivation(execution, clazz, param, fullNameOf(clazz));
     }
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param pakkage
-     *            the execution's first argument
+     *            the execution's argument
      * @param <PO>
-     *            the type of the execution's first argument
+     *            the type of the action's argument
      * @param param
      *            the execution's second argument
      * @param <P>
-     *            the type of the execution's second argument
+     *            the type of the action's second argument
+     * @param <R>
+     *            the type of the action's result
+     * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
      */
-    public default <PO extends PackageOutline, P> void doOnActivation(final BiConsumer<? super PO, ? super P> execution, final PO pakkage, final P param) {
-        this.doOnActivation(execution, pakkage, param, fullNameOf(pakkage));
+    public default <PO extends PackageOutline, P, R> Optional<R> doOnActivation(final BiFunction<? super PO, ? super P, ? extends R> execution, final PO pakkage, final P param) {
+        return this.doOnActivation(execution, pakkage, param, fullNameOf(pakkage));
     }
 
     /**
      * @param execution
-     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param $type
-     *            the execution's first argument
+     *            the execution's argument
      * @param <JT>
-     *            the type of the execution's first argument
+     *            the type of the action's argument
      * @param param
      *            the execution's second argument
      * @param <P>
-     *            the type of the execution's second argument
+     *            the type of the action's second argument
+     * @param <R>
+     *            the type of the action's result
+     * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
      */
-    public default <JT extends JType, P> void doOnActivation(final BiConsumer<? super JT, ? super P> execution, final JT $type, final P param) {
-        this.doOnActivation(execution, $type, param, $type.fullName());
+    public default <JT extends JType, P, R> Optional<R> doOnActivation(final BiFunction<? super JT, ? super P, ? extends R> execution, final JT $type, final P param) {
+        return this.doOnActivation(execution, $type, param, $type.fullName());
     }
 
 }
