@@ -370,6 +370,7 @@ public enum CodeModelAnalysis {
             assertThat(emptyList()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("emptyList");
         } else {
+            // TODO: Optional<T> instead of IllegalArgumentException
             throw new IllegalArgumentException("There is no empty-collection instance of type " + $type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
@@ -402,6 +403,7 @@ public enum CodeModelAnalysis {
             assertThat(new ArrayList<>()).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(ArrayList.class).narrow(DIAMOND));
         } else {
+            // TODO: Optional<T> instead of IllegalArgumentException
             throw new IllegalArgumentException("There is no default-collection instance of type " + $type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
@@ -434,6 +436,7 @@ public enum CodeModelAnalysis {
             assertThat(new ArrayList<>(emptyList())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return _new(model.ref(ArrayList.class).narrow(DIAMOND));
         } else {
+            // TODO: Optional<T> instead of IllegalArgumentException
             throw new IllegalArgumentException("There is no copy-collection factory for type " + $type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
@@ -467,6 +470,7 @@ public enum CodeModelAnalysis {
             assertThat(unmodifiableCollection(emptyList())).withFailMessage(UNEXPECTED_MODIFICATION).isEmpty();
             return $Collections.staticInvoke("unmodifiableCollection");
         } else {
+            // TODO: Optional<T> instead of IllegalArgumentException
             throw new IllegalArgumentException("There is no unmodifiable-view-collection factory for type " + $type);
         }
         // TODO: Handle <a href="https://docs.oracle.com/javase/tutorial/jaxb/intro/custom.html">jxb:globalBindings collectionType="java.util.Vector</a> accordingly
