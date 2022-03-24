@@ -513,8 +513,21 @@ public enum CodeModelAnalysis {
         } else if (isCollectionType($type)) {
             // TODO: Cloning the collection's elements (a.k.a. deep clone instead of shallow copy)
             return Optional.of(unmodifiableCollections ? unmodifiableViewFactoryFor($type).arg($expression) : copyFactoryFor($type).arg($expression));
-        // TODO } else if (copy-constructor?) {
-        // TODO } else if (copy-factory-method (in some util class)?) {
+// TODO } else if ($type instanceof JDefinedClass /* copy-constructor? */) {
+//          final var $class = (JDefinedClass) $type;O
+//          final var model = $type.owner();
+//          final var $AnonymousUnary = model.anonymousClass(model.ref(UnaryOperator.class).narrow($class));
+//          final var $apply = $AnonymousUnary.method(JMod.PUBLIC, $class, "apply");
+//          $apply.annotate(Override.class);
+//          $apply.javadoc().append("@implNote This implementation queries the actual class and tries to invoke the copy constructor. If no such constructor exists or cannot be invoked for any reason, the origin value is returned.");
+//          final var $arg = $apply.param($type, "arg");
+//          final var $reflectiveInvocation = $apply.body()._try();
+//          $reflectiveInvocation.body()._return($arg.invoke("getClass").invoke("getConstructor").arg($arg.invoke("getClass")).invoke("newInstance").arg($arg));
+//          final var $fallback = $reflectiveInvocation._catch(model.ref(Exception.class));
+//          $fallback.param("any").mods().setFinal(true);
+//          $fallback.body()._return($arg);
+//          return Optional.of(JExpr._new($AnonymousUnary).invoke("apply").arg($expression));
+// TODO } else if (copy-factory-method (in some util class)?) {
         }
         return Optional.empty();
     }
