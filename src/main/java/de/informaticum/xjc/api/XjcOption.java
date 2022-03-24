@@ -2,8 +2,10 @@ package de.informaticum.xjc.api;
 
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
@@ -64,6 +66,22 @@ public abstract interface XjcOption {
             execution.run();
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}], because it has not been activated.", this.getArgument());
+        }
+    }
+
+    /**
+     * @param execution
+     *            any action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
+     * @param <R>
+     *            the type of the action's result
+     * @return the result of the action if {@code this} XJC option is activated, an {@link Optional#empty() empty Optional} otherwise
+     */
+    public default <R> Optional<R> doOnActivation(final Supplier<? extends R> execution) {
+        if (this.isActivated()) {
+            return Optional.ofNullable(execution.get());
+        } else {
+            getLogger(XjcOption.class).trace("Skip execution of XJC option [{}], because it has not been activated.", this.getArgument());
+            return Optional.empty();
         }
     }
 
