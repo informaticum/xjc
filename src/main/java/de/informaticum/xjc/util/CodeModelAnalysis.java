@@ -5,23 +5,34 @@ import static com.sun.codemodel.JExpr._null;
 import static com.sun.codemodel.JExpr._super;
 import static com.sun.codemodel.JExpr._this;
 import static com.sun.codemodel.JExpr.cast;
+import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptyNavigableSet;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.emptySortedSet;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableNavigableSet;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Collections.unmodifiableSortedSet;
+import static java.util.Spliterator.DISTINCT;
+import static java.util.Spliterator.NONNULL;
+import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -30,9 +41,13 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import com.sun.codemodel.JClass;
+import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JGenerable;
 import com.sun.codemodel.JInvocation;
@@ -533,6 +548,45 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Looks for a constructor that has an empty method signature and returns it.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class) {
+        return getConstructor($Class, new JType[0]);
+    }
+
+    /**
+     * Looks for a constructor that has the specified method signature and returns it.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param $fields
+     *            the array of fields to be considered as constructor arguments
+     * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JFieldVar... $fields) {
+        final var $types = Arrays.stream($fields).map(JFieldVar::type).toArray(JType[]::new);
+        return getConstructor($Class, $types);
+    }
+
+    /**
+     * Looks for a constructor that has the specified method signature and returns it.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param $fields
+     *            the collection of fields to be considered as constructor arguments
+     * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final Collection<? extends JFieldVar> $fields) {
+        final var $types = $fields.stream().map(JFieldVar::type).toArray(JType[]::new);
+        return getConstructor($Class, $types);
+    }
+
+    /**
      * Looks for a constructor that has the specified method signature and returns it.
      *
      * @param $Class
@@ -548,6 +602,19 @@ public enum CodeModelAnalysis {
             $constructor = $Class.getConstructor(erasure($argumentTypes));
         }
         return Optional.ofNullable($constructor);
+    }
+
+    /**
+     * Looks for all constructors that matches a specific predicate.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param filter
+     *            the predicate to use when filtering the list of all constructors
+     * @return a list of all constructor matching the given predicate
+     */
+    public static final List<JMethod> getConstructors(final JDefinedClass $Class, final Predicate<? super JMethod> filter) {
+        return stream(spliteratorUnknownSize($Class.constructors(), DISTINCT | NONNULL), false).filter(filter).collect(toList());
     }
 
     /**
@@ -571,6 +638,21 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Looks for an embedded class and returns it.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param name
+     *            the name of the embedded class to look for
+     * @return an {@link Optional} holding the embedded class if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JDefinedClass> getEmbeddedClass(final JDefinedClass $Class, final String name) {
+        final var embedded = stream(spliteratorUnknownSize($Class.classes(), DISTINCT | NONNULL), false).filter(c -> name.equals(c.name())).collect(toList());
+        assertThat(embedded).hasSizeBetween(0, 1);
+        return (embedded.isEmpty()) ? Optional.empty() : Optional.of(embedded.get(0)); 
+    }
+
+    /**
      * Checks whether or not the return type of a given {@linkplain JMethod method} is an {@linkplain #isOptionalType(JType) optional type}.
      * 
      * @param $method
@@ -590,6 +672,23 @@ public enum CodeModelAnalysis {
      */
     public static final boolean isCollectionMethod(final JMethod $method) {
         return isCollectionType($method.type());
+    }
+
+    /**
+     * As far as I can see a given {@link JMethod} does not tell about its enclosing class; Thus, this helper method reflectively inspects that enclosing class.
+     * 
+     * @param $method
+     *            the method to analyse
+     * @return the enclosing class
+     */
+    public static final JDefinedClass enclosingClass(final JMethod $method) {
+        try {
+            final var internalOuter = JMethod.class.getDeclaredField("outer");
+            internalOuter.setAccessible(true);
+            return (JDefinedClass) internalOuter.get($method);
+        } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
+            throw new RuntimeException(seriousProblem);
+        }
     }
 
     /**
@@ -625,6 +724,73 @@ public enum CodeModelAnalysis {
     }
 
     /**
+     * Returns the (reflectively inspected) current {@link JDocComment} of the given {@link JMethod}. To be exact, it does not call the side-effect-containing
+     * {@link JMethod#javadoc()}.
+     * 
+     * @param $method
+     *            the method to analyse
+     * @return the current {@link JDocComment} if existing
+     */
+    public static final Optional<JDocComment> currentJavadoc(final JMethod $method) {
+        try {
+            final var internalJavadoc = JMethod.class.getDeclaredField("jdoc");
+            internalJavadoc.setAccessible(true);
+            final var $javadoc = (JDocComment) internalJavadoc.get($method);
+            return Optional.ofNullable($javadoc);
+        } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
+            throw new RuntimeException(seriousProblem);
+        }
+    }
+
+    /**
+     * Returns the (reflectively inspected) the current {@code @param} map of the given {@link JMethod}'s Javadoc. To be exact, it does not call the side-effect-containing
+     * {@link JMethod#javadoc()}.
+     * 
+     * @param $method
+     *            the method to analyse
+     * @return the current {@code @param} map
+     */
+    public static final Map<String, JCommentPart> allJavadocParams(final JMethod $method) {
+        final var javadoc = currentJavadoc($method);
+        if (javadoc.isPresent()) {
+            try {
+                final var internalJavadocParams = JDocComment.class.getDeclaredField("atParams");
+                internalJavadocParams.setAccessible(true);
+                final var $javadocParams = (Map<String,JCommentPart>) internalJavadocParams.get(javadoc.get());
+                return unmodifiableMap($javadocParams);
+            } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
+                throw new RuntimeException(seriousProblem);
+            }
+        } else {
+            return emptyMap(); 
+        }
+    }
+
+    /**
+     * Returns the (reflectively inspected) current {@code @throws} map of the given {@link JMethod}'s Javadoc. To be exact, it does not call the side-effect-containing
+     * {@link JMethod#javadoc()}.
+     * 
+     * @param $method
+     *            the method to analyse
+     * @return the current {@code @throws} map
+     */
+    public static final Map<JClass,JCommentPart> allJavadocThrows(final JMethod $method) {
+        final var javadoc = currentJavadoc($method);
+        if (javadoc.isPresent()) {
+            try {
+                final var internalJavadocParams = JDocComment.class.getDeclaredField("atThrows");
+                internalJavadocParams.setAccessible(true);
+                final var $javadocParams = (Map<JClass,JCommentPart>) internalJavadocParams.get(javadoc.get());
+                return unmodifiableMap($javadocParams);
+            } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
+                throw new RuntimeException(seriousProblem);
+            }
+        } else {
+            return emptyMap(); 
+        }
+    }
+
+    /**
      * @param $component
      *            the requested code component
      * @return the according Java code (generated by the component itself)
@@ -634,6 +800,52 @@ public enum CodeModelAnalysis {
         final var out = new StringWriter();
         $component.generate(new JFormatter(out));
         return out.toString();
+    }
+
+    /**
+     * Returns the fully-qualified Javadoc name of the given type. Nested classes will be written as {@code de.package.OuterClass.NestedClass}, generic types (e.g.,
+     * {@code java.util.Collection<String>} will be erased (e.g., {@code java.util.Collection}).
+     *
+     * @param $type
+     *            the requested type
+     * @return the fully-qualified Javadoc name of the given type
+     */
+    public static final String javadocNameOf(final JType $type) {
+        return $type.erasure().fullName();
+    }
+
+    /**
+     * Returns the simple Javadoc name of the given type. Nested classes will be written as {@code NestedClass}, generic types (e.g.,
+     * {@code java.util.Collection<String>} will be erased (e.g., {@code Collection}).
+     *
+     * @param $type
+     *            the requested type
+     * @return the simple Javadoc name of the given type
+     */
+    public static final String javadocSimpleNameOf(final JType $type) {
+        return $type.erasure().name();
+    }
+
+    /**
+     * Returns the parameter-including Javadoc name of the given method. (Does not include the class-prefix of the enclosing class.)
+     *
+     * @param $method
+     *            the requested method
+     * @return the parameter-including Javadoc name of the given method
+     */
+    public static final String javadocNameOf(final JMethod $method) {
+        return $method.name() + "(" + join(",", stream($method.listParamTypes()).map(CodeModelAnalysis::javadocNameOf).collect(toList())) + ")"; 
+    }
+
+    /**
+     * Returns the Javadoc name of the given field. (Does not include the class-prefix of the enclosing class.)
+     *
+     * @param $field
+     *            the requested field
+     * @return the Javadoc name of the given field
+     */
+    public static final String javadocNameOf(final JFieldVar $field) {
+        return $field.name();
     }
 
 }
