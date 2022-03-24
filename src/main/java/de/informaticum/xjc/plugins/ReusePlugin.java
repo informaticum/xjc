@@ -5,12 +5,14 @@ import static de.informaticum.xjc.plugins.ReusePluginMessages.PUBLIC_QNAMES_IMPL
 import static de.informaticum.xjc.plugins.ReusePluginMessages.REUSE_QNAMES_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocSection;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JFieldVar;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
 import org.slf4j.Logger;
@@ -40,15 +42,16 @@ extends BasePlugin {
         return true;
     }
 
-    private final void publicifyQNames(final JDefinedClass $Factory) {
+    private final List<JFieldVar> publicifyQNames(final JDefinedClass $Factory) {
         final var $QName = this.reference(QName.class);
-        $Factory.fields().values().stream()
-                .filter($field -> $QName.isAssignableFrom($field.type().boxify()))
-                .forEach($qNameField -> {
-                    LOG.info(PUBLIC_QNAME, $Factory.fullName(), $qNameField.name());
-                    javadocSection($qNameField).append(PUBLIC_QNAMES_IMPLNOTE.text());
-                    $qNameField.mods().setPublic();
-                });
+        final var $fields = $Factory.fields().values();
+        final var $qNameFields = $fields.stream().filter($field -> $QName.isAssignableFrom($field.type().boxify()));
+        final var $modified = $qNameFields.peek($q -> {
+            LOG.info(PUBLIC_QNAME, $Factory.fullName(), $q.name());
+            javadocSection($q).append(PUBLIC_QNAMES_IMPLNOTE.text());
+            $q.mods().setPublic();
+        });
+        return $modified.collect(toList());
     }
 
 }
