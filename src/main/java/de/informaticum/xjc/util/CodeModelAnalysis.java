@@ -601,11 +601,11 @@ public enum CodeModelAnalysis {
      */
     public static final Set<JClass> allThrows(final JMethod $method) {
         try {
-            final var internalBodyField = JMethod.class.getDeclaredField("_throws");
-            internalBodyField.setAccessible(true);
-            final var $throws = (Set<JClass>) internalBodyField.get($method);
-            return $throws == null ? emptySet() : unmodifiableSet($throws);
-        } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
+            final var internalThrowsSet = JMethod.class.getDeclaredMethod("getThrows");
+            internalThrowsSet.setAccessible(true);
+            final var $throws = (Set<JClass>) internalThrowsSet.invoke($method);
+            return unmodifiableSet($throws);
+        } catch (final IllegalArgumentException | IllegalAccessException | NoSuchMethodException | InvocationTargetException | SecurityException seriousProblem) {
             throw new RuntimeException(seriousProblem);
         }
     }
