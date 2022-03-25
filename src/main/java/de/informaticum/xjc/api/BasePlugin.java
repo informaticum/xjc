@@ -92,15 +92,16 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     }
 
     private final void sayHi(final Consumer<? super String> sink) {
-        sink.accept(       "#################################################################################");
-        sink.accept(       "### Hey JAXB/JAX-WS user,"                                                        );
-        sink.accept(       "### you are using one of the informaticum's XJC plugins, i.e., the:"              );
-        sink.accept(format("###   - %s (%s),", this.getOptionName(), this.getOptionDescription())             );
-        sink.accept(       "### If you appreciate it, let me know at:"                                        );
-        sink.accept(       "###   - mailto:xjc@informaticum.de"                                               );
-        sink.accept(       "### If you have any improvement or feature suggestion, feel free to add these at:");
-        sink.accept(       "###   - https://github.com/informaticum/xjc"                                      );
-        sink.accept(       "#################################################################################");
+        sink.accept(       "########################################################################");
+        sink.accept(       "### Hey JAXB/JAX-WS user,"                                               );
+        sink.accept(       "### you are using one of the informaticum's XJC plugins, i.e., the:"     );
+        sink.accept(format("###   - %s (%s),", this.getOptionName(), this.getOptionDescription())    );
+        sink.accept(       "### If you appreciate it, let me know at:"                               );
+        sink.accept(       "###   - mailto:xjc@informaticum.de"                                      );
+        sink.accept(       "### If you have any improvement or feature suggestion, feel free to"     );
+        sink.accept(       "### add these at:"                                                       );
+        sink.accept(       "###   - https://github.com/informaticum/xjc"                             );
+        sink.accept(       "########################################################################");
     }
 
     /**
