@@ -1,12 +1,16 @@
 package de.informaticum.xjc.util;
 
+import static de.informaticum.xjc.util.CodeModelAnalysis.allJavadocParams;
+import static de.informaticum.xjc.util.CodeModelAnalysis.allJavadocThrows;
 import static de.informaticum.xjc.util.CodeModelAnalysis.allThrows;
 import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JVar;
 
 /**
  * Util class (technically a non-instantiable enum container) to provide some helper functions for refactoring the generated code.
@@ -132,6 +136,8 @@ public enum CodeRetrofit {
         relayThrows($origin, $caller, null);
     }
 
+    public static final String COPY_JAVADOC = "###-Copy-Javadoc-Marker-###";
+
     /**
      * Adds {@linkplain de.informaticum.xjc.util.CodeModelAnalysis#allThrows(JMethod) all thrown exception types} of the origin method/constructor into the calling
      * method/constructor.
@@ -141,15 +147,37 @@ public enum CodeRetrofit {
      * @param $caller
      *            the calling method/constructor
      * @param reason
-     *            the Javadoc message to append for each relayed exception type (may be {@code null} to skip Javadoc appending)
+     *            the Javadoc message to append for each relayed exception type (may be {@code null} to copy the origin Javadoc message)
      */
     public static final void relayThrows(final JMethod $origin, final JMethod $caller, final String reason) {
+        final var javadocThrows = allJavadocThrows($origin);
         for (final var $throwable : allThrows($origin)) {
             $caller._throws($throwable);
-            if (reason != null) {
+            if (reason == null) {
+                // do not copy Javadoc
+            } else if (COPY_JAVADOC.equals(reason)) {
+                assertThat(javadocThrows).containsKey($throwable);
+                $caller.javadoc().addThrows($throwable).addAll($origin.javadoc().addThrows($throwable));
+            } else {
                 $caller.javadoc().addThrows($throwable).append(reason);
             }
         }
+    }
+
+    /**
+     * Adds a specific parameter's {@code @param}-Javadoc description of the origin method/constructor into the calling method/constructor.
+     *
+     * @param $origin
+     *            the origin method/constructor
+     * @param $caller
+     *            the calling method/constructor
+     * @param $param
+     *            the parameter to look for
+     */
+    public static final void relayParamDoc(final JMethod $origin, final JMethod $caller, final JVar $param) {
+        final var javadocParams = allJavadocParams($origin);
+        assertThat(javadocParams).containsKey($param.name());
+        $caller.javadoc().addParam($param).addAll($origin.javadoc().addParam($param));
     }
 
 }
