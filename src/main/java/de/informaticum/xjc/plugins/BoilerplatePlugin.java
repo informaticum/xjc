@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.outline.ClassOutline;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
@@ -83,11 +84,12 @@ extends BasePlugin {
         return true;
     }
 
-    private final void generateEquals(final ClassOutline clazz) {
+    private final JMethod generateEquals(final ClassOutline clazz) {
         // 0/2: Preliminary
-        if (getMethod(clazz, equals, Object.class).isPresent()) {
+        final var $preliminaryLookup = getMethod(clazz, equals, Object.class);
+        if ($preliminaryLookup.isPresent()) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
-            return;
+            return $preliminaryLookup.get();
         }
         // 1/2: Create
         LOG.info(GENERATE_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE);
@@ -128,13 +130,15 @@ extends BasePlugin {
             }
         }
         $equals.body()._return($comparisons.stream().reduce(JExpression::cand).orElse(lit(true)));
+        return $equals;
     }
 
-    private final void generateHashCode(final ClassOutline clazz) {
+    private final JMethod generateHashCode(final ClassOutline clazz) {
         // 0/2: Preliminary
-        if (getMethod(clazz, hashCode).isPresent()) {
+        final var $preliminaryLookup = getMethod(clazz, hashCode);
+        if ($preliminaryLookup.isPresent()) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
-            return;
+            return $preliminaryLookup.get();
         }
         // 1/2: Create
         LOG.info(GENERATE_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE);
@@ -175,13 +179,15 @@ extends BasePlugin {
             final var intArray = $hashes.stream().reduce(_new(this.codeModel().INT.array()), JInvocation::arg);
             $hashCode.body()._return($Arrays.staticInvoke("hashCode").arg(intArray));
         }
+        return $hashCode;
     }
 
-    private final void generateToString(final ClassOutline clazz) {
+    private final JMethod generateToString(final ClassOutline clazz) {
         // 0/2: Preliminary
-        if (getMethod(clazz, toString).isPresent()) {
+        final var $preliminaryLookup = getMethod(clazz, toString);
+        if ($preliminaryLookup.isPresent()) {
             LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
-            return;
+            return $preliminaryLookup.get();
         }
         // 1/2: Create
         LOG.info(GENERATE_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE);
@@ -218,6 +224,7 @@ extends BasePlugin {
         }
         final var $joiner = _new($StringJoiner).arg(", ").arg($ImplClass.name() + "[").arg("]");
         $toString.body()._return($pieces.stream().reduce($joiner, ($partial, $segement) -> $partial.invoke("add").arg($segement)).invoke("toString"));
+        return $toString;
     }
 
 }
