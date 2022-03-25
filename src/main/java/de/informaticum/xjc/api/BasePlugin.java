@@ -106,11 +106,11 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     /**
      * This method is called by {@link #run(Outline, Options, ErrorHandler)}. Can be overridden.
      *
-     * @see #prepareRun() 1. prepares the run
-     * @see #runPackage(PackageOutline) 2.a. runs each package (in lexicological order of the package name)
-     * @see #runObjectFactory(JDefinedClass) 2.b. runs each object factory (in lexicological order of the according package name)
-     * @see #runClass(ClassOutline) 3. runs each class (in order of the class hierarchy)
-     * @see #runEnum(EnumOutline) 4. runs each enum class (in order of the class hierarchy, effectively in lexicological order of the class name)
+     * @see #prepareRun() 1. prepare the run
+     * @see #runPackage(PackageOutline) 2.a. run each package (in lexicological order of the package name)
+     * @see #runObjectFactory(JDefinedClass) 2.b. run each object factory (in lexicological order of the according package name)
+     * @see #runClass(ClassOutline) 3. run each class (in order of the class hierarchy)
+     * @see #runEnum(EnumOutline) 4. run each enum class (in order of the class hierarchy, effectively in lexicological order of the class name)
      * @return {@code true} if the add-on executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
      * @throws SAXException
      *             indication of a fatal irrecoverable error, thrown by any of the sub-methods
