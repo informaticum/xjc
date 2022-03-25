@@ -199,6 +199,8 @@ extends BasePlugin {
         final var $Arrays = this.reference(Arrays.class);
         final var $Objects = this.reference(Objects.class);
         final var $StringJoiner = this.reference(StringJoiner.class);
+// TODO: Print char[] as String immediately? (1/2)
+//      final var $String = this.reference(String.class);
         final var $pieces = new ArrayList<JExpression>();
         for (final var property : generatedPropertiesOf(clazz).entrySet() /* TODO: Also consider constant fields */) {
             final var attribute = property.getKey();
@@ -207,6 +209,10 @@ extends BasePlugin {
             if ($property.type().isPrimitive()) {
                 // invoke Primitivewrapper#toString(primitive) calculation for primitive fields
                 $pieces.add(lit(info.getName(true) + ": ").plus($property.type().boxify().staticInvoke("toString").arg($this.ref($property))));
+// TODO: Print char[] as String immediately? (2/2)
+//          } else if ($property.type().isArray() && (this.codeModel().CHAR.compareTo($property.type().elementType()) == 0)) {
+//              // invoke String#valueOf(char[]) calculation for char arrays
+//              $pieces.add(lit(info.getName(true) + ": ").plus($String.staticInvoke("valueOf").arg($this.ref($property))));
             } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
                 // invoke Arrays#toString(Object[]) calculation for arrays of primitive types
                 $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
