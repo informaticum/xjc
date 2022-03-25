@@ -8,9 +8,11 @@ import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
@@ -55,6 +57,18 @@ public enum OutlineAnalysis {
      */
     public static final String fullNameOf(final CustomizableOutline type) {
         return type.getImplClass().fullName();
+    }
+
+    /**
+     * Returns the fully-qualified Javadoc name of the given {@linkplain CustomizableOutline type}. Nested classes will be written as {@code de.package.OuterClass.NestedClass},
+     * generic types (e.g., {@code java.util.Collection<String>} will be erased (e.g., {@code java.util.Collection}).
+     *
+     * @param type
+     *            the requested type
+     * @return the fully-qualified Javadoc name of the given type
+     */
+    public static final String javadocNameOf(final CustomizableOutline type) {
+        return CodeModelAnalysis.javadocNameOf(type.getImplClass());
     }
 
     /**
@@ -504,6 +518,19 @@ public enum OutlineAnalysis {
     }
 
     /**
+     * Looks for all constructors that matches a specific predicate.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param filter
+     *            the predicate to use when filtering the list of all constructors
+     * @return a list of all constructor matching the given predicate
+     */
+    public static final List<JMethod> getConstructors(final ClassOutline clazz, final Predicate<? super JMethod> filter) {
+        return CodeModelAnalysis.getConstructors(clazz.implClass, filter);
+    }
+
+    /**
      * Inspects a specific method of the given class.
      *
      * @param clazz
@@ -621,6 +648,19 @@ public enum OutlineAnalysis {
             }
         }
         return setters;
+    }
+
+    /**
+     * Looks for an embedded class and returns it.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param name
+     *            the name of the embedded class to look for
+     * @return an {@link Optional} holding the embedded class if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JDefinedClass> getEmbeddedClass(final ClassOutline clazz, final String name) {
+        return CodeModelAnalysis.getEmbeddedClass(clazz.implClass, name);
     }
 
 }
