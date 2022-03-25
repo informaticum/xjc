@@ -62,6 +62,12 @@ import com.sun.codemodel.JType;
 public enum CodeModelAnalysis {
     ;
 
+    /*pkg*/ static final String ATTHROWS_FIELD = "atThrows";
+    /*pkg*/ static final String ATPARAMS_FIELD = "atParams";
+    /*pkg*/ static final String GETTHROWS_METHOD = "getThrows";
+    /*pkg*/ static final String JDOC_FIELD = "jdoc";
+    /*pkg*/ static final String OUTER_FIELD = "outer";
+
     private static final Class<?>[] DIAMOND = {};
 
     private static final String UNEXPECTED_MODIFICATION = "WTF! The long-time existing constructor/factory-method has been modified ;-(";
@@ -683,7 +689,7 @@ public enum CodeModelAnalysis {
      */
     public static final JDefinedClass enclosingClass(final JMethod $method) {
         try {
-            final var internalOuter = JMethod.class.getDeclaredField("outer");
+            final var internalOuter = JMethod.class.getDeclaredField(OUTER_FIELD);
             internalOuter.setAccessible(true);
             return (JDefinedClass) internalOuter.get($method);
         } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
@@ -700,7 +706,7 @@ public enum CodeModelAnalysis {
      */
     public static final Set<JClass> allThrows(final JMethod $method) {
         try {
-            final var internalThrowsSet = JMethod.class.getDeclaredMethod("getThrows");
+            final var internalThrowsSet = JMethod.class.getDeclaredMethod(GETTHROWS_METHOD);
             internalThrowsSet.setAccessible(true);
             final var $throws = (Set<JClass>) internalThrowsSet.invoke($method);
             return unmodifiableSet($throws);
@@ -733,7 +739,7 @@ public enum CodeModelAnalysis {
      */
     public static final Optional<JDocComment> currentJavadoc(final JMethod $method) {
         try {
-            final var internalJavadoc = JMethod.class.getDeclaredField("jdoc");
+            final var internalJavadoc = JMethod.class.getDeclaredField(JDOC_FIELD);
             internalJavadoc.setAccessible(true);
             final var $javadoc = (JDocComment) internalJavadoc.get($method);
             return Optional.ofNullable($javadoc);
@@ -754,7 +760,7 @@ public enum CodeModelAnalysis {
         final var javadoc = currentJavadoc($method);
         if (javadoc.isPresent()) {
             try {
-                final var internalJavadocParams = JDocComment.class.getDeclaredField("atParams");
+                final var internalJavadocParams = JDocComment.class.getDeclaredField(ATPARAMS_FIELD);
                 internalJavadocParams.setAccessible(true);
                 final var $javadocParams = (Map<String,JCommentPart>) internalJavadocParams.get(javadoc.get());
                 return unmodifiableMap($javadocParams);
@@ -778,7 +784,7 @@ public enum CodeModelAnalysis {
         final var javadoc = currentJavadoc($method);
         if (javadoc.isPresent()) {
             try {
-                final var internalJavadocParams = JDocComment.class.getDeclaredField("atThrows");
+                final var internalJavadocParams = JDocComment.class.getDeclaredField(ATTHROWS_FIELD);
                 internalJavadocParams.setAccessible(true);
                 final var $javadocParams = (Map<JClass,JCommentPart>) internalJavadocParams.get(javadoc.get());
                 return unmodifiableMap($javadocParams);
