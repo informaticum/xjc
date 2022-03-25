@@ -173,6 +173,11 @@ public enum OutlineAnalysis {
     public static final String CREATE = "create";
 
     /**
+     * @see #guessBuilderName(ClassOutline)
+     */
+    public static final String BUILDER = "Builder";
+
+    /**
      * @see #guessGetterName(FieldOutline)
      * @see com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()
      */
@@ -333,6 +338,20 @@ public enum OutlineAnalysis {
      */
     public static final String guessFactoryName(final ClassOutline clazz) {
         return CREATE + clazz.target.getSqueezedName();
+    }
+
+    /**
+     * Guesses the name of the according embedded builder class for a given class. Returns {@value #BUILDER} in general. However, different names are essential because nested type
+     * {@code XYZ} cannot hide an enclosing type {@code XYZ}. Thus, in the very rare case where the class name equals the embedded builder's name, the return value of this method
+     * gets prefixed with the class name.
+     * 
+     * @param clazz
+     *            the given class
+     * @return the name of the according builder class
+     */
+    public static final String guessBuilderName(final ClassOutline clazz) {
+        final var prefix = BUILDER.equals(clazz.implClass.name()) ? clazz.implClass.name() : "";
+        return prefix + BUILDER;
     }
 
     /*
