@@ -593,7 +593,7 @@ public enum OutlineAnalysis {
             final var $setterLookup = getMethod(clazz, setterName, $property.type());
             if ($setterLookup.isPresent()) {
                 final var $setter = $setterLookup.get();
-                assertThat($setter.type()).isEqualTo(clazz.implClass.owner().VOID);
+                assertThat($setter.type()).isEqualByComparingTo(clazz.implClass.owner().VOID);
                 setters.put(attribute, $setter);
             } else if (attribute.getPropertyInfo().isCollection()) {
                 LOG.info("Expectedly, there is no setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
