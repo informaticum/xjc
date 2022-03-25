@@ -156,7 +156,7 @@ extends BasePlugin {
                 // invoke Arrays#hashCode(primitive[]) calculation for arrays of primitive types
                 $hashes.add($Arrays.staticInvoke("hashCode").arg($this.ref($property)));
             } else if ($property.type().isArray()) {
-                // invoke Arrays#deepHashCode(Object[]) calculation for non-arrays of primitive types
+                // invoke Arrays#deepHashCode(Object[]) calculation for arrays of non-primitive types
                 assertThat($property.type().elementType().isPrimitive()).isFalse();
                 $hashes.add($Arrays.staticInvoke("deepHashCode").arg($this.ref($property)));
             } else {
@@ -205,8 +205,8 @@ extends BasePlugin {
                 // invoke Arrays#toString(Object[]) calculation for arrays of primitive types
                 $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
             } else if ($property.type().isArray()) {
+                // invoke Arrays#deepToString(Object[]) calculation for arrays of non-primitive types
                 assertThat($property.type().elementType().isPrimitive()).isFalse();
-                // invoke Arrays#deepToString(Object[]) calculation for arrays of primitive types
                 $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("deepToString").arg($this.ref($property))));
             } else {
                 // invoke Objects#toString(Object) in any other case
