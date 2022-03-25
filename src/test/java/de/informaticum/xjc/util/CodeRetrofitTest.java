@@ -14,10 +14,10 @@ public class CodeRetrofitTest {
         assertThat(JMethod.class).withFailMessage("This assertion checks if the JMethod class still has a field with name %s. " +
                                                   "If this fails, the implementation of CodeRetrofit must be adopted.", BODY_FIELD)
                                  .hasDeclaredFields(BODY_FIELD);
-        final var internalBodyField = JMethod.class.getDeclaredField(BODY_FIELD);
-        assertThat(isPrivate(internalBodyField.getModifiers())).withFailMessage("This assertion checks if the %s field of JMethod is still private. " +
-                                                                                "If this fails, the implementation of CodeRetrofit most likely should be adopted.", BODY_FIELD)
-                                                               .isTrue();
+        final var inspected = JMethod.class.getDeclaredField(BODY_FIELD);
+        assertThat(isPrivate(inspected.getModifiers())).withFailMessage("This assertion checks if the %s field of JMethod is still private. " +
+                                                                        "If this fails, the implementation of CodeRetrofit most likely should be adopted.", BODY_FIELD)
+                                                       .isTrue();
     }
 
 }
