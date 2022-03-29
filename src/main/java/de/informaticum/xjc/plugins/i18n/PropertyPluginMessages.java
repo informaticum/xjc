@@ -80,7 +80,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    private static final ResourceBundle RB = getBundle(PropertyPluginMessages.class.getName());
+    private static final ResourceBundle RB = getBundle(PropertyPluginMessages.class.getName().replace(".i18n.", ".l10n."));
 
     @Override
     public final ResourceBundle bundle() {

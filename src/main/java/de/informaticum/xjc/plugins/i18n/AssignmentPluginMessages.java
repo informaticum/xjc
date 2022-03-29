@@ -31,7 +31,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    private static final ResourceBundle RB = getBundle(AssignmentPluginMessages.class.getName());
+    private static final ResourceBundle RB = getBundle(AssignmentPluginMessages.class.getName().replace(".i18n.", ".l10n."));
 
     @Override
     public final ResourceBundle bundle() {

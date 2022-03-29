@@ -27,7 +27,7 @@ implements ResourceBundleEntry {
 
     ;
 
-    private static final ResourceBundle RB = getBundle(BoilerplatePluginMessages.class.getName());
+    private static final ResourceBundle RB = getBundle(BoilerplatePluginMessages.class.getName().replace(".i18n.", ".l10n."));
 
     @Override
     public final ResourceBundle bundle() {
