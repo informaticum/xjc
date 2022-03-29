@@ -325,9 +325,12 @@ extends AssignmentPlugin {
         final var $blueprint = $constructor.param(FINAL, $ImplClass, "blueprint");
         javadocSection($constructor.javadoc().addParam($blueprint)).append(CONSTRUCTOR_BLUEPRINT_ARGUMENT.text());
         // (A) Firstly, call super constructor:
-        superClass.ifPresent(sc -> $constructor.body().invoke("super").arg($blueprint));
+        if (superClass.isPresent()) {
+            $constructor.body().invoke("super").arg($blueprint);
+        } else {
+            $constructor.body()._if($blueprint.eq($null))._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required argument 'blueprint' must not be null!")));
+        }
         $constructor._throws(IllegalArgumentException.class);
-        $constructor.body()._if($blueprint.eq($null))._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required argument 'blueprint' must not be null!")));
         javadocSection($constructor.javadoc().addThrows(IllegalArgumentException.class)).append(CONSTRUCTOR_ILLEGAL_BLUEPRINT.text());
         // (B) Secondly, initialise all declared fields:
         final var fields = generatedPropertiesOf(clazz).entrySet();
@@ -521,7 +524,9 @@ extends AssignmentPlugin {
             $builder.body()._return(_new($Builder));
         }
         // (A.3++) Implement blueprint constructor's parameter validation
-        $builderBlueprintConstructor.body()._if($blueprintParam.eq($null))._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required argument 'blueprint' must not be null!")));
+        if (superClazz == null) {
+            $builderBlueprintConstructor.body()._if($blueprintParam.eq($null))._then()._throw(_new(this.reference(IllegalArgumentException.class)).arg(lit("Required argument 'blueprint' must not be null!")));
+        }
         $builderBlueprintConstructor._throws(IllegalArgumentException.class);
         javadocSection($builderBlueprintConstructor.javadoc().addThrows(IllegalArgumentException.class)).append(BUILDER_ILLEGAL_BLUEPRINT.text());
         // 4/5: Handle declared fields
