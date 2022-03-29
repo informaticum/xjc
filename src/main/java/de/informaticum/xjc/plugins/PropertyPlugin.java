@@ -111,7 +111,6 @@ import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.api.AssignmentPlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
 import de.informaticum.xjc.api.ResourceBundleEntry;
 import de.informaticum.xjc.util.CodeModelAnalysis;

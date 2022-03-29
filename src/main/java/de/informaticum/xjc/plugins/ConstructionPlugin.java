@@ -127,10 +127,8 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.api.AssignmentPlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
 import de.informaticum.xjc.util.CodeModelAnalysis;
-import de.informaticum.xjc.util.CodeRetrofit;
 import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
 

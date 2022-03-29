@@ -1,7 +1,6 @@
-package de.informaticum.xjc.api;
+package de.informaticum.xjc.plugins;
 
 import static java.util.Arrays.asList;
-import de.informaticum.xjc.plugins.ResourceBundleKeyTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;

@@ -1,19 +1,19 @@
-package de.informaticum.xjc.api;
+package de.informaticum.xjc.plugins;
 
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JOp.cond;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.DEFAULTED_ARGUMENT;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.FIELD_INITIALISATION;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.ILLEGAL_VALUE;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.INITIALISATION_BEGIN;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.INITIALISATION_END;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.NOTNULL_COLLECTIONS_DESCRIPTION;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.OPTIONAL_ARGUMENT;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.PRIMITVE_ARGUMENT;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.REQUIRED_ARGUMENT;
-import static de.informaticum.xjc.api.AssignmentPluginMessages.UNMODIFIABLE_COLLECTIONS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.DEFAULTED_ARGUMENT;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.FIELD_INITIALISATION;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.ILLEGAL_VALUE;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.INITIALISATION_BEGIN;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.INITIALISATION_END;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.NOTNULL_COLLECTIONS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.OPTIONAL_ARGUMENT;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.PRIMITVE_ARGUMENT;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.REQUIRED_ARGUMENT;
+import static de.informaticum.xjc.plugins.AssignmentPluginMessages.UNMODIFIABLE_COLLECTIONS_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.cloneExpressionFor;
@@ -38,6 +38,8 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.FieldOutline;
+import de.informaticum.xjc.api.BasePlugin;
+import de.informaticum.xjc.api.CommandLineArgument;
 import de.informaticum.xjc.util.OutlineAnalysis;
 
 /**

@@ -1,7 +1,8 @@
-package de.informaticum.xjc.api;
+package de.informaticum.xjc.plugins;
 
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
+import de.informaticum.xjc.api.ResourceBundleEntry;
 
 /**
  * Enumeration of all i18n messages used by the {@link AssignmentPlugin}.
