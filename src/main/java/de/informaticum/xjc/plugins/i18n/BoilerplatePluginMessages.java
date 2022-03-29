@@ -1,28 +1,33 @@
-package de.informaticum.xjc.plugins;
+package de.informaticum.xjc.plugins.i18n;
 
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
+import de.informaticum.xjc.plugins.BoilerplatePlugin;
 
 /**
- * Enumeration of all i18n messages used by the {@link ReusePlugin}.
+ * Enumeration of all i18n messages used by the {@link BoilerplatePlugin}.
  */
-public enum ReusePluginMessages
+public enum BoilerplatePluginMessages
 implements ResourceBundleEntry {
 
     /* A. Description of the XJC Plugin */
     OPTION_DESCRIPTION,
 
     /* B. Description of the XJC Plugin's Options */
-    REUSE_QNAMES_DESCRIPTION,
+    GENERATE_EQUALS_DESCRIPTION,
+    GENERATE_HASHCODE_DESCRIPTION,
+    GENERATE_TOSTRING_DESCRIPTION,
 
     /* C.1. Main Javadoc Contents */
-    PUBLIC_QNAMES_IMPLNOTE,
+    EQUALS_IMPLNOTE,
+    HASHCODE_IMPLNOTE,
+    TOSTRING_IMPLNOTE,
     /* C.2. Javadoc Supply (@param, @throws, etc.) */
 
     ;
 
-    private static final ResourceBundle RB = getBundle(ReusePluginMessages.class.getName());
+    private static final ResourceBundle RB = getBundle(BoilerplatePluginMessages.class.getName());
 
     @Override
     public final ResourceBundle bundle() {

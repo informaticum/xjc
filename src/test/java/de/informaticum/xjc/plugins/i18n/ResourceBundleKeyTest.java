@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugins;
+package de.informaticum.xjc.plugins.i18n;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;

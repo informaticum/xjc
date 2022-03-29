@@ -1,8 +1,9 @@
-package de.informaticum.xjc.plugins;
+package de.informaticum.xjc.plugins.i18n;
 
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
+import de.informaticum.xjc.plugins.PropertyPlugin;
 
 /**
  * Enumeration of all i18n messages used by the {@link PropertyPlugin}.

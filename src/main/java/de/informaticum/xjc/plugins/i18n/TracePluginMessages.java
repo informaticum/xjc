@@ -1,32 +1,27 @@
-package de.informaticum.xjc.plugins;
+package de.informaticum.xjc.plugins.i18n;
 
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
+import de.informaticum.xjc.plugins.TracePlugin;
 
 /**
- * Enumeration of all i18n messages used by the {@link BoilerplatePlugin}.
+ * Enumeration of all i18n messages used by the {@link TracePlugin}.
  */
-public enum BoilerplatePluginMessages
+public enum TracePluginMessages
 implements ResourceBundleEntry {
 
     /* A. Description of the XJC Plugin */
     OPTION_DESCRIPTION,
 
     /* B. Description of the XJC Plugin's Options */
-    GENERATE_EQUALS_DESCRIPTION,
-    GENERATE_HASHCODE_DESCRIPTION,
-    GENERATE_TOSTRING_DESCRIPTION,
 
     /* C.1. Main Javadoc Contents */
-    EQUALS_IMPLNOTE,
-    HASHCODE_IMPLNOTE,
-    TOSTRING_IMPLNOTE,
     /* C.2. Javadoc Supply (@param, @throws, etc.) */
 
     ;
 
-    private static final ResourceBundle RB = getBundle(BoilerplatePluginMessages.class.getName());
+    private static final ResourceBundle RB = getBundle(TracePluginMessages.class.getName());
 
     @Override
     public final ResourceBundle bundle() {

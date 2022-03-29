@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugins;
+package de.informaticum.xjc.plugins.i18n;
 
 import static java.util.Arrays.asList;
 import org.junit.runner.RunWith;
@@ -7,19 +7,19 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class ReusePluginMessagesTest
-extends ResourceBundleKeyTest<ReusePluginMessages> {
+public class PropertyPluginMessagesTest
+extends ResourceBundleKeyTest<PropertyPluginMessages> {
 
     @Parameters(name = "{0}")
-    public static Iterable<ReusePluginMessages> keys() {
-        return asList(ReusePluginMessages.values());
+    public static Iterable<PropertyPluginMessages> keys() {
+        return asList(PropertyPluginMessages.values());
     }
 
     @Parameter(0)
-    public ReusePluginMessages key;
+    public PropertyPluginMessages key;
 
     @Override
-    protected ReusePluginMessages getSUT() {
+    protected PropertyPluginMessages getSUT() {
         return this.key;
     }
 
