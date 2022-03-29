@@ -389,14 +389,15 @@ extends AssignmentPlugin {
     private final void addInterface(final ClassOutline clazz, final Class<?> interfaceClass) {
         // 0/1: Preliminary
         final var $ImplClass = clazz.implClass;
+        final var $InterfaceClass = this.reference(interfaceClass);
         assertThat(interfaceClass).isInterface();
-        if (this.reference(interfaceClass).isAssignableFrom($ImplClass)) {
+        if ($InterfaceClass.isAssignableFrom($ImplClass)) {
             LOG.warn(SKIP_INTERFACE, interfaceClass, fullNameOf(clazz));
             return;
         }
         // 1/1: Modify
         LOG.info(ADD_INTERFACE, interfaceClass, fullNameOf(clazz));
-        javadocSection($ImplClass).append(IMPLEMENTS_IMPLNOTE.format(javadocNameOf(clazz)));
+        javadocSection($ImplClass).append(IMPLEMENTS_IMPLNOTE.format(javadocNameOf($InterfaceClass)));
         $ImplClass._implements(interfaceClass);
     }
 
