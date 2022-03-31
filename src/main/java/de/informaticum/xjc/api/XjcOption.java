@@ -32,12 +32,8 @@ public abstract interface XjcOption {
      */
     public default XjcOption or(final XjcOption other) {
         return new XjcOption() {
-            @Override public final String getArgument() {
-                return XjcOption.this.getArgument() + "||" + other.getArgument();
-            }
-            @Override public final boolean isActivated() {
-                return XjcOption.this.isActivated() || other.isActivated();
-            }
+            @Override public final String  getArgument() { return "(" + XjcOption.this.getArgument() + "||" + other.getArgument() + ")"; }
+            @Override public final boolean isActivated() { return       XjcOption.this.isActivated()    ||    other.isActivated();       }
         };
     }
 
@@ -48,12 +44,8 @@ public abstract interface XjcOption {
      */
     public default XjcOption and(final XjcOption other) {
         return new XjcOption() {
-            @Override public final String getArgument() {
-                return XjcOption.this.getArgument() + "&&" + other.getArgument();
-            }
-            @Override public final boolean isActivated() {
-                return XjcOption.this.isActivated() && other.isActivated();
-            }
+            @Override public final String  getArgument() { return "(" + XjcOption.this.getArgument() + "&&" + other.getArgument() + ")"; }
+            @Override public final boolean isActivated() { return       XjcOption.this.isActivated()    &&    other.isActivated();       }
         };
     }
 
