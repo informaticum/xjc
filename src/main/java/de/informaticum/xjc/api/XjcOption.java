@@ -131,9 +131,9 @@ public abstract interface XjcOption {
         return this.doOnActivation(execution, $type, $type.fullName());
     }
 
-    private <T, P, R> Optional<R> doOnActivation(final BiFunction<? super T, ? super P, ? extends R> execution, final T arg, final P param, final String name) {
+    private <T, P, R> Optional<R> doOnActivation(final BiFunction<? super T, ? super P, ? extends R> execution, final T arg0, final P arg1, final String name) {
         if (this.isActivated()) {
-            return Optional.ofNullable(execution.apply(arg, param));
+            return Optional.ofNullable(execution.apply(arg0, arg1));
         } else {
             getLogger(XjcOption.class).trace("Skip execution of XJC option [{}] for [{}], because it has not been activated.", this.getArgument(), name);
             return Optional.empty();
