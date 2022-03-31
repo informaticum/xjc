@@ -44,7 +44,7 @@ public abstract interface XjcOption {
     /**
      * @param other
      *            the other XJC option
-     * @return a logical AND'ed XJC option that is active if either {@code this} and the {@code other} XJC option is active
+     * @return a logical AND'ed XJC option that is active if both {@code this} and the {@code other} XJC option is active
      */
     public default XjcOption and(final XjcOption other) {
         return new XjcOption() {
@@ -152,9 +152,9 @@ public abstract interface XjcOption {
      * @param execution
      *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param clazz
-     *            the execution's argument
+     *            the execution's first argument
      * @param <CO>
-     *            the type of the action's argument
+     *            the type of the action's first argument
      * @param param
      *            the execution's second argument
      * @param <P>
@@ -171,9 +171,9 @@ public abstract interface XjcOption {
      * @param execution
      *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param pakkage
-     *            the execution's argument
+     *            the execution's first argument
      * @param <PO>
-     *            the type of the action's argument
+     *            the type of the action's first argument
      * @param param
      *            the execution's second argument
      * @param <P>
@@ -190,9 +190,9 @@ public abstract interface XjcOption {
      * @param execution
      *            an action to be executed if {@code this} XJC option {@linkplain #isActivated() is activated}
      * @param $type
-     *            the execution's argument
+     *            the execution's first argument
      * @param <JT>
-     *            the type of the action's argument
+     *            the type of the action's first argument
      * @param param
      *            the execution's second argument
      * @param <P>

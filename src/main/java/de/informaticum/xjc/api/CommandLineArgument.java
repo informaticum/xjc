@@ -49,7 +49,7 @@ implements XjcOption {
     }
 
     /**
-     * Parses an option {@code arguments[index]} and augment the {@code options} object appropriately, then return the number of tokens consumed.
+     * Parses an option {@code arguments[index]} and augment the {@code options} object appropriately, then return the number of consumed tokens.
      *
      * @param options
      *            the options to augment
