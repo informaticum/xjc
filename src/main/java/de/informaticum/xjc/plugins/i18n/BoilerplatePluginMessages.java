@@ -19,11 +19,10 @@ implements ResourceBundleEntry {
     GENERATE_HASHCODE_DESCRIPTION,
     GENERATE_TOSTRING_DESCRIPTION,
 
-    /* C.1. Main Javadoc Contents */
+    /* C. Main Javadoc Contents and Javadoc Supply (@param, @throws, etc.) */
     EQUALS_IMPLNOTE,
     HASHCODE_IMPLNOTE,
     TOSTRING_IMPLNOTE,
-    /* C.2. Javadoc Supply (@param, @throws, etc.) */
 
     ;
 

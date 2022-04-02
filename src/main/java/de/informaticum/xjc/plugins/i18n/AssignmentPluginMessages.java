@@ -18,11 +18,10 @@ implements ResourceBundleEntry {
     UNMODIFIABLE_COLLECTIONS_DESCRIPTION,
     DEFENSIVE_COPIES_DESCRIPTION,
 
-    /* C.1. Main Javadoc Contents */
+    /* C. Main Javadoc Contents and Javadoc Supply (@param, @throws, etc.) */
     INITIALISATION_BEGIN,
     FIELD_INITIALISATION,
     INITIALISATION_END,
-    /* C.2. Javadoc Supply (@param, @throws, etc.) */
     PRIMITVE_ARGUMENT,
     DEFAULTED_ARGUMENT,
     OPTIONAL_ARGUMENT,

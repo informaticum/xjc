@@ -16,8 +16,7 @@ implements ResourceBundleEntry {
 
     /* B. Description of the XJC Plugin's Options */
 
-    /* C.1. Main Javadoc Contents */
-    /* C.2. Javadoc Supply (@param, @throws, etc.) */
+    /* C. Main Javadoc Contents and Javadoc Supply (@param, @throws, etc.) */
 
     ;
 

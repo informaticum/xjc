@@ -25,7 +25,7 @@ implements ResourceBundleEntry {
     REMOVE_SETTERS_DESCRIPTION,
     FINAL_SETTERS_DESCRIPTION,
 
-    /* C.1. Main Javadoc Contents */
+    /* C. Main Javadoc Contents and Javadoc Supply (@param, @throws, etc.) */
     PRIVATE_FIELD_IMPLNOTE,
     FINAL_FIELD_IMPLNOTE,
     FINAL_GETTER_IMPLNOTE,
@@ -64,7 +64,7 @@ implements ResourceBundleEntry {
     ORBUILTIN_IMPLNOTE,
     COLLECTION_SETTER_JAVADOC,
     COLLECTION_SETTER_IMPLNOTE,
-    /* C.2. Javadoc Supply (@param, @throws, etc.) */
+
     STRAIGHT_VALUE_RETURN,
     STRAIGHT_DEFAULTED_VALUE_RETURN,
     STRAIGHT_COLLECTION_RETURN,

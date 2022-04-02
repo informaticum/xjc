@@ -17,9 +17,8 @@ implements ResourceBundleEntry {
     /* B. Description of the XJC Plugin's Options */
     REUSE_QNAMES_DESCRIPTION,
 
-    /* C.1. Main Javadoc Contents */
+    /* C. Main Javadoc Contents and Javadoc Supply (@param, @throws, etc.) */
     PUBLIC_QNAMES_IMPLNOTE,
-    /* C.2. Javadoc Supply (@param, @throws, etc.) */
 
     ;
 
