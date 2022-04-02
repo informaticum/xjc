@@ -24,7 +24,7 @@ public abstract interface ResourceBundleEntry {
     public abstract ResourceBundle bundle();
 
     /**
-     * @implNote Before the message is formatted, the current implementation compresses all space-sequence within the origin resource bundle entry's {@link String} value (i.e.,
+     * @implNote Before the message is formatted, the current implementation compresses all space-sequences within the origin resource bundle entry's {@link String} value (i.e.,
      *           replaces all {@code "\u0020+"} with {@code "\u0020"}).
      * @param arguments
      *            all arguments to be used for {@link MessageFormat#format(String, Object...)}.
