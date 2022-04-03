@@ -32,8 +32,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldRef;
-import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.outline.ClassOutline;
 import de.informaticum.xjc.api.BasePlugin;
@@ -152,46 +150,44 @@ extends BasePlugin {
         // 3/4: Document
         javadocSection($hashCode).append(HASHCODE_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
         // 4/4: Implement
+        final var $int = this.codeModel().INT;
+        final var $Object = this.reference(Object.class);
         final var $Arrays = this.reference(Arrays.class);
-        final var $hashFields = new ArrayList<JFieldRef>();
-        final var $hashes = new ArrayList<JInvocation>();
+        final var $Objects = this.reference(Objects.class);
+        final var $straightHashFields = _new($Object.array());
+        final var $hashCodeArgs = _new($int.array());
         if (clazz.getSuperClass() != null) {
-            $hashes.add($super.invoke(hashCode));
+            $hashCodeArgs.arg($super.invoke(hashCode));
         }
         for (final var $property : generatedPropertiesOf(clazz).values()) {
             if ($property.type().isPrimitive()) {
                 // invoke Primitivewrapper#hashCode(primitive) calculation for primitive fields
-                $hashes.add($property.type().boxify().staticInvoke("hashCode").arg($this.ref($property)));
+                $hashCodeArgs.arg($property.type().boxify().staticInvoke("hashCode").arg($this.ref($property)));
             } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
                 // invoke Arrays#hashCode(primitive[]) calculation for arrays of primitive types
-                $hashes.add($Arrays.staticInvoke("hashCode").arg($this.ref($property)));
+                $hashCodeArgs.arg($Arrays.staticInvoke("hashCode").arg($this.ref($property)));
             } else if ($property.type().isArray()) {
                 // invoke Arrays#deepHashCode(Object[]) calculation for arrays of non-primitive types
                 assertThat($property.type().elementType().isPrimitive()).isFalse();
-                $hashes.add($Arrays.staticInvoke("deepHashCode").arg($this.ref($property)));
+                $hashCodeArgs.arg($Arrays.staticInvoke("deepHashCode").arg($this.ref($property)));
             } else {
                 // collect this non-primitive field as an argument for subsequent Objects#hash(Object...) in any other case
-                $hashFields.add($this.ref($property));
+                $straightHashFields.arg($this.ref($property));
             }
         }
-        if (!$hashFields.isEmpty()) {
+        if ($straightHashFields.listArgs().length > 0) {
             // invoke Objects#hash(Object...) calculation for non-primitive fields
-            final var $Object = this.reference(Object.class);
-            final var objArray = $hashFields.stream().reduce(_new($Object.array()), JInvocation::arg, JInvocation::arg);
-            final var $Objects = this.reference(Objects.class);
-            $hashes.add($Objects.staticInvoke("hash").arg(objArray));
+            $hashCodeArgs.arg($Objects.staticInvoke("hash").arg($straightHashFields));
         }
-        if ($hashes.isEmpty()) {
-            // if there is no hashCode source at all, calculate the class' hashCode
+        if ($hashCodeArgs.listArgs().length == 0) {
+            // if there is no hashCode argument at all, calculate the class' hashCode
             $hashCode.body()._return($this.invoke("getClass").invoke(hashCode));
-        } else if ($hashes.size() == 1) {
+        } else if ($hashCodeArgs.listArgs().length == 1) {
             // if there is one calculation only, return this value immediately
-            $hashCode.body()._return($hashes.get(0));
+            $hashCode.body()._return($hashCodeArgs.listArgs()[0]);
         } else {
             // invoke Arrays#hashCode(int[]) in any other case
-            final var $int = this.codeModel().INT;
-            final var intArray = $hashes.stream().reduce(_new($int.array()), JInvocation::arg);
-            $hashCode.body()._return($Arrays.staticInvoke("hashCode").arg(intArray));
+            $hashCode.body()._return($Arrays.staticInvoke("hashCode").arg($hashCodeArgs));
         }
         return $hashCode;
     }
@@ -215,35 +211,34 @@ extends BasePlugin {
         final var $Arrays = this.reference(Arrays.class);
         final var $Objects = this.reference(Objects.class);
         final var $StringJoiner = this.reference(StringJoiner.class);
-        final var $pieces = new ArrayList<JExpression>();
+        var $pieces = _new($StringJoiner).arg(", ").arg($ImplClass.name() + "[").arg("]");
         for (final var property : generatedPropertiesOf(clazz).entrySet() /* TODO: Also consider constant fields */) {
             final var attribute = property.getKey();
             final var info = attribute.getPropertyInfo();
             final var $property = property.getValue();
             if ($property.type().isPrimitive()) {
                 // invoke Primitivewrapper#toString(primitive) calculation for primitive fields
-                $pieces.add(lit(info.getName(true) + ": ").plus($property.type().boxify().staticInvoke("toString").arg($this.ref($property))));
+                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($property.type().boxify().staticInvoke("toString").arg($this.ref($property))));
 // TODO: Print char[] as String immediately?
 //          } else if ($property.type().isArray() && (this.codeModel().CHAR.compareTo($property.type().elementType()) == 0)) {
 //              // invoke String#valueOf(char[]) calculation for char arrays
-//              $pieces.add(lit(info.getName(true) + ": ").plus(this.reference(String.class).staticInvoke("valueOf").arg($this.ref($property))));
+//              $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus(this.reference(String.class).staticInvoke("valueOf").arg($this.ref($property))));
             } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
                 // invoke Arrays#toString(Object[]) calculation for arrays of primitive types
-                $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
+                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
             } else if ($property.type().isArray()) {
                 // invoke Arrays#deepToString(Object[]) calculation for arrays of non-primitive types
                 assertThat($property.type().elementType().isPrimitive()).isFalse();
-                $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("deepToString").arg($this.ref($property))));
+                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("deepToString").arg($this.ref($property))));
             } else {
                 // invoke Objects#toString(Object) in any other case
-                $pieces.add(lit(info.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($property))));
+                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($property))));
             }
         }
         if (clazz.getSuperClass() != null) {
-            $pieces.add(lit("Super: ").plus($super.invoke(toString)));
+            $pieces = $pieces.invoke("add").arg(lit("Super: ").plus($super.invoke(toString)));
         }
-        final var $joiner = _new($StringJoiner).arg(", ").arg($ImplClass.name() + "[").arg("]");
-        $toString.body()._return($pieces.stream().reduce($joiner, ($partial, $segement) -> $partial.invoke("add").arg($segement)).invoke("toString"));
+        $toString.body()._return($pieces.invoke(toString));
         return $toString;
     }
 
