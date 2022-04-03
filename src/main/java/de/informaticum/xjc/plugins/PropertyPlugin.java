@@ -2,7 +2,6 @@ package de.informaticum.xjc.plugins;
 
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.PUBLIC;
-import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.plugins.BoilerplatePlugin.BECAUSE_METHOD_ALREADY_EXISTS;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTER_IMPLNOTE;
@@ -13,34 +12,8 @@ import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_GETT
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_GETTER_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_SETTER_IMPLNOTE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.GETTER_JAVADOC_END;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.HINT_DEFAULTED_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.HINT_DEFAULTED_UNMODIFIABLE_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.HINT_DEFENSIVE_COPY_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.HINT_EMPTY_COLLECTION_CONTAINER;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.HINT_LIVE_REFERENCE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.HINT_NULLABLE_VALUE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.HINT_UNMODIFIABLE_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_DEFAULTED_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_DEFAULTED_VALUE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_DEFENSIVE_COPY_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_EMPTY_CONTAINER;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_LIVE_REFERENCE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_LIVE_REFERENCE_CONTAINER;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_NULLABLE_VALUE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_OPTIONAL_VALUE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_REQUIRED_VALUE;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_UNMODIFIABLE_COLLECTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.NOTE_UNMODIFIABLE_COLLECTION_CONTAINER;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_COLLECTION_RETURN;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_GETTERS_DESCRIPTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_GETTER_JAVADOC_BEGIN;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_ORDEFAULT_DESCRIPTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_UNMODIFIABLE_COLLECTION_RETURN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC_BEGIN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_VALUE_RETURN;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTION_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORBUILTIN_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORBUILTIN_JAVADOC;
@@ -55,28 +28,13 @@ import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REFACTORED
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REFACTORED_GETTER_IMPLNOTE_OUTRO;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REMOVED_SETTERS_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REMOVE_SETTERS_DESCRIPTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_COLLECTION_OR_EMPTY_RETURN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_COLLECTION_RETURN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_DEFAULTED_VALUE_RETURN;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_GETTERS_DESCRIPTION;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_GETTER_JAVADOC_BEGIN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_VALUE_RETURN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_OR_EMPTY_RETURN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.UNMODIFIABLE_COLLECTION_RETURN;
-import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.UNMODIFIABLE_GETTER_JAVADOC_BEGIN;
-import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.deoptionalisedTypeFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.isCollectionMethod;
 import static de.informaticum.xjc.util.CodeModelAnalysis.isOptionalMethod;
 import static de.informaticum.xjc.util.CodeModelAnalysis.javadocNameOf;
-import static de.informaticum.xjc.util.CodeModelAnalysis.javadocSimpleNameOf;
-import static de.informaticum.xjc.util.CodeModelAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.render;
-import static de.informaticum.xjc.util.CodeModelAnalysis.unmodifiableViewFactoryFor;
-import static de.informaticum.xjc.util.CodeRetrofit.eraseBody;
-import static de.informaticum.xjc.util.CodeRetrofit.eraseJavadoc;
-import static de.informaticum.xjc.util.CodeRetrofit.javadocBreak;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocSection;
 import static de.informaticum.xjc.util.OutlineAnalysis.filter;
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
@@ -86,7 +44,6 @@ import static de.informaticum.xjc.util.OutlineAnalysis.generatedSettersOf;
 import static de.informaticum.xjc.util.OutlineAnalysis.getMethod;
 import static de.informaticum.xjc.util.OutlineAnalysis.guessSetterName;
 import static de.informaticum.xjc.util.OutlineAnalysis.isOptional;
-import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.OutlineAnalysis.javadocNameOf;
 import static java.util.Arrays.asList;
 import static java.util.function.Predicate.not;
@@ -98,22 +55,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.Function;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JType;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.api.CommandLineArgument;
-import de.informaticum.xjc.api.ResourceBundleEntry;
-import de.informaticum.xjc.plugins.i18n.PropertyPluginMessages;
 import de.informaticum.xjc.util.CodeModelAnalysis;
 import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
@@ -122,14 +70,14 @@ public final class PropertyPlugin
 extends AssignmentPlugin {
 
     private static final Logger LOG = getLogger(PropertyPlugin.class);
-    private static final String MODIFY_PROPERTY = "Set {} of property [{}#{}] onto [{}].";
+    private static final String MODIFY_PROPERTY = "Modify {} of property [{}#{}] to [{}].";
     private static final String REFACTOR_JUST_STRAIGHT                 = "Refactor [{}#{}()]: return value straightly";
     private static final String REFACTOR_AS_DEFAULTED                  = "Refactor [{}#{}()]: return default value if 'null'";
     private static final String REFACTOR_AS_OPTIONAL                   = "Refactor [{}#{}()]: return OptionalDouble, OptionalInt, OptionalLong, or Optional<X> of optional attribute";
     private static final String REFACTOR_AS_UNMODIFIABLE               = "Refactor [{}#{}()]: return unmodifiable view"; // currently only for collections
     private static final String REFACTOR_AS_UNMODIFIABLE_AND_DEFAULTED = "Refactor [{}#{}()]: return unmodifiable view or default value if 'null'"; // currently only for collections
     private static final String REFACTOR_AS_UNMODIFIABLE_AND_OPTIONAL  = "Refactor [{}#{}()]: return Optional<X> of unmodifiable view of optional attribute"; // currently only for collections
-    private static final String MODIFY_METHOD = "Set {} of method [{}#{}] onto [{}].";
+    private static final String MODIFY_METHOD = "Modify {} of method [{}#{}] to [{}].";
     private static final String GENERATE_ORDEFAULT = "Generate getter method [{}#{}({})] for property [{}].";
     private static final String SKIP_ORDEFAULT = "Skip creation of getter method [{}#{}({})] for property [{}] because {}.";
     private static final String BECAUSE_NO_DEFAULT_EXISTS = "there is no according default value";
@@ -183,8 +131,7 @@ extends AssignmentPlugin {
         FINAL_FIELDS.activates(STRAIGHT_GETTERS);
         OPTIONAL_GETTERS.activates(STRAIGHT_GETTERS);
         // Skip {@link #FINAL_SETTERS} and {@link #COLLECTION_SETTERS} if setter methods shall be removed.
-        REMOVE_SETTERS.deactivates(FINAL_SETTERS);
-        REMOVE_SETTERS.deactivates(COLLECTION_SETTERS);
+        REMOVE_SETTERS.deactivates(FINAL_SETTERS, COLLECTION_SETTERS);
         return true;
     }
 
@@ -229,198 +176,6 @@ extends AssignmentPlugin {
             $g.mods().setFinal(true);
         });
         return $modified.collect(toList());
-    }
-
-    private static final class GetterBricks {
-        private final Entry<? extends FieldOutline, ? extends JMethod> getter;
-        private final JFieldVar $property;
-        private final FieldOutline attribute;
-        private final CPropertyInfo attributeInfo;
-        private final JMethod $getter;
-        private final JType $returnType;
-        private final JClass $OptionalType;
-        private final JFieldRef $prop;
-        private final Optional<JExpression> $default;
-        private final JExpression $nonNull;
-        private final JInvocation $optionalEmpty;
-        private final JInvocation $optionalOf;
-        private final JInvocation $view() {
-            // no precalculation, on-demand only ($returnType might be non-collection type and that causes an IllegalArgumentException)
-            return unmodifiableViewFactoryFor(this.$returnType).arg(this.$prop);
-        }
-        public GetterBricks(final Entry<? extends FieldOutline, ? extends JMethod> getter, final JFieldVar $property) {
-            this.getter = getter;
-            this.$property = $property;
-            this.attribute = this.getter.getKey();
-            this.attributeInfo = this.attribute.getPropertyInfo();
-            this.$getter = this.getter.getValue();
-            this.$returnType = this.$getter.type();
-            this.$OptionalType = optionalTypeFor(this.$returnType);
-            this.$prop = $this.ref(this.$property);
-            this.$default = defaultExpressionFor(this.attribute);
-            this.$nonNull = effectiveExpressionForNonNull(this.$property.type(), this.$prop);
-            this.$optionalEmpty = this.$OptionalType.erasure().staticInvoke("empty");
-            this.$optionalOf = this.$OptionalType.erasure().staticInvoke("of");
-        }
-    }
-
-    private static enum GetterRefactoring {
-
-        PRIMITIVE_PROPERTY(STRAIGHT_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, STRAIGHT_VALUE_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return($.$nonNull);
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($)};
-            }
-        },
-
-        DEFAULTED_UNMODIFIABLE_COLLECTION_PROPERTY(STRAIGHT_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, UNMODIFIABLE_COLLECTION_OR_EMPTY_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return(cond($.$prop.eq($null), $.$default.get(), $.$view()));
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_DEFAULTED_UNMODIFIABLE_COLLECTION, HINT_DEFAULTED_UNMODIFIABLE_COLLECTION, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION};
-            }
-        },
-
-        DEFAULTED_MODIFIABLE_COLLECTION_PROPERTY(STRAIGHT_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, STRAIGHT_COLLECTION_OR_EMPTY_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return(cond($.$prop.eq($null), $.$default.get(), $.$nonNull));
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_DEFAULTED_COLLECTION, HINT_DEFAULTED_COLLECTION, NOTE_REFERENCE.apply($), HINT_REFERENCE.apply($)};
-            }
-        },
-
-        OPTIONAL_UNMODIFIABLE_COLLECTION_PROPERTY(OPTIONAL_UNMODIFIABLE_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, OPTIONAL_UNMODIFIABLE_COLLECTION_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return(cond($.$prop.eq($null), $.$optionalEmpty, $.$optionalOf.arg($.$view())));
-            }
-            @Override protected final Optional<JType> returnType(final GetterBricks $) {
-                return Optional.of($.$OptionalType);
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_UNMODIFIABLE_COLLECTION_CONTAINER, HINT_UNMODIFIABLE_COLLECTION};
-            }
-            @Override protected void supersedeJavadoc(final GetterBricks $) {
-                this.supersedeJavadoc($, javadocSimpleNameOf($.$OptionalType));
-            }
-        },
-
-        OPTIONAL_MODIFIABLE_COLLECTION_PROPERTY(OPTIONAL_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, OPTIONAL_COLLECTION_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return(cond($.$prop.eq($null), $.$optionalEmpty, $.$optionalOf.arg($.$nonNull)));
-            }
-            @Override protected final Optional<JType> returnType(final GetterBricks $) {
-                return Optional.of($.$OptionalType);
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_EMPTY_CONTAINER, HINT_EMPTY_COLLECTION_CONTAINER, NOTE_REFERENCE_CONTAINER.apply($), HINT_REFERENCE.apply($)};
-            }
-            @Override protected void supersedeJavadoc(final GetterBricks $) {
-                this.supersedeJavadoc($, javadocSimpleNameOf($.$OptionalType));
-            }
-        },
-
-        UNMODIFIABLE_COLLECTION_PROPERTY(UNMODIFIABLE_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, UNMODIFIABLE_COLLECTION_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return(cond($.$prop.eq($null), $null, $.$view()));
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_UNMODIFIABLE_COLLECTION, HINT_UNMODIFIABLE_COLLECTION};
-            }
-        },
-
-        MODIFIABLE_COLLECTION_PROPERTY(STRAIGHT_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, STRAIGHT_COLLECTION_RETURN) {
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE, NOTE_REFERENCE.apply($), HINT_REFERENCE.apply($)};
-            }
-        },
-
-        DEFAULTED_PROPERTY(STRAIGHT_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, STRAIGHT_DEFAULTED_VALUE_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return(cond($.$prop.eq($null), $.$default.get(), $.$nonNull));
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_DEFAULTED_VALUE};
-            }
-            @Override protected void supersedeJavadoc(final GetterBricks $) {
-                this.supersedeJavadoc($, render($.$default.get()));
-            }
-        },
-
-        OPTIONAL_PROPERTY(OPTIONAL_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, OPTIONAL_VALUE_RETURN) {
-            @Override protected final JExpression returnExpression(final GetterBricks $) {
-                return(cond($.$prop.eq($null), $.$optionalEmpty, $.$optionalOf.arg($.$nonNull)));
-            }
-            @Override protected final Optional<JType> returnType(final GetterBricks $) {
-                return Optional.of($.$OptionalType);
-            }
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_EMPTY_CONTAINER};
-            }
-            @Override protected void supersedeJavadoc(final GetterBricks $) {
-                this.supersedeJavadoc($, javadocSimpleNameOf($.$OptionalType));
-            }
-        },
-
-        STRAIGHT_PROPERTY(STRAIGHT_GETTER_JAVADOC_BEGIN, GETTER_JAVADOC_END, STRAIGHT_VALUE_RETURN) {
-            @Override protected final ResourceBundleEntry[] notes(final GetterBricks $) {
-                return new ResourceBundleEntry[]{DECLARATION_TYPE.apply($), NOTE_NULLABLE_VALUE, HINT_NULLABLE_VALUE};
-            }
-        };
-
-        private static final Function<GetterBricks, PropertyPluginMessages> DECLARATION_TYPE         = b -> isRequired(b.attribute) ? NOTE_REQUIRED_VALUE : NOTE_OPTIONAL_VALUE;
-        private static final Function<GetterBricks, PropertyPluginMessages> NOTE_REFERENCE           = b -> (b.$prop == b.$nonNull) ? NOTE_LIVE_REFERENCE : NOTE_DEFENSIVE_COPY_COLLECTION;
-        private static final Function<GetterBricks, PropertyPluginMessages> HINT_REFERENCE           = b -> (b.$prop == b.$nonNull) ? HINT_LIVE_REFERENCE : HINT_DEFENSIVE_COPY_COLLECTION;
-        private static final Function<GetterBricks, PropertyPluginMessages> NOTE_REFERENCE_CONTAINER = b -> (b.$prop == b.$nonNull) ? NOTE_LIVE_REFERENCE_CONTAINER : NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER;
-
-        private final ResourceBundleEntry introJavadoc;
-        private final ResourceBundleEntry outroJavadoc;
-        private final ResourceBundleEntry returnJavadoc;
-
-        private GetterRefactoring(final ResourceBundleEntry introJavadoc, final ResourceBundleEntry outroJavadoc, final ResourceBundleEntry returnJavadoc) {
-            this.introJavadoc = introJavadoc;
-            this.outroJavadoc = outroJavadoc;
-            this.returnJavadoc = returnJavadoc;
-        }
-
-        protected JExpression returnExpression(final GetterBricks bricks) {
-            if (render(bricks.$prop).equals(render(bricks.$nonNull))) {
-                return bricks.$prop;
-            } else {
-                return cond(bricks.$prop.eq($null), $null, bricks.$nonNull);
-            }
-        }
-
-        protected Optional<JType> returnType(final GetterBricks bricks) {
-            return Optional.empty();
-        }
-
-        protected abstract ResourceBundleEntry[] notes(final GetterBricks bricks);
-
-        protected void supersedeJavadoc(final GetterBricks bricks) {
-            this.supersedeJavadoc(bricks, javadocSimpleNameOf(bricks.$returnType));
-        }
-
-        protected final void supersedeJavadoc(final GetterBricks bricks, final String noteArg) {
-            final var $javadoc = bricks.getter.getValue().javadoc();
-            eraseJavadoc($javadoc).append(this.introJavadoc.format(javadocNameOf(bricks.attribute.parent().getImplClass()), javadocNameOf(bricks.$property)));
-            for (final var note : this.notes(bricks)) {
-                javadocBreak($javadoc).append(note.format(noteArg));
-            }
-            javadocBreak($javadoc).append(this.outroJavadoc.text());
-            final var $return = bricks.getter.getValue().javadoc().addReturn();
-            eraseJavadoc($return).append(this.returnJavadoc.format(javadocNameOf(bricks.attribute.parent().getImplClass()), javadocNameOf(bricks.$property), noteArg));
-        }
-
-        public final void supersedeGetter(final GetterBricks bricks) {
-            eraseBody(bricks.$getter)._return(this.returnExpression(bricks));
-            this.returnType(bricks).ifPresent(t -> bricks.$getter.type(t));
-            this.supersedeJavadoc(bricks);
-        }
-
     }
 
     private final ClassOutline refactorGetter(final ClassOutline clazz) {
