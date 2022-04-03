@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -152,7 +153,7 @@ extends BasePlugin {
         javadocSection($hashCode).append(HASHCODE_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
         // 4/4: Implement
         final var $Arrays = this.reference(Arrays.class);
-        final var $Objects = this.reference(Objects.class);
+        final var $hashFields = new ArrayList<JFieldRef>();
         final var $hashes = new ArrayList<JInvocation>();
         if (clazz.getSuperClass() != null) {
             $hashes.add($super.invoke(hashCode));
@@ -169,9 +170,16 @@ extends BasePlugin {
                 assertThat($property.type().elementType().isPrimitive()).isFalse();
                 $hashes.add($Arrays.staticInvoke("deepHashCode").arg($this.ref($property)));
             } else {
-                // invoke Objects#hash(Object...) in any other case
-                $hashes.add($Objects.staticInvoke("hash").arg($this.ref($property)));
+                // collect this non-primitive field as an argument for subsequent Objects#hash(Object...) in any other case
+                $hashFields.add($this.ref($property));
             }
+        }
+        if (!$hashFields.isEmpty()) {
+            // invoke Objects#hash(Object...) calculation for non-primitive fields
+            final var $Object = this.reference(Object.class);
+            final var objArray = $hashFields.stream().reduce(_new($Object.array()), JInvocation::arg, JInvocation::arg);
+            final var $Objects = this.reference(Objects.class);
+            $hashes.add($Objects.staticInvoke("hash").arg(objArray));
         }
         if ($hashes.isEmpty()) {
             // if there is no hashCode source at all, calculate the class' hashCode
