@@ -6,7 +6,7 @@ import de.informaticum.xjc.api.ResourceBundleEntry;
 import de.informaticum.xjc.plugins.TracePlugin;
 
 /**
- * Enumeration of all i18n messages used by the {@link TracePlugin}.
+ * Enumeration of all i18n messages keys used by the {@link TracePlugin}.
  */
 public enum TracePluginMessages
 implements ResourceBundleEntry {

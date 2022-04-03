@@ -6,7 +6,7 @@ import de.informaticum.xjc.api.ResourceBundleEntry;
 import de.informaticum.xjc.plugins.ReusePlugin;
 
 /**
- * Enumeration of all i18n messages used by the {@link ReusePlugin}.
+ * Enumeration of all i18n messages keys used by the {@link ReusePlugin}.
  */
 public enum ReusePluginMessages
 implements ResourceBundleEntry {

@@ -6,7 +6,7 @@ import de.informaticum.xjc.api.ResourceBundleEntry;
 import de.informaticum.xjc.plugins.AssignmentPlugin;
 
 /**
- * Enumeration of all i18n messages used by the {@link AssignmentPlugin}.
+ * Enumeration of all i18n messages keys used by the {@link AssignmentPlugin}.
  */
 public enum AssignmentPluginMessages
 implements ResourceBundleEntry {

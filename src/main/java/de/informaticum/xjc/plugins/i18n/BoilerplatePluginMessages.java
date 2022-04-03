@@ -6,7 +6,7 @@ import de.informaticum.xjc.api.ResourceBundleEntry;
 import de.informaticum.xjc.plugins.BoilerplatePlugin;
 
 /**
- * Enumeration of all i18n messages used by the {@link BoilerplatePlugin}.
+ * Enumeration of all i18n messages keys used by the {@link BoilerplatePlugin}.
  */
 public enum BoilerplatePluginMessages
 implements ResourceBundleEntry {

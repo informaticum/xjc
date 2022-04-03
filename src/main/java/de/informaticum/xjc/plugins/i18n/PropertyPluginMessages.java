@@ -6,7 +6,7 @@ import de.informaticum.xjc.api.ResourceBundleEntry;
 import de.informaticum.xjc.plugins.PropertyPlugin;
 
 /**
- * Enumeration of all i18n messages used by the {@link PropertyPlugin}.
+ * Enumeration of all i18n messages keys used by the {@link PropertyPlugin}.
  */
 public enum PropertyPluginMessages
 implements ResourceBundleEntry {
