@@ -11,7 +11,7 @@ import java.util.ResourceBundle;
 public abstract interface ResourceBundleEntry {
 
     /**
-     * The name of this single entry, used when returning a formatted message (either {@linkplain #format(Object...) with parameters} or {@linkplain #text() without}. This method
+     * The name of this single entry, used when returning a formatted message (either {@linkplain #format(Object...) with parameters} or {@linkplain #text() without}). This method
      * name is intentional similar with {@link Enum#name()}.
      *
      * @return name of this single entry
