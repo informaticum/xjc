@@ -71,35 +71,37 @@ extends BasePlugin {
 
     @Override
     public final boolean prepareRun() {
-        GENERATE_EQUALS  .activates(GENERATE_HASHCODE);
+        GENERATE_EQUALS.activates(GENERATE_HASHCODE);
         GENERATE_HASHCODE.activates(GENERATE_EQUALS);
         return true;
     }
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        GENERATE_EQUALS  .doOnActivation(this::generateEquals,   clazz);
-        GENERATE_HASHCODE.doOnActivation(this::generateHashCode, clazz);
-        GENERATE_TOSTRING.doOnActivation(this::generateToString, clazz);
+        GENERATE_EQUALS  .doOnActivation(this::ensureEquals,   clazz);
+        GENERATE_HASHCODE.doOnActivation(this::ensureHashCode, clazz);
+        GENERATE_TOSTRING.doOnActivation(this::ensureToString, clazz);
         return true;
     }
 
+    private final JMethod ensureEquals(final ClassOutline clazz) {
+        final var $equals = getMethod(clazz, equals, Object.class);
+        $equals.ifPresent($m -> LOG.warn(SKIP_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS));
+        return $equals.orElse(this.generateEquals(clazz));
+    }
+
     private final JMethod generateEquals(final ClassOutline clazz) {
-        // 0/2: Preliminary
-        final var $preliminaryLookup = getMethod(clazz, equals, Object.class);
-        if ($preliminaryLookup.isPresent()) {
-            LOG.warn(SKIP_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
-            return $preliminaryLookup.get();
-        }
-        // 1/2: Create
         LOG.info(GENERATE_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE);
-        final var $ImplClass = clazz.implClass;
+        // 1/4: Declare
+        final var $ImplClass = clazz.getImplClass();
         final var $equals = $ImplClass.method(PUBLIC, boolean.class, equals);
         final var $Object = this.reference(Object.class);
         final var $other = $equals.param(FINAL, $Object, "other");
+        // 2/4: Annotate
         $equals.annotate(Override.class);
+        // 3/4: Document
         javadocSection($equals).append(EQUALS_IMPLNOTE.format($other.name())); // No further method/@param Javadoc; will be inherited instead
-        // 2/2: Implement
+        // 4/4: Implement
         $equals.body()._if($other.eq($null))._then()._return(lit(false));
         $equals.body()._if($this.eq($other))._then()._return(lit(true));
         $equals.body()._if(not($this.invoke("getClass").invoke(equals).arg($other.invoke("getClass"))))._then()._return(lit(false));
@@ -133,20 +135,22 @@ extends BasePlugin {
         return $equals;
     }
 
+    private final JMethod ensureHashCode(final ClassOutline clazz) {
+        final var $hashCode = getMethod(clazz, hashCode);
+        $hashCode.ifPresent($m -> LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS));
+        return $hashCode.orElse(this.generateHashCode(clazz));
+    }
+
     private final JMethod generateHashCode(final ClassOutline clazz) {
-        // 0/2: Preliminary
-        final var $preliminaryLookup = getMethod(clazz, hashCode);
-        if ($preliminaryLookup.isPresent()) {
-            LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
-            return $preliminaryLookup.get();
-        }
-        // 1/2: Create
         LOG.info(GENERATE_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE);
-        final var $ImplClass = clazz.implClass;
+        // 1/4: Declare
+        final var $ImplClass = clazz.getImplClass();
         final var $hashCode = $ImplClass.method(PUBLIC, int.class, hashCode);
+        // 2/4: Annotate
         $hashCode.annotate(Override.class);
+        // 3/4: Document
         javadocSection($hashCode).append(HASHCODE_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
-        // 2/2: Implement
+        // 4/4: Implement
         final var $Arrays = this.reference(Arrays.class);
         final var $hashes = new ArrayList<JInvocation>();
         if (clazz.getSuperClass() != null) {
@@ -176,31 +180,32 @@ extends BasePlugin {
             $hashCode.body()._return($hashes.get(0));
         } else {
             // invoke Arrays#hashCode(int[]) in any other case
-            final var intArray = $hashes.stream().reduce(_new(this.codeModel().INT.array()), JInvocation::arg);
+            final var $int = this.codeModel().INT;
+            final var intArray = $hashes.stream().reduce(_new($int.array()), JInvocation::arg);
             $hashCode.body()._return($Arrays.staticInvoke("hashCode").arg(intArray));
         }
         return $hashCode;
     }
 
+    private final JMethod ensureToString(final ClassOutline clazz) {
+        final var $toString = getMethod(clazz, toString);
+        $toString.ifPresent($m -> LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS));
+        return $toString.orElse(this.generateToString(clazz));
+    }
+
     private final JMethod generateToString(final ClassOutline clazz) {
-        // 0/2: Preliminary
-        final var $preliminaryLookup = getMethod(clazz, toString);
-        if ($preliminaryLookup.isPresent()) {
-            LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
-            return $preliminaryLookup.get();
-        }
-        // 1/2: Create
         LOG.info(GENERATE_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE);
-        final var $ImplClass = clazz.implClass;
+        // 1/4: Declare
+        final var $ImplClass = clazz.getImplClass();
         final var $toString = $ImplClass.method(PUBLIC, String.class, toString);
+        // 2/4: Annotate
         $toString.annotate(Override.class);
+        // 3/4: Document
         javadocSection($toString).append(TOSTRING_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
-        // 2/2: Implement
+        // 4/4: Implement
         final var $Arrays = this.reference(Arrays.class);
         final var $Objects = this.reference(Objects.class);
         final var $StringJoiner = this.reference(StringJoiner.class);
-// TODO: Print char[] as String immediately? (1/2)
-//      final var $String = this.reference(String.class);
         final var $pieces = new ArrayList<JExpression>();
         for (final var property : generatedPropertiesOf(clazz).entrySet() /* TODO: Also consider constant fields */) {
             final var attribute = property.getKey();
@@ -209,10 +214,10 @@ extends BasePlugin {
             if ($property.type().isPrimitive()) {
                 // invoke Primitivewrapper#toString(primitive) calculation for primitive fields
                 $pieces.add(lit(info.getName(true) + ": ").plus($property.type().boxify().staticInvoke("toString").arg($this.ref($property))));
-// TODO: Print char[] as String immediately? (2/2)
+// TODO: Print char[] as String immediately?
 //          } else if ($property.type().isArray() && (this.codeModel().CHAR.compareTo($property.type().elementType()) == 0)) {
 //              // invoke String#valueOf(char[]) calculation for char arrays
-//              $pieces.add(lit(info.getName(true) + ": ").plus($String.staticInvoke("valueOf").arg($this.ref($property))));
+//              $pieces.add(lit(info.getName(true) + ": ").plus(this.reference(String.class).staticInvoke("valueOf").arg($this.ref($property))));
             } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
                 // invoke Arrays#toString(Object[]) calculation for arrays of primitive types
                 $pieces.add(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
