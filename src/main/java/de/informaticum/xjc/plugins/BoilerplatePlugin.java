@@ -152,6 +152,7 @@ extends BasePlugin {
         javadocSection($hashCode).append(HASHCODE_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
         // 4/4: Implement
         final var $Arrays = this.reference(Arrays.class);
+        final var $Objects = this.reference(Objects.class);
         final var $hashes = new ArrayList<JInvocation>();
         if (clazz.getSuperClass() != null) {
             $hashes.add($super.invoke(hashCode));
@@ -168,8 +169,8 @@ extends BasePlugin {
                 assertThat($property.type().elementType().isPrimitive()).isFalse();
                 $hashes.add($Arrays.staticInvoke("deepHashCode").arg($this.ref($property)));
             } else {
-                // invoke Object#hashCode() in any other case
-                $hashes.add($this.ref($property).invoke(hashCode));
+                // invoke Objects#hash(Object...) in any other case
+                $hashes.add($Objects.staticInvoke("hash").arg($this.ref($property)));
             }
         }
         if ($hashes.isEmpty()) {
