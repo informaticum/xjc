@@ -38,14 +38,14 @@ extends BasePlugin {
 
     @Override
     protected final boolean runObjectFactory(final JDefinedClass $Factory) {
-        REUSE_QNAMES.doOnActivation(this::publicifyQNames, $Factory);
+        REUSE_QNAMES.doOnActivation(this::setQNamesPublic, $Factory);
         return true;
     }
 
-    private final List<JFieldVar> publicifyQNames(final JDefinedClass $Factory) {
+    private final List<JFieldVar> setQNamesPublic(final JDefinedClass $Factory) {
         final var $QName = this.reference(QName.class);
         final var $fields = $Factory.fields().values();
-        final var $qNameFields = $fields.stream().filter($field -> $QName.isAssignableFrom($field.type().boxify()));
+        final var $qNameFields = $fields.stream().filter($f -> $QName.isAssignableFrom($f.type().boxify()));
         final var $modified = $qNameFields.peek($q -> {
             LOG.info(PUBLIC_QNAME, $Factory.fullName(), $q.name());
             javadocSection($q).append(PUBLIC_QNAMES_IMPLNOTE.text());
