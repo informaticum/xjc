@@ -224,7 +224,7 @@ extends BasePlugin {
 //              // invoke String#valueOf(char[]) calculation for char arrays
 //              $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus(this.reference(String.class).staticInvoke("valueOf").arg($this.ref($property))));
             } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
-                // invoke Arrays#toString(Object[]) calculation for arrays of primitive types
+                // invoke Arrays#toString(primitive[]) calculation for arrays of primitive types
                 $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
             } else if ($property.type().isArray()) {
                 // invoke Arrays#deepToString(Object[]) calculation for arrays of non-primitive types
