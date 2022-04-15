@@ -35,7 +35,7 @@ public enum OutlineAnalysis {
     ;
 
     private static final Logger LOG = LoggerFactory.getLogger(OutlineAnalysis.class);
-    private static final String ILLEGAL_DEFAULT_VALUE = "Lexical representation of the existing default value for [{}] is [{}]!";
+    private static final String MISSING_JAVA_DEFAULT_VALUE = "Lexical Java representation of the existing XSD default value for [{}#{}] is [{}]!";
 
     /**
      * Returns the fully-qualified name of the given {@linkplain PackageOutline package}.
@@ -155,8 +155,23 @@ public enum OutlineAnalysis {
         if (property.defaultValue != null) {
             assertThat(property.isCollection()).isFalse();
             final var $default = property.defaultValue.compute(outline);
-            if ($default != null) { return Optional.of($default); }
-            else { LOG.error(ILLEGAL_DEFAULT_VALUE, property.getName(false), null); }
+            if ($default != null) {
+                return Optional.of($default);
+            } else {
+                /*
+                 * CPropertyInfo#defaultValue vom Typ CDefaultValue werden in CDefaultValue#create(TypeUse,XmlString)
+                 * mit einem TypeUse erstellt. Und diese (für diverse Standard-XSD-Typen in CBuiltinLeafInfo erstellten)
+                 * werden am Ende von SimpleTypeBuilder in einer Map, konkret SimpleTypeBuilder#builtinConversions
+                 * vorgehalten. Und etliche dieser CBuiltinLeafInfo davon sind konkret ein NoConstantBuiltin. Und leider
+                 * kann das (wie der Name sagt) für eine XSD-Konstante keinen passenden Java-Code erstellen, vgl.
+                 * NoConstantBuiltin#createConstant(Outline, XmlString).
+                 * 
+                 * Für alle Varianten, wo dieses NoConstantBuiltin zum Einsatz kommt, kann es passieren, dass es zwar
+                 * einen deklarierten Default-Value gibt -- aber gleichzeitig keine Java-Repräsentation von diesem
+                 * Default-Value. 
+                 */
+                LOG.error(MISSING_JAVA_DEFAULT_VALUE, attribute.parent().getImplClass().fullName(), property.getName(false), $default);
+            }
         }
         final var $raw = attribute.getRawType();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugewiesen wird, ohne
