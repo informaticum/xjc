@@ -176,6 +176,8 @@ public enum OutlineAnalysis {
         final var $raw = attribute.getRawType();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugewiesen wird, ohne
         //       dass ein Default-Wert existiert. Das darf nicht passieren. Ein "Boolean" ist initial "null".
+        //       (Vgl. com.sun.tools.xjc.model.CBuiltinLeafInfo#BOOLEAN_ZERO_OR_ONE oder
+        //       com.sun.tools.xjc.runtime.ZeroOneBooleanAdapter)
         // TODO: Consider property.isUnboxable()? What to do in that case?
         // TODO: Consider property.isOptionalPrimitive()? What to do in that case?
         if      ($raw.equals($model.BOOLEAN)) { return Optional.of(lit(DEFAULT_BOOLEAN)); }
