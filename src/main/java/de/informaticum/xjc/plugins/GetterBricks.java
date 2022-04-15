@@ -4,7 +4,6 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.optionalTypeFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.unmodifiableViewFactoryFor;
 import static org.assertj.core.api.Assertions.assertThat;
-import java.util.Map.Entry;
 import java.util.Optional;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JExpression;
@@ -14,19 +13,20 @@ import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.model.CPropertyInfo;
+import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.util.CodeModelAnalysis;
 
 /*package*/ final class GetterBricks {
 
-    /*package*/ final Entry<? extends FieldOutline, ? extends JMethod> getter;
-
-    /*package*/ final JFieldVar $property;
+    /*package*/ final ClassOutline clazz;
 
     /*package*/ final FieldOutline attribute;
 
     /*package*/ final CPropertyInfo attributeInfo;
 
+    /*package*/ final JFieldVar $property;
+    
     /*package*/ final JMethod $getter;
 
     /*package*/ final JType $returnType;
@@ -49,12 +49,12 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
         return unmodifiableViewFactoryFor(this.$returnType).arg(this.$prop);
     }
 
-    /*package*/ GetterBricks(final Entry<? extends FieldOutline, ? extends JMethod> getter, final JFieldVar $property) {
-        this.getter = getter;
-        this.$property = $property;
-        this.attribute = this.getter.getKey();
+    /*package*/ GetterBricks(final PropertyAccessor accessor) {
+        this.clazz = accessor.clazz;
+        this.attribute = accessor.attribute;
         this.attributeInfo = this.attribute.getPropertyInfo();
-        this.$getter = this.getter.getValue();
+        this.$property = accessor.$property;
+        this.$getter = accessor.$method;
         this.$returnType = this.$getter.type();
         this.$OptionalType = optionalTypeFor(this.$returnType);
         this.$prop = $this.ref(this.$property);

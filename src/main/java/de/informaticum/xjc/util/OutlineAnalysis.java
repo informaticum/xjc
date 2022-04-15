@@ -6,10 +6,12 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.emptyImmutableInstanceO
 import static de.informaticum.xjc.util.CodeModelAnalysis.emptyModifiableInstanceOf;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Predicate;
 import com.sun.codemodel.JDefinedClass;
@@ -607,7 +609,7 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Returns all declared fields and each according getter method of a given {@link ClassOutline class outline}.
+     * Returns {@linkplain #generatedPropertiesOf(ClassOutline) all declared fields} and each according getter method of a given {@link ClassOutline class outline}.
      *
      * The returned {@link LinkedHashMap} is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      *
@@ -615,8 +617,8 @@ public enum OutlineAnalysis {
      *            the class to analyse
      * @return a map of all declared fields and according getter method
      */
-    public static final LinkedHashMap<FieldOutline, JMethod> generatedGettersOf(final ClassOutline clazz) {
-        final var getters = new LinkedHashMap<FieldOutline, JMethod>();
+    public static final LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>> generatedGettersOf(final ClassOutline clazz) {
+        final var getters = new LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>>();
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -630,7 +632,7 @@ public enum OutlineAnalysis {
                   // this is the alternative assertion (because PropertyPlugin modifies the getter methods):
                   (deoptionalisedTypeFor($getter.type().boxify()).isPresent() && deoptionalisedTypeFor($getter.type().boxify()).get().boxify().equals($property.type().boxify()))
                 ).isTrue();
-                getters.put(attribute, $getter);
+                getters.put(attribute, new SimpleImmutableEntry<>($property, $getter));
             } else {
                 LOG.error("There is no getter method [{}] for property {} of class [{}].", getterName, $property.name(), clazz.implClass.fullName());
             }
@@ -639,7 +641,7 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Returns all declared fields and each according setter method of a given {@link ClassOutline class outline}.
+     * Returns {@linkplain #generatedPropertiesOf(ClassOutline) all declared fields} and each according setter method of a given {@link ClassOutline class outline}.
      *
      * The returned {@link LinkedHashMap} is ordered similar to the result order of {@link ClassOutline#getDeclaredFields()}.
      *
@@ -647,8 +649,8 @@ public enum OutlineAnalysis {
      *            the class to analyse
      * @return a map of all declared fields and according setter method
      */
-    public static final LinkedHashMap<FieldOutline, JMethod> generatedSettersOf(final ClassOutline clazz) {
-        final var setters = new LinkedHashMap<FieldOutline, JMethod>();
+    public static final LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>> generatedSettersOf(final ClassOutline clazz) {
+        final var setters = new LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>>();
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
             final var attribute = property.getKey();
             final var $property = property.getValue();
@@ -657,7 +659,7 @@ public enum OutlineAnalysis {
             if ($setterLookup.isPresent()) {
                 final var $setter = $setterLookup.get();
                 assertThat($setter.type()).isEqualByComparingTo(clazz.implClass.owner().VOID);
-                setters.put(attribute, $setter);
+                setters.put(attribute, new SimpleImmutableEntry<>($property, $setter));
             } else if (attribute.getPropertyInfo().isCollection()) {
                 LOG.info("Expectedly, there is no setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
             } else {

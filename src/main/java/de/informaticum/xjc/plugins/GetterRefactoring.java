@@ -200,13 +200,13 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
     }
 
     /*package*/ final void supersedeJavadoc(final GetterBricks bricks, final String noteArg) {
-        final var $javadoc = bricks.getter.getValue().javadoc();
+        final var $javadoc = bricks.$getter.javadoc();
         eraseJavadoc($javadoc).append(this.introJavadoc.format(javadocNameOf(bricks.attribute.parent().getImplClass()), javadocNameOf(bricks.$property)));
         for (final var note : this.notes(bricks)) {
             javadocBreak($javadoc).append(note.format(noteArg));
         }
         javadocBreak($javadoc).append(this.outroJavadoc.text());
-        final var $return = bricks.getter.getValue().javadoc().addReturn();
+        final var $return = bricks.$getter.javadoc().addReturn();
         eraseJavadoc($return).append(this.returnJavadoc.format(javadocNameOf(bricks.attribute.parent().getImplClass()), javadocNameOf(bricks.$property), noteArg));
     }
 
