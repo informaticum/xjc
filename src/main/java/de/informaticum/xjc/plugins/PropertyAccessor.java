@@ -11,20 +11,21 @@ public final class PropertyAccessor {
 
     public final ClassOutline clazz;
 
-    public final FieldOutline attribute;
+    public final FieldOutline field;
 
     public final JDefinedClass $ImplClass;
 
-    public final JFieldVar $property;
+    public final JFieldVar $field;
 
     public final JMethod $method;
 
     public PropertyAccessor(final Entry<? extends FieldOutline, ? extends Entry<? extends JFieldVar, ? extends JMethod>> accessor) {
         this.clazz = accessor.getKey().parent();
-        this.attribute = accessor.getKey();
+        this.field = accessor.getKey();
         this.$ImplClass = accessor.getKey().parent().getImplClass();
-        this.$property = accessor.getValue().getKey();
+        this.$field = accessor.getValue().getKey();
         this.$method = accessor.getValue().getValue();
+        // TODO: Reuse something from com.sun.tools.xjc.outline.FieldAccessor or any of the sub-classes?
     }
 
 }

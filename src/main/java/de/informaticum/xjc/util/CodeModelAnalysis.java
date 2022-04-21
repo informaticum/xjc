@@ -47,7 +47,6 @@ import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JGenerable;
 import com.sun.codemodel.JInvocation;
@@ -55,6 +54,7 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JMods;
 import com.sun.codemodel.JType;
+import com.sun.codemodel.JVar;
 
 /**
  * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@code com.sun.codemodel.*} types.
@@ -346,8 +346,8 @@ public enum CodeModelAnalysis {
     }
 
     /**
-     * Identifies/supposes the type parameter for the given class. If there is no type parameter, {@link Object} is supposed. If there is exactly one type parameter, that parameter
-     * is returned. If there are more than one type parameter, the first parameter is returned.
+     * Identifies/supposes the first type parameter for the given class. If there is no type parameter, {@link Object} is supposed. If there is exactly one type parameter, that
+     * parameter is returned. If there are more than one type parameter, the first parameter is returned.
      * 
      * @param $Class
      *            the class to analyse
@@ -569,12 +569,12 @@ public enum CodeModelAnalysis {
      *
      * @param $Class
      *            the class to analyse
-     * @param $fields
-     *            the array of fields to be considered as constructor arguments
+     * @param $args
+     *            the arguments passed into the constructor
      * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
      */
-    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JFieldVar... $fields) {
-        final var $types = Arrays.stream($fields).map(JFieldVar::type).toArray(JType[]::new);
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JVar... $args) {
+        final var $types = Arrays.stream($args).map(JVar::type).toArray(JType[]::new);
         return getConstructor($Class, $types);
     }
 
@@ -583,12 +583,12 @@ public enum CodeModelAnalysis {
      *
      * @param $Class
      *            the class to analyse
-     * @param $fields
-     *            the collection of fields to be considered as constructor arguments
+     * @param $args
+     *            the arguments passed into the constructor
      * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
      */
-    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final Collection<? extends JFieldVar> $fields) {
-        final var $types = $fields.stream().map(JFieldVar::type).toArray(JType[]::new);
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final Collection<? extends JVar> $args) {
+        final var $types = $args.stream().map(JVar::type).toArray(JType[]::new);
         return getConstructor($Class, $types);
     }
 
@@ -597,15 +597,15 @@ public enum CodeModelAnalysis {
      *
      * @param $Class
      *            the class to analyse
-     * @param $argumentTypes
-     *            the list of the constructor's argument types
+     * @param $argTypes
+     *            the constructor's signature types
      * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
      * @see JDefinedClass#getConstructor(JType[])
      */
-    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JType... $argumentTypes) {
-        var $constructor = $Class.getConstructor($argumentTypes);
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JType... $argTypes) {
+        var $constructor = $Class.getConstructor($argTypes);
         if ($constructor == null) {
-            $constructor = $Class.getConstructor(erasure($argumentTypes));
+            $constructor = $Class.getConstructor(erasure($argTypes));
         }
         return Optional.ofNullable($constructor);
     }
@@ -617,10 +617,55 @@ public enum CodeModelAnalysis {
      *            the class to analyse
      * @param filter
      *            the predicate to use when filtering the list of all constructors
-     * @return a list of all constructor matching the given predicate
+     * @return a list of all constructors matching the given predicate
      */
     public static final List<JMethod> getConstructors(final JDefinedClass $Class, final Predicate<? super JMethod> filter) {
         return stream(spliteratorUnknownSize($Class.constructors(), DISTINCT | NONNULL), false).filter(filter).collect(toList());
+    }
+
+    /**
+     * Looks for a method that has an empty method signature and returns it.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param name
+     *            the method name to look for
+     * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name) {
+        return getMethod($Class, name, new JType[0]);
+    }
+
+    /**
+     * Looks for a method that has the specified method signature and returns it.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param name
+     *            the method name to look for
+     * @param $args
+     *            the arguments passed into the method
+     * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JVar... $args) {
+        final var $types = Arrays.stream($args).map(JVar::type).toArray(JType[]::new);
+        return getMethod($Class, name, $types);
+    }
+
+    /**
+     * Looks for a method that has the specified method signature and returns it.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param name
+     *            the method name to look for
+     * @param $args
+     *            the arguments passed into the method
+     * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
+     */
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final Collection<? extends JVar> $args) {
+        final var $types = $args.stream().map(JVar::type).toArray(JType[]::new);
+        return getMethod($Class, name, $types);
     }
 
     /**
@@ -630,17 +675,30 @@ public enum CodeModelAnalysis {
      *            the class to analyse
      * @param name
      *            the method name to look for
-     * @param $argumentTypes
-     *            the list of the method's argument types
+     * @param $argTypes
+     *            the method's signature types
      * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
      * @see JDefinedClass#getMethod(String, JType[])
      */
-    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JType... $argumentTypes) {
-        var $method = $Class.getMethod(name, $argumentTypes);
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JType... $argTypes) {
+        var $method = $Class.getMethod(name, $argTypes);
         if ($method == null) {
-            $method = $Class.getMethod(name, erasure($argumentTypes));
+            $method = $Class.getMethod(name, erasure($argTypes));
         }
         return Optional.ofNullable($method);
+    }
+
+    /**
+     * Looks for all methods that matches a specific predicate.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param filter
+     *            the predicate to use when filtering the list of all methods
+     * @return a list of all methods matching the given predicate
+     */
+    public static final List<JMethod> getMethods(final JDefinedClass $Class, final Predicate<? super JMethod> filter) {
+        return $Class.methods().stream().filter(filter).collect(toList());
     }
 
     /**
@@ -844,14 +902,14 @@ public enum CodeModelAnalysis {
     }
 
     /**
-     * Returns the Javadoc name of the given field. (Does not include the class-prefix of the enclosing class.)
+     * Returns the Javadoc name of the given variable. (Does not include the class-prefix of the enclosing class.)
      *
-     * @param $field
-     *            the requested field
-     * @return the Javadoc name of the given field
+     * @param $var
+     *            the variable to consider
+     * @return the Javadoc name of the given variable
      */
-    public static final String javadocNameOf(final JFieldVar $field) {
-        return $field.name();
+    public static final String javadocNameOf(final JVar $var) {
+        return $var.name();
     }
 
 }

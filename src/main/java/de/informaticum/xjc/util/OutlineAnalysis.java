@@ -74,15 +74,15 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Returns {@code true} iff this attribute is required (a.k.a. mandatory).
+     * Returns {@code true} iff this field is required (a.k.a. mandatory).
      *
-     * @param attribute
-     *            the attribute to analyse
-     * @return {@code true} if this attribute is required; {@code false} otherwise
+     * @param field
+     *            the field to analyse
+     * @return {@code true} if this field is required; {@code false} otherwise
      * @see #isOptional(FieldOutline)
      */
-    public static final boolean isRequired(final FieldOutline attribute) {
-        final var property = attribute.getPropertyInfo();
+    public static final boolean isRequired(final FieldOutline field) {
+        final var property = field.getPropertyInfo();
         if (property instanceof CElementPropertyInfo) {
             // case (1/4): CElementPropertyInfo extends CPropertyInfo
             return ((CElementPropertyInfo) property).isRequired();
@@ -103,15 +103,15 @@ public enum OutlineAnalysis {
     }
 
     /**
-     * Returns {@code true} iff this attribute is optional (a.k.a. not required/not mandatory).
+     * Returns {@code true} iff this field is optional (a.k.a. not required/not mandatory).
      *
-     * @param attribute
-     *            the attribute to analyse
-     * @return {@code true} if this attribute is optional; {@code false} otherwise
+     * @param field
+     *            the field to analyse
+     * @return {@code true} if this field is optional; {@code false} otherwise
      * @see #isRequired(FieldOutline)
      */
-    public static final boolean isOptional(final FieldOutline attribute) {
-        return !isRequired(attribute);
+    public static final boolean isOptional(final FieldOutline field) {
+        return !isRequired(field);
     }
 
     /* Do not (!) assign the following values. Instead, let Java do the initialisation. */
@@ -129,7 +129,7 @@ public enum OutlineAnalysis {
     /**
      * Returns the default value for the given field if such value exists. In detail, this means (in order):
      * <dl>
-     * <dt>for any XSD attribute with a given lexical value</dt>
+     * <dt>for any field with a given lexical value</dt>
      * <dd>{@linkplain com.sun.tools.xjc.model.CDefaultValue#compute(com.sun.tools.xjc.outline.Outline) the according Java expression} is chosen if it can be computed,</dd>
      * <dt>for any primitive type</dt>
      * <dd><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">the according Java default value</a> is chosen,</dd>
@@ -141,7 +141,7 @@ public enum OutlineAnalysis {
      * <dd>the {@linkplain Optional#empty() empty Optional} is returned.</dd>
      * </dl>
      *
-     * @param attribute
+     * @param field
      *            the field to analyse
      * @param initCollections
      *            either to initialise collections or not
@@ -150,10 +150,10 @@ public enum OutlineAnalysis {
      * @return an {@link Optional} holding the default value for the given field if such value exists; the {@linkplain Optional#empty() empty Optional} otherwise
      * @see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">The Java™ Tutorials :: Primitive Data Types</a>
      */
-    public static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute, final boolean initCollections, final boolean unmodifiableCollections) {
-        final var outline = attribute.parent().parent();
+    public static final Optional<JExpression> defaultExpressionFor(final FieldOutline field, final boolean initCollections, final boolean unmodifiableCollections) {
+        final var outline = field.parent().parent();
         final var $model = outline.getCodeModel();
-        final var property = attribute.getPropertyInfo();
+        final var property = field.getPropertyInfo();
         if (property.defaultValue != null) {
             assertThat(property.isCollection()).isFalse();
             final var $default = property.defaultValue.compute(outline);
@@ -172,10 +172,10 @@ public enum OutlineAnalysis {
                  * einen deklarierten Default-Value gibt -- aber gleichzeitig keine Java-Repräsentation von diesem
                  * Default-Value. 
                  */
-                LOG.error(MISSING_JAVA_DEFAULT_VALUE, attribute.parent().getImplClass().fullName(), property.getName(false), $default);
+                LOG.error(MISSING_JAVA_DEFAULT_VALUE, field.parent().getImplClass().fullName(), property.getName(false), $default);
             }
         }
-        final var $raw = attribute.getRawType();
+        final var $raw = field.getRawType();
         // TODO: Checken, ob es einen Fall gibt, wo einem Non-Primitive-Boolean (etc.) ein false zugewiesen wird, ohne
         //       dass ein Default-Wert existiert. Das darf nicht passieren. Ein "Boolean" ist initial "null".
         //       (Vgl. com.sun.tools.xjc.model.CBuiltinLeafInfo#BOOLEAN_ZERO_OR_ONE oder
@@ -263,17 +263,17 @@ public enum OutlineAnalysis {
      * {@value #GET}. Further, the value of {@link com.sun.tools.xjc.Options#enableIntrospection} is also considered to decide that prefix. Doing so, this method should return
      * similar values compared to the names used for the generated getter methods.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according getter method
      * @see com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar#getGetterMethod()
      */
-    public static final String guessGetterName(final FieldOutline attribute) {
-        final var isBoolean = attribute.parent().parent().getCodeModel().BOOLEAN.equals(attribute.getRawType().boxify().getPrimitiveType());
-        if (attribute.parent().parent().getModel().options.enableIntrospection) {
-            return (attribute.getRawType().isPrimitive() && isBoolean ? IS : GET) + attribute.getPropertyInfo().getName(true);
+    public static final String guessGetterName(final FieldOutline field) {
+        final var isBoolean = field.parent().parent().getCodeModel().BOOLEAN.equals(field.getRawType().boxify().getPrimitiveType());
+        if (field.parent().parent().getModel().options.enableIntrospection) {
+            return (field.getRawType().isPrimitive() && isBoolean ? IS : GET) + field.getPropertyInfo().getName(true);
         } else {
-            return (isBoolean ? IS : GET) + attribute.getPropertyInfo().getName(true);
+            return (isBoolean ? IS : GET) + field.getPropertyInfo().getName(true);
         }
     }
 
@@ -281,79 +281,79 @@ public enum OutlineAnalysis {
      * Guesses the name of the according setter method for a given field. The return value will start with prefix {@value #SET}. Doing so, this method should return similar values
      * compared to the names used for the generated setter methods.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according setter method
      * @see com.sun.tools.xjc.generator.bean.field.AbstractFieldWithVar.Accessor#fromRawValue(com.sun.codemodel.JBlock, String, com.sun.codemodel.JExpression)
      */
-    public static final String guessSetterName(final FieldOutline attribute) {
-        return SET + attribute.getPropertyInfo().getName(true);
+    public static final String guessSetterName(final FieldOutline field) {
+        return SET + field.getPropertyInfo().getName(true);
     }
 
     /**
      * Guesses the name of the according wither method for a given field. The return value will start with prefix {@value #WITH}.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according wither method
      */
-    public static final String guessWitherName(final FieldOutline attribute) {
-        return WITH + attribute.getPropertyInfo().getName(true);
+    public static final String guessWitherName(final FieldOutline field) {
+        return WITH + field.getPropertyInfo().getName(true);
     }
 
     /**
      * Guesses the name of the according withouter method for a given field. The return value will start with prefix {@value #WITHOUT}.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according withouter method
      */
-    public static final String guessWithouterName(final FieldOutline attribute) {
-        return WITHOUT + attribute.getPropertyInfo().getName(true);
+    public static final String guessWithouterName(final FieldOutline field) {
+        return WITHOUT + field.getPropertyInfo().getName(true);
     }
 
     /**
      * Guesses the name of the according adder method for a given field. The return value will start with prefix {@value #ADD}.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according adder method
      */
-    public static final String guessAdderName(final FieldOutline attribute) {
-        return ADD + attribute.getPropertyInfo().getName(true);
+    public static final String guessAdderName(final FieldOutline field) {
+        return ADD + field.getPropertyInfo().getName(true);
     }
 
     /**
      * Guesses the name of the according remover method for a given field. The return value will start with prefix {@value #REMOVE}.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according adder method
      */
-    public static final String guessRemoverName(final FieldOutline attribute) {
-        return REMOVE + attribute.getPropertyInfo().getName(true);
+    public static final String guessRemoverName(final FieldOutline field) {
+        return REMOVE + field.getPropertyInfo().getName(true);
     }
 
     /**
      * Guesses the name of the according adder method for a given field. The return value will start with prefix {@value #WITH_ADDITIONAL}.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according adder method
      */
-    public static final String guessWithAdditionalName(final FieldOutline attribute) {
-        return WITH_ADDITIONAL + attribute.getPropertyInfo().getName(true);
+    public static final String guessWithAdditionalName(final FieldOutline field) {
+        return WITH_ADDITIONAL + field.getPropertyInfo().getName(true);
     }
 
     /**
      * Guesses the name of the according remover method for a given field. The return value will start with prefix {@value #WITHOUT_SPECIFIC}.
      *
-     * @param attribute
+     * @param field
      *            the given field
      * @return the name of the according remover method
      */
-    public static final String guessWithoutSpecificName(final FieldOutline attribute) {
-        return WITHOUT_SPECIFIC + attribute.getPropertyInfo().getName(true);
+    public static final String guessWithoutSpecificName(final FieldOutline field) {
+        return WITHOUT_SPECIFIC + field.getPropertyInfo().getName(true);
     }
 
     /**
@@ -383,7 +383,7 @@ public enum OutlineAnalysis {
      * @return the name of the according builder class
      */
     public static final String guessBuilderName(final ClassOutline clazz) {
-        final var prefix = BUILDER.equals(clazz.implClass.name()) ? clazz.implClass.name() : "";
+        final var prefix = BUILDER.equals(clazz.getImplClass().name()) ? clazz.getImplClass().name() : "";
         return prefix + BUILDER;
     }
 
@@ -398,18 +398,18 @@ public enum OutlineAnalysis {
         if (clazz == null) {
             return properties;
         }
-        for (final var outline : clazz.getDeclaredFields()) {
-            final var name = outline.getPropertyInfo().getName(false);
-            final var $property = clazz.implClass.fields().get(name);
-            if ($property == null) {
-                LOG.warn("There is no according field in class [{}] for declared property [{}].", clazz.implClass.fullName(), name);
+        for (final var field : clazz.getDeclaredFields()) {
+            final var name = field.getPropertyInfo().getName(false);
+            final var $field = clazz.getImplClass().fields().get(name);
+            if ($field == null) {
+                LOG.warn("There is no according Java field in class [{}] for declared outline field [{}].", clazz.getImplClass().fullName(), name);
             }
-            properties.put(outline, $property);
+            properties.put(field, $field);
         }
-        if ((clazz.implClass.fields().size() - properties.size()) != 0) {
-            final var noncaused = new HashMap<>(clazz.implClass.fields());
-            noncaused.values().removeAll(properties.values());
-            LOG.warn("Class [{}] contains fields that are not caused by declared properties: {}", clazz.implClass.fullName(), noncaused.keySet());
+        if ((clazz.getImplClass().fields().size() - properties.size()) != 0) {
+            final var $fields = new HashMap<>(clazz.getImplClass().fields());
+            $fields.values().removeAll(properties.values());
+            LOG.warn("Java class [{}] contains fields that are not caused by declared outline fields: {}", clazz.getImplClass().fullName(), $fields.keySet());
         }
         return properties;
     }
@@ -440,11 +440,10 @@ public enum OutlineAnalysis {
      */
     private static final LinkedHashMap<FieldOutline, JFieldVar> superAndDeclaredPropertiesOf(final ClassOutline clazz) {
         final var properties = new LinkedHashMap<FieldOutline, JFieldVar>();
-        if (clazz == null) {
-            return properties;
+        if (clazz != null) {
+            properties.putAll(superAndDeclaredPropertiesOf(clazz.getSuperClass()));
+            properties.putAll(declaredPropertiesOf(clazz));
         }
-        properties.putAll(superAndDeclaredPropertiesOf(clazz.getSuperClass()));
-        properties.putAll(declaredPropertiesOf(clazz));
         return properties;
     }
 
@@ -493,7 +492,20 @@ public enum OutlineAnalysis {
      * @return the default constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz) {
-        return CodeModelAnalysis.getConstructor(clazz.implClass);
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass());
+    }
+
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param argumentTypes
+     *            the constructor's signature types
+     * @return the specific value constructor if it exists
+     */
+    public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final ClassOutline... argumentTypes) {
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), stream(argumentTypes).map(ClassOutline::getImplClass).toArray(JType[]::new));
     }
 
     /**
@@ -506,7 +518,7 @@ public enum OutlineAnalysis {
      * @return the specific value constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
-        return CodeModelAnalysis.getConstructor(clazz.implClass, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
     /**
@@ -519,7 +531,7 @@ public enum OutlineAnalysis {
      * @return the specific value constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final JType... argumentTypes) {
-        return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), argumentTypes);
     }
 
     /**
@@ -533,7 +545,7 @@ public enum OutlineAnalysis {
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
         final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
-        return CodeModelAnalysis.getConstructor(clazz.implClass, argumentTypes);
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), argumentTypes);
     }
 
     /**
@@ -546,7 +558,7 @@ public enum OutlineAnalysis {
      * @return a list of all constructor matching the given predicate
      */
     public static final List<JMethod> getConstructors(final ClassOutline clazz, final Predicate<? super JMethod> filter) {
-        return CodeModelAnalysis.getConstructors(clazz.implClass, filter);
+        return CodeModelAnalysis.getConstructors(clazz.getImplClass(), filter);
     }
 
     /**
@@ -559,7 +571,7 @@ public enum OutlineAnalysis {
      * @return the specific method if it exists
      */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name) {
-        return CodeModelAnalysis.getMethod(clazz.implClass, name);
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name);
     }
 
     /**
@@ -574,7 +586,7 @@ public enum OutlineAnalysis {
      * @return the specific method if it exists
      */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
-        return CodeModelAnalysis.getMethod(clazz.implClass, name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
     }
 
     /**
@@ -589,7 +601,7 @@ public enum OutlineAnalysis {
      * @return the specific method if it exists
      */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final JType... argumentTypes) {
-        return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, argumentTypes);
     }
 
     /**
@@ -605,7 +617,7 @@ public enum OutlineAnalysis {
      */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
         final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
-        return CodeModelAnalysis.getMethod(clazz.implClass, name, argumentTypes);
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, argumentTypes);
     }
 
     /**
@@ -620,21 +632,21 @@ public enum OutlineAnalysis {
     public static final LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>> generatedGettersOf(final ClassOutline clazz) {
         final var getters = new LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>>();
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            final var attribute = property.getKey();
-            final var $property = property.getValue();
-            final var getterName = guessGetterName(attribute);
+            final var field = property.getKey();
+            final var $field = property.getValue();
+            final var getterName = guessGetterName(field);
             final var $getterLookup = getMethod(clazz, getterName);
             if ($getterLookup.isPresent()) {
                 final var $getter = $getterLookup.get();
                 assertThat(
                   // this is the obvious assertion:
-                  $getter.type().boxify().equals($property.type().boxify()) ||
+                  $getter.type().boxify().equals($field.type().boxify()) ||
                   // this is the alternative assertion (because PropertyPlugin modifies the getter methods):
-                  (deoptionalisedTypeFor($getter.type().boxify()).isPresent() && deoptionalisedTypeFor($getter.type().boxify()).get().boxify().equals($property.type().boxify()))
+                  (deoptionalisedTypeFor($getter.type().boxify()).isPresent() && deoptionalisedTypeFor($getter.type().boxify()).get().boxify().equals($field.type().boxify()))
                 ).isTrue();
-                getters.put(attribute, new SimpleImmutableEntry<>($property, $getter));
+                getters.put(field, new SimpleImmutableEntry<>($field, $getter));
             } else {
-                LOG.error("There is no getter method [{}] for property {} of class [{}].", getterName, $property.name(), clazz.implClass.fullName());
+                LOG.error("There is no getter method [#{}()] for declared field {} of class [{}].", getterName, $field.name(), clazz.getImplClass().fullName());
             }
         }
         return getters;
@@ -652,18 +664,18 @@ public enum OutlineAnalysis {
     public static final LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>> generatedSettersOf(final ClassOutline clazz) {
         final var setters = new LinkedHashMap<FieldOutline, Entry<JFieldVar, JMethod>>();
         for (final var property : generatedPropertiesOf(clazz).entrySet()) {
-            final var attribute = property.getKey();
-            final var $property = property.getValue();
-            final var setterName = guessSetterName(attribute);
-            final var $setterLookup = getMethod(clazz, setterName, $property.type());
+            final var field = property.getKey();
+            final var $field = property.getValue();
+            final var setterName = guessSetterName(field);
+            final var $setterLookup = getMethod(clazz, setterName, $field.type());
             if ($setterLookup.isPresent()) {
                 final var $setter = $setterLookup.get();
-                assertThat($setter.type()).isEqualByComparingTo(clazz.implClass.owner().VOID);
-                setters.put(attribute, new SimpleImmutableEntry<>($property, $setter));
-            } else if (attribute.getPropertyInfo().isCollection()) {
-                LOG.info("Expectedly, there is no setter method [{}#{}({})] for collection property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
+                assertThat($setter.type()).isEqualByComparingTo(clazz.getImplClass().owner().VOID);
+                setters.put(field, new SimpleImmutableEntry<>($field, $setter));
+            } else if (field.getPropertyInfo().isCollection()) {
+                LOG.info("Expectedly, there is no setter method [{}#{}({})] for declared collection field [{}].", clazz.getImplClass().fullName(), setterName, $field.type(), $field.name());
             } else {
-                LOG.error("Unexpectedly, there is no setter method [{}#{}({})] for property [{}].", clazz.implClass.fullName(), setterName, $property.type(), $property.name());
+                LOG.error("Unexpectedly, there is no setter method [{}#{}({})] for declared field [{}].", clazz.getImplClass().fullName(), setterName, $field.type(), $field.name());
             }
         }
         return setters;
@@ -679,7 +691,7 @@ public enum OutlineAnalysis {
      * @return an {@link Optional} holding the embedded class if found; an {@linkplain Optional#empty() empty Optional} if not found
      */
     public static final Optional<JDefinedClass> getEmbeddedClass(final ClassOutline clazz, final String name) {
-        return CodeModelAnalysis.getEmbeddedClass(clazz.implClass, name);
+        return CodeModelAnalysis.getEmbeddedClass(clazz.getImplClass(), name);
     }
 
 }

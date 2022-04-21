@@ -32,7 +32,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JMethod;
 import com.sun.tools.xjc.outline.ClassOutline;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
@@ -77,21 +76,22 @@ extends BasePlugin {
 
     @Override
     protected final boolean runClass(final ClassOutline clazz) {
-        GENERATE_EQUALS  .doOnActivation(this::ensureEquals,   clazz);
-        GENERATE_HASHCODE.doOnActivation(this::ensureHashCode, clazz);
-        GENERATE_TOSTRING.doOnActivation(this::ensureToString, clazz);
+        GENERATE_EQUALS  .doOnActivation(this::generateEquals,   clazz);
+        GENERATE_HASHCODE.doOnActivation(this::generateHashCode, clazz);
+        GENERATE_TOSTRING.doOnActivation(this::generateToString, clazz);
         return true;
     }
 
-    private final JMethod ensureEquals(final ClassOutline clazz) {
-        final var $equals = getMethod(clazz, equals, Object.class);
-        $equals.ifPresent($m -> LOG.warn(SKIP_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS));
-        return $equals.orElse(this.generateEquals(clazz));
-    }
-
-    private final JMethod generateEquals(final ClassOutline clazz) {
-        LOG.info(GENERATE_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE);
+    private final void generateEquals(final ClassOutline clazz) {
+        // 0/4: Skip as necessary
+        final var $lookup = getMethod(clazz, equals, Object.class);
+        if ($lookup.isPresent()) {
+            LOG.warn(SKIP_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
+            return;
+        };
         // 1/4: Declare
+        assertThat($lookup).isNotPresent();
+        LOG.info(GENERATE_METHOD, fullNameOf(clazz), EQUALS_SIGNATURE);
         final var $ImplClass = clazz.getImplClass();
         final var $equals = $ImplClass.method(PUBLIC, boolean.class, equals);
         final var $Object = this.reference(Object.class);
@@ -110,39 +110,39 @@ extends BasePlugin {
         if (clazz.getSuperClass() != null) {
             $comparisons.add($super.invoke(equals).arg($other));
         }
-        final var $properties = generatedPropertiesOf(clazz).values();
-        if (!$properties.isEmpty()) {
+        final var $fields = generatedPropertiesOf(clazz).values();
+        if (!$fields.isEmpty()) {
             final var $that = $equals.body().decl(FINAL, $ImplClass, "that", cast($ImplClass, $other));
-            for (final var $property : $properties) {
-                if ($property.type().isPrimitive()) {
+            for (final var $field : $fields) {
+                if ($field.type().isPrimitive()) {
                     // compare primitive fields directly
-                    $comparisons.add($this.ref($property).eq($that.ref($property)));
-                } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
+                    $comparisons.add($this.ref($field).eq($that.ref($field)));
+                } else if ($field.type().isArray() && $field.type().elementType().isPrimitive()) {
                     // invoke Arrays#equals(primitive[],primitive[]) comparison for arrays of primitive types
-                    $comparisons.add($Arrays.staticInvoke("equals").arg($this.ref($property)).arg($that.ref($property)));
-                } else if ($property.type().isArray()) {
+                    $comparisons.add($Arrays.staticInvoke("equals").arg($this.ref($field)).arg($that.ref($field)));
+                } else if ($field.type().isArray()) {
                     // invoke Arrays#deepEquals(Object[],Object[]) comparison for arrays of non-primitive types
-                    assertThat($property.type().elementType().isPrimitive()).isFalse();
-                    $comparisons.add($Arrays.staticInvoke("deepEquals").arg($this.ref($property)).arg($that.ref($property)));
+                    assertThat($field.type().elementType().isPrimitive()).isFalse();
+                    $comparisons.add($Arrays.staticInvoke("deepEquals").arg($this.ref($field)).arg($that.ref($field)));
                 } else {
                     // invoke Objects#equals(Object,Object) in any other case
-                    $comparisons.add($Objects.staticInvoke("equals").arg($this.ref($property)).arg($that.ref($property)));
+                    $comparisons.add($Objects.staticInvoke("equals").arg($this.ref($field)).arg($that.ref($field)));
                 }
             }
         }
-        $equals.body()._return($comparisons.stream().reduce(JExpression::cand).orElse(lit(true)));
-        return $equals;
+        $equals.body()._return($comparisons.stream().reduce(JExpression::cand).orElseGet(() -> lit(true)));
     }
 
-    private final JMethod ensureHashCode(final ClassOutline clazz) {
-        final var $hashCode = getMethod(clazz, hashCode);
-        $hashCode.ifPresent($m -> LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS));
-        return $hashCode.orElse(this.generateHashCode(clazz));
-    }
-
-    private final JMethod generateHashCode(final ClassOutline clazz) {
-        LOG.info(GENERATE_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE);
+    private final void generateHashCode(final ClassOutline clazz) {
+        // 0/4: Skip as necessary
+        final var $lookup = getMethod(clazz, hashCode);
+        if ($lookup.isPresent()) {
+            LOG.warn(SKIP_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
+            return;
+        };
         // 1/4: Declare
+        assertThat($lookup).isNotPresent();
+        LOG.info(GENERATE_METHOD, fullNameOf(clazz), HASHCODE_SIGNATURE);
         final var $ImplClass = clazz.getImplClass();
         final var $hashCode = $ImplClass.method(PUBLIC, int.class, hashCode);
         // 2/4: Annotate
@@ -159,20 +159,20 @@ extends BasePlugin {
         if (clazz.getSuperClass() != null) {
             $hashCodeArgs.arg($super.invoke(hashCode));
         }
-        for (final var $property : generatedPropertiesOf(clazz).values()) {
-            if ($property.type().isPrimitive()) {
+        for (final var $field : generatedPropertiesOf(clazz).values()) {
+            if ($field.type().isPrimitive()) {
                 // invoke Primitivewrapper#hashCode(primitive) calculation for primitive fields
-                $hashCodeArgs.arg($property.type().boxify().staticInvoke("hashCode").arg($this.ref($property)));
-            } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
+                $hashCodeArgs.arg($field.type().boxify().staticInvoke("hashCode").arg($this.ref($field)));
+            } else if ($field.type().isArray() && $field.type().elementType().isPrimitive()) {
                 // invoke Arrays#hashCode(primitive[]) calculation for arrays of primitive types
-                $hashCodeArgs.arg($Arrays.staticInvoke("hashCode").arg($this.ref($property)));
-            } else if ($property.type().isArray()) {
+                $hashCodeArgs.arg($Arrays.staticInvoke("hashCode").arg($this.ref($field)));
+            } else if ($field.type().isArray()) {
                 // invoke Arrays#deepHashCode(Object[]) calculation for arrays of non-primitive types
-                assertThat($property.type().elementType().isPrimitive()).isFalse();
-                $hashCodeArgs.arg($Arrays.staticInvoke("deepHashCode").arg($this.ref($property)));
+                assertThat($field.type().elementType().isPrimitive()).isFalse();
+                $hashCodeArgs.arg($Arrays.staticInvoke("deepHashCode").arg($this.ref($field)));
             } else {
                 // collect this non-primitive field as an argument for subsequent Objects#hash(Object...) in any other case
-                $straightHashFields.arg($this.ref($property));
+                $straightHashFields.arg($this.ref($field));
             }
         }
         if ($straightHashFields.listArgs().length > 0) {
@@ -189,18 +189,18 @@ extends BasePlugin {
             // invoke Arrays#hashCode(int[]) in any other case
             $hashCode.body()._return($Arrays.staticInvoke("hashCode").arg($hashCodeArgs));
         }
-        return $hashCode;
     }
 
-    private final JMethod ensureToString(final ClassOutline clazz) {
-        final var $toString = getMethod(clazz, toString);
-        $toString.ifPresent($m -> LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS));
-        return $toString.orElse(this.generateToString(clazz));
-    }
-
-    private final JMethod generateToString(final ClassOutline clazz) {
-        LOG.info(GENERATE_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE);
+    private final void generateToString(final ClassOutline clazz) {
+        // 0/4: Skip as necessary
+        final var $lookup = getMethod(clazz, toString);
+        if ($lookup.isPresent()) {
+            LOG.warn(SKIP_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE, BECAUSE_METHOD_ALREADY_EXISTS);
+            return;
+        };
         // 1/4: Declare
+        assertThat($lookup).isNotPresent();
+        LOG.info(GENERATE_METHOD, fullNameOf(clazz), TOSTRING_SIGNATURE);
         final var $ImplClass = clazz.getImplClass();
         final var $toString = $ImplClass.method(PUBLIC, String.class, toString);
         // 2/4: Annotate
@@ -213,33 +213,32 @@ extends BasePlugin {
         final var $StringJoiner = this.reference(StringJoiner.class);
         var $pieces = _new($StringJoiner).arg(", ").arg($ImplClass.name() + "[").arg("]");
         for (final var property : generatedPropertiesOf(clazz).entrySet() /* TODO: Also consider constant fields */) {
-            final var attribute = property.getKey();
-            final var info = attribute.getPropertyInfo();
-            final var $property = property.getValue();
-            if ($property.type().isPrimitive()) {
+            final var field = property.getKey();
+            final var name = field.getPropertyInfo().getName(true);
+            final var $field = property.getValue();
+            if ($field.type().isPrimitive()) {
                 // invoke Primitivewrapper#toString(primitive) calculation for primitive fields
-                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($property.type().boxify().staticInvoke("toString").arg($this.ref($property))));
+                $pieces = $pieces.invoke("add").arg(lit(name + ": ").plus($field.type().boxify().staticInvoke("toString").arg($this.ref($field))));
 // TODO: Print char[] as String immediately?
 //          } else if ($property.type().isArray() && (this.codeModel().CHAR.compareTo($property.type().elementType()) == 0)) {
 //              // invoke String#valueOf(char[]) calculation for char arrays
 //              $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus(this.reference(String.class).staticInvoke("valueOf").arg($this.ref($property))));
-            } else if ($property.type().isArray() && $property.type().elementType().isPrimitive()) {
+            } else if ($field.type().isArray() && $field.type().elementType().isPrimitive()) {
                 // invoke Arrays#toString(primitive[]) calculation for arrays of primitive types
-                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($property))));
-            } else if ($property.type().isArray()) {
+                $pieces = $pieces.invoke("add").arg(lit(name + ": ").plus($Arrays.staticInvoke("toString").arg($this.ref($field))));
+            } else if ($field.type().isArray()) {
                 // invoke Arrays#deepToString(Object[]) calculation for arrays of non-primitive types
-                assertThat($property.type().elementType().isPrimitive()).isFalse();
-                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($Arrays.staticInvoke("deepToString").arg($this.ref($property))));
+                assertThat($field.type().elementType().isPrimitive()).isFalse();
+                $pieces = $pieces.invoke("add").arg(lit(name + ": ").plus($Arrays.staticInvoke("deepToString").arg($this.ref($field))));
             } else {
                 // invoke Objects#toString(Object) in any other case
-                $pieces = $pieces.invoke("add").arg(lit(info.getName(true) + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($property))));
+                $pieces = $pieces.invoke("add").arg(lit(name + ": ").plus($Objects.staticInvoke("toString").arg($this.ref($field))));
             }
         }
         if (clazz.getSuperClass() != null) {
             $pieces = $pieces.invoke("add").arg(lit("Super: ").plus($super.invoke(toString)));
         }
         $toString.body()._return($pieces.invoke(toString));
-        return $toString;
     }
 
 }

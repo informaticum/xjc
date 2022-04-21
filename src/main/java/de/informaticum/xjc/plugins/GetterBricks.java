@@ -21,11 +21,11 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
 
     /*package*/ final ClassOutline clazz;
 
-    /*package*/ final FieldOutline attribute;
+    /*package*/ final FieldOutline field;
 
-    /*package*/ final CPropertyInfo attributeInfo;
+    /*package*/ final CPropertyInfo info;
 
-    /*package*/ final JFieldVar $property;
+    /*package*/ final JFieldVar $field;
     
     /*package*/ final JMethod $getter;
 
@@ -51,15 +51,15 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
 
     /*package*/ GetterBricks(final PropertyAccessor accessor) {
         this.clazz = accessor.clazz;
-        this.attribute = accessor.attribute;
-        this.attributeInfo = this.attribute.getPropertyInfo();
-        this.$property = accessor.$property;
+        this.field = accessor.field;
+        this.info = this.field.getPropertyInfo();
+        this.$field = accessor.$field;
         this.$getter = accessor.$method;
         this.$returnType = this.$getter.type();
         this.$OptionalType = optionalTypeFor(this.$returnType);
-        this.$prop = $this.ref(this.$property);
-        this.$default = PropertyPlugin.defaultExpressionFor(this.attribute);
-        this.$nonNull = PropertyPlugin.effectiveExpressionForNonNull(this.$property.type(), this.$prop);
+        this.$prop = $this.ref(this.$field);
+        this.$default = PropertyPlugin.defaultExpressionFor(this.field);
+        this.$nonNull = PropertyPlugin.effectiveExpressionForNonNull(this.$field.type(), this.$prop);
         this.$optionalEmpty = this.$OptionalType.erasure().staticInvoke("empty");
         this.$optionalOf = this.$OptionalType.erasure().staticInvoke("of");
     }

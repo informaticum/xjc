@@ -166,7 +166,7 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
         }
     };
 
-    private static final Function<GetterBricks, PropertyPluginMessages> DECLARATION_TYPE         = b -> isRequired(b.attribute) ? NOTE_REQUIRED_VALUE : NOTE_OPTIONAL_VALUE;
+    private static final Function<GetterBricks, PropertyPluginMessages> DECLARATION_TYPE         = b -> isRequired(b.field) ? NOTE_REQUIRED_VALUE : NOTE_OPTIONAL_VALUE;
     private static final Function<GetterBricks, PropertyPluginMessages> NOTE_REFERENCE           = b -> (b.$prop == b.$nonNull) ? NOTE_LIVE_REFERENCE : NOTE_DEFENSIVE_COPY_COLLECTION;
     private static final Function<GetterBricks, PropertyPluginMessages> HINT_REFERENCE           = b -> (b.$prop == b.$nonNull) ? HINT_LIVE_REFERENCE : HINT_DEFENSIVE_COPY_COLLECTION;
     private static final Function<GetterBricks, PropertyPluginMessages> NOTE_REFERENCE_CONTAINER = b -> (b.$prop == b.$nonNull) ? NOTE_LIVE_REFERENCE_CONTAINER : NOTE_DEFENSIVE_COPY_COLLECTION_CONTAINER;
@@ -201,13 +201,13 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
 
     /*package*/ final void supersedeJavadoc(final GetterBricks bricks, final String noteArg) {
         final var $javadoc = bricks.$getter.javadoc();
-        eraseJavadoc($javadoc).append(this.introJavadoc.format(javadocNameOf(bricks.attribute.parent().getImplClass()), javadocNameOf(bricks.$property)));
+        eraseJavadoc($javadoc).append(this.introJavadoc.format(javadocNameOf(bricks.field.parent().getImplClass()), javadocNameOf(bricks.$field)));
         for (final var note : this.notes(bricks)) {
             javadocBreak($javadoc).append(note.format(noteArg));
         }
         javadocBreak($javadoc).append(this.outroJavadoc.text());
         final var $return = bricks.$getter.javadoc().addReturn();
-        eraseJavadoc($return).append(this.returnJavadoc.format(javadocNameOf(bricks.attribute.parent().getImplClass()), javadocNameOf(bricks.$property), noteArg));
+        eraseJavadoc($return).append(this.returnJavadoc.format(javadocNameOf(bricks.field.parent().getImplClass()), javadocNameOf(bricks.$field), noteArg));
     }
 
     /*package*/ final void supersedeGetter(final GetterBricks bricks) {

@@ -3,16 +3,16 @@ package de.informaticum.xjc.plugins;
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JOp.cond;
-import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.DEFAULTED_ATTRIBUTE;
+import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.DEFAULTED_FIELD;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.DEFENSIVE_COPIES_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.FIELD_INITIALISATION;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.ILLEGAL_ARGUMENT;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.INITIALISATION_BEGIN;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.INITIALISATION_END;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.NOTNULL_COLLECTIONS_DESCRIPTION;
-import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.OPTIONAL_ATTRIBUTE;
-import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.PRIMITVE_ATTRIBUTE;
-import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.REQUIRED_ATTRIBUTE;
+import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.OPTIONAL_FIELD;
+import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.PRIMITVE_FIELD;
+import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.REQUIRED_FIELD;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.UNMODIFIABLE_COLLECTIONS_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
@@ -98,15 +98,15 @@ extends BasePlugin {
      * Returns {@linkplain de.informaticum.xjc.util.OutlineAnalysis#defaultExpressionFor(FieldOutline, boolean, boolean) the default value for the given field if such value
      * exists}. The collection initialisation behaviour therefore is controlled by {@link #NOTNULL_COLLECTIONS} and {@link #UNMODIFIABLE_COLLECTIONS}.
      *
-     * @param attribute
+     * @param field
      *            the field to analyse
      * @return an {@link Optional} holding the default value for the given field if such value exists; the {@linkplain Optional#empty() empty Optional} otherwise
      * @see #NOTNULL_COLLECTIONS
      * @see #UNMODIFIABLE_COLLECTIONS
      * @see de.informaticum.xjc.util.OutlineAnalysis#defaultExpressionFor(FieldOutline, boolean, boolean)
      */
-    protected static final Optional<JExpression> defaultExpressionFor(final FieldOutline attribute) {
-        return OutlineAnalysis.defaultExpressionFor(attribute, NOTNULL_COLLECTIONS.isActivated(), UNMODIFIABLE_COLLECTIONS.isActivated());
+    protected static final Optional<JExpression> defaultExpressionFor(final FieldOutline field) {
+        return OutlineAnalysis.defaultExpressionFor(field, NOTNULL_COLLECTIONS.isActivated(), UNMODIFIABLE_COLLECTIONS.isActivated());
     }
 
     /**
@@ -142,11 +142,11 @@ extends BasePlugin {
     protected static final void accordingInitialisationAndJavadoc(final Map<? extends FieldOutline, ? extends JFieldVar> properties, final JMethod $setter) {
         javadocSection($setter).append(INITIALISATION_BEGIN.text());
         for (final var property : properties.entrySet()) {
-            final var attribute = property.getKey();
-            final var $property = property.getValue();
-            final var $value = defaultExpressionFor(attribute).orElse($null);
-            $setter.body().assign($this.ref($property), $value);
-            javadocBreak($setter).append(FIELD_INITIALISATION.format(javadocNameOf(attribute.parent()), javadocNameOf($property), render($value)));
+            final var field = property.getKey();
+            final var $field = property.getValue();
+            final var $value = defaultExpressionFor(field).orElse($null);
+            $setter.body().assign($this.ref($field), $value);
+            javadocBreak($setter).append(FIELD_INITIALISATION.format(javadocNameOf(field.parent()), javadocNameOf($field), render($value)));
         }
         javadocBreak($setter).append(INITIALISATION_END.text());
     }
@@ -204,41 +204,41 @@ extends BasePlugin {
      */
     protected static final void accordingAssignment(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter,
                                                     final JExpression $expression, final Optional<? extends JExpression> $default, final JExpression $nonNull) {
-        final var attribute = property.getKey();
-        final var $property = property.getValue();
-        if ($property.type().isPrimitive()) {
-            // TODO: Handle primitive $property with non-primitive $expression (that may be 'null')
-            $setter.body().assign($this.ref($property), $expression);
+        final var field = property.getKey();
+        final var $field = property.getValue();
+        if ($field.type().isPrimitive()) {
+            // TODO: Handle primitive $field with non-primitive $expression (that may be 'null')
+            $setter.body().assign($this.ref($field), $expression);
         } else if ($default.isPresent()) {
             if (render($expression).equals(render($null))) {
-                // in this case "this.$property = ($expression == null) ? $default : $nonNull;" is effectively similar to: "this.$property = default;"
-                $setter.body().assign($this.ref($property), $default.get());
+                // in this case "this.$field = ($expression == null) ? $default : $nonNull;" is effectively similar to: "this.$field = default;"
+                $setter.body().assign($this.ref($field), $default.get());
             } else {
-                // in this default case null-check is performed: "this.$property = ($expression == null) ? $default : $nonNull;"
-                $setter.body().assign($this.ref($property), cond($expression.eq($null), $default.get(), $nonNull));
+                // in this default case null-check is performed: "this.$field = ($expression == null) ? $default : $nonNull;"
+                $setter.body().assign($this.ref($field), cond($expression.eq($null), $default.get(), $nonNull));
             }
-        } else if (isRequired(attribute)) {
+        } else if (isRequired(field)) {
             assertThat($default).isNotPresent();
             assertThat(render($expression)).isNotEqualTo(render($null));
-            final var $IllegalArgumentException = attribute.parent().parent().getCodeModel().ref(IllegalArgumentException.class);
+            final var $IllegalArgumentException = field.parent().parent().getCodeModel().ref(IllegalArgumentException.class);
             $setter._throws($IllegalArgumentException);
             assertThat(doesThrow($setter, $IllegalArgumentException)).isTrue();
             final var $condition = $setter.body()._if($expression.eq($null));
-            $condition._then()._throw(_new($IllegalArgumentException).arg(lit("Required field '" + $property.name() + "' cannot be assigned to null!")));
-            $condition._else().assign($this.ref($property), $nonNull);
+            $condition._then()._throw(_new($IllegalArgumentException).arg(lit("Required field '" + $field.name() + "' cannot be assigned to null!")));
+            $condition._else().assign($this.ref($field), $nonNull);
         } else {
             assertThat($default).isNotPresent();
-            assertThat(isOptional(attribute)).isTrue();
-            // This is the target expression: "this.$property = ($expression == $null) ? $null : $nonNull;" ...
+            assertThat(isOptional(field)).isTrue();
+            // This is the target expression: "this.$field = ($expression == $null) ? $null : $nonNull;" ...
             if (render($expression).equals(render($null))) {
-                // ... but in this case, the target expression is effectively similar to: "this.$property = $null;"
-                $setter.body().assign($this.ref($property), $null);
+                // ... but in this case, the target expression is effectively similar to: "this.$field = $null;"
+                $setter.body().assign($this.ref($field), $null);
             } else if (render($expression).equals(render($nonNull))) {
-                // ... but in this case, the target expression is effectively similar to: "this.$property = $nonNull;"
-                $setter.body().assign($this.ref($property), $nonNull);
+                // ... but in this case, the target expression is effectively similar to: "this.$field = $nonNull;"
+                $setter.body().assign($this.ref($field), $nonNull);
             } else {
                 // ... and in any other case, the target expression will be used without any optimisation/modification.
-                $setter.body().assign($this.ref($property), cond($expression.eq($null), $null, $nonNull));
+                $setter.body().assign($this.ref($field), cond($expression.eq($null), $null, $nonNull));
             }
         }
     }
@@ -255,27 +255,27 @@ extends BasePlugin {
      */
     private static final void accordingAssignmentJavadoc(final Entry<? extends FieldOutline, ? extends JFieldVar> property, final JMethod $setter,
                                                          final Optional<? extends JExpression> $default) {
-        final var attribute = property.getKey();
-        final var $property = property.getValue();
+        final var field = property.getKey();
+        final var $field = property.getValue();
         final String javadoc;
-        if ($property.type().isPrimitive()) {
-            javadoc = PRIMITVE_ATTRIBUTE.format(javadocNameOf(attribute.parent()), javadocNameOf($property));
+        if ($field.type().isPrimitive()) {
+            javadoc = PRIMITVE_FIELD.format(javadocNameOf(field.parent()), javadocNameOf($field));
         } else if ($default.isPresent()) {
-            javadoc = DEFAULTED_ATTRIBUTE.format(javadocNameOf(attribute.parent()), javadocNameOf($property), render($default.get()));
-        } else if (isRequired(attribute)) {
+            javadoc = DEFAULTED_FIELD.format(javadocNameOf(field.parent()), javadocNameOf($field), render($default.get()));
+        } else if (isRequired(field)) {
             assertThat($default).isNotPresent();
-            javadoc = REQUIRED_ATTRIBUTE.format(javadocNameOf(attribute.parent()), javadocNameOf($property));
-            final var $IllegalArgumentException = attribute.parent().parent().getCodeModel().ref(IllegalArgumentException.class);
+            javadoc = REQUIRED_FIELD.format(javadocNameOf(field.parent()), javadocNameOf($field));
+            final var $IllegalArgumentException = field.parent().parent().getCodeModel().ref(IllegalArgumentException.class);
             assertThat(doesThrow($setter, $IllegalArgumentException)).isTrue();
             if (!$setter.javadoc().addThrows($IllegalArgumentException).contains(ILLEGAL_ARGUMENT.text())) {
                 javadocSection($setter.javadoc().addThrows($IllegalArgumentException)).append(ILLEGAL_ARGUMENT.text());
             }
         } else {
             assertThat($default).isNotPresent();
-            assertThat(isOptional(attribute)).isTrue();
-            javadoc = OPTIONAL_ATTRIBUTE.format(javadocNameOf(attribute.parent()), javadocNameOf($property));
+            assertThat(isOptional(field)).isTrue();
+            javadoc = OPTIONAL_FIELD.format(javadocNameOf(field.parent()), javadocNameOf($field));
         }
-        javadocSection($setter.javadoc().addParam($property)).append(javadoc);
+        javadocSection($setter.javadoc().addParam($field)).append(javadoc);
     }
 
     /**
@@ -291,20 +291,20 @@ extends BasePlugin {
     protected static final Map<FieldOutline, JFieldVar> filterIllegalArgumentExceptionCandidates(final Map<? extends FieldOutline, ? extends JFieldVar> properties, final boolean enableDefault) {
         final var candidates = new LinkedHashMap<FieldOutline, JFieldVar>();
         for (final Entry<? extends FieldOutline, ? extends JFieldVar> property : properties.entrySet()) {
-            final var attribute = property.getKey();
-            final var $property = property.getValue();
-            final var $default = enableDefault ? defaultExpressionFor(attribute) : Optional.empty();
-            if ($property.type().isPrimitive()) {
+            final var field = property.getKey();
+            final var $field = property.getValue();
+            final var $default = enableDefault ? defaultExpressionFor(field) : Optional.empty();
+            if ($field.type().isPrimitive()) {
                 // not a candidate
             } else if ($default.isPresent()) {
                 // not a candidate
-            } else if (isRequired(attribute)) {
+            } else if (isRequired(field)) {
                 assertThat($default).isNotPresent();
                 // this is a candidate
-                candidates.put(attribute, $property);
+                candidates.put(field, $field);
             } else {
                 assertThat($default).isNotPresent();
-                assertThat(isOptional(attribute)).isTrue();
+                assertThat(isOptional(field)).isTrue();
                 // not a candidate
             }
         }
