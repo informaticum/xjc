@@ -185,12 +185,12 @@ extends AssignmentPlugin {
         final var setters = generatedSettersOf(clazz);
         if (!setters.isEmpty()) {
             javadocSection($ImplClass).append(REMOVED_SETTERS_IMPLNOTE.text());
+            for (final var setter : setters.values()) {
+                final var $setter = setter.getValue();
+                LOG.info(REMOVE_SETTER, fullNameOf(clazz), $setter.name());
+                $ImplClass.methods().remove($setter);
+            };
         }
-        for (final var setter : setters.values()) {
-            final var $setter = setter.getValue();
-            LOG.info(REMOVE_SETTER, fullNameOf(clazz), $setter.name());
-            $ImplClass.methods().remove($setter);
-        };
     }
 
     private final void refactorGetter(final ClassOutline clazz) {
