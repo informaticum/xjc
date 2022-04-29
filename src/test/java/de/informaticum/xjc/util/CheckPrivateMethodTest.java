@@ -31,12 +31,12 @@ public class CheckPrivateMethodTest {
     @Test
     public void testDeclaredMethod()
     throws Exception {
-        assertThat(clazz).withFailMessage("This assertion checks if the %s class still has a method with name %s. " +
-                                          "If this fails, the implementation of CodeModelAnalysis must be adopted.", clazz, methodName)
-                         .hasDeclaredMethods(methodName);
-        final var field = clazz.getDeclaredMethod(methodName);
+        assertThat(this.clazz).withFailMessage("This assertion checks if the %s class still has a method with name %s. " +
+                                               "If this fails, the implementation of CodeModelAnalysis must be adopted.", this.clazz, this.methodName)
+                              .hasDeclaredMethods(this.methodName);
+        final var field = this.clazz.getDeclaredMethod(this.methodName);
         assertThat(isPrivate(field.getModifiers())).withFailMessage("This assertion checks if the %s method of %s is still private. " +
-                                                                    "If this fails, the implementation of CodeModelAnalysis most likely should be adopted.", methodName, clazz)
+                                                                    "If this fails, the implementation of CodeModelAnalysis most likely should be adopted.", this.methodName, this.clazz)
                                                    .isTrue();
     }
 

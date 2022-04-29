@@ -42,11 +42,11 @@ public class CheckPrivateFieldTest {
     throws Exception {
         assertThat(this.clazz).withFailMessage("This assertion checks if the %s class still has a field with name %s. " +
                                                "If this fails, the implementation of XJC-Plugins must be adopted.", this.clazz, this.fieldName)
-        .hasDeclaredFields(this.fieldName);
+                              .hasDeclaredFields(this.fieldName);
         final var field = this.clazz.getDeclaredField(this.fieldName);
         assertThat(isPrivate(field.getModifiers())).withFailMessage("This assertion checks if the %s field of %s is still private. " +
-        "If this fails, the implementation of XJC-Plugins most likely should be adopted.", this.fieldName, this.clazz)
-        .isTrue();
+                                                                    "If this fails, the implementation of XJC-Plugins most likely should be adopted.", this.fieldName, this.clazz)
+                                                   .isTrue();
     }
 
 }
