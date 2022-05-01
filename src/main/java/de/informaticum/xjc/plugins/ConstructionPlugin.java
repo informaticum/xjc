@@ -215,6 +215,7 @@ extends AssignmentPlugin {
 
     @Override
     public final boolean prepareRun() {
+        final var result = super.prepareRun();
         // Factory wither-methods require embedded Builder.
         GENERATE_FACTORY_WITHER.activates(GENERATE_BUILDER);
         // Builders refer to the according all-value constructor, so {@link #GENERATE_VALUES_CONSTRUCTOR} must be
@@ -237,7 +238,7 @@ extends AssignmentPlugin {
         //   Collection<? extends ClassOutline> classes = new ArrayList<>(this.outline().getClasses());
         //   classes.forEach(c -> { if (!c.getImplClass().isAbstract()) { c.getImplClass().mods().setFinal(true); }});
         //   classes.forEach(c -> { if (c.getSuperClass() != null) { c.getSuperClass().getImplClass().mods().setFinal(false); }});
-        return true;
+        return result;
     }
 
     private static final Predicate<FieldOutline> DEFAULT_CONSTRUCTOR_PARAMETER_FILTER = any -> false;
@@ -274,7 +275,7 @@ extends AssignmentPlugin {
 
     private final JMethod generateConstructor(final ClassOutline clazz, final String label, final Predicate<? super FieldOutline> passedAsParameter) {
         // 0/3: Skip as necessary
-        final var $lookup = getConstructor(clazz, filter(superAndGeneratedPropertiesOf(clazz), passedAsParameter));
+        final var $lookup = getConstructor(clazz, parameterTypesOf(filter(superAndGeneratedPropertiesOf(clazz), passedAsParameter).values()));
         if ($lookup.isPresent()) {
             LOG.info(SKIP_CONSTRUCTOR, label, fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return $lookup.get();
@@ -295,11 +296,11 @@ extends AssignmentPlugin {
             final var fieldsViaSuperConstructor = filter(superAndGeneratedPropertiesOf(sc), passedAsParameter);
             if (!fieldsViaSuperConstructor.isEmpty()) {
                 $constructor.body().directStatement("// below fields are assigned via super constructor");
-                final var $superConstructor = getConstructor(sc.getImplClass(), fieldsViaSuperConstructor.values()).get();
+                final var $superConstructor = getConstructor(sc.getImplClass(), parameterTypesOf(fieldsViaSuperConstructor.values())).get();
                 final var $superInvocation = $constructor.body().invoke("super");
                 relayThrows($superConstructor, $constructor, COPY_JAVADOC); // @throws is not inherited for constructor Javadoc, so it must be relayed
                 for (final var $field : fieldsViaSuperConstructor.values()) {
-                    final var $parameter = $constructor.param(FINAL, $field.type(), $field.name());
+                    final var $parameter = $constructor.param(FINAL, parameterTypeOf($field), $field.name());
                     $superInvocation.arg($parameter);
                     relayParamDoc($superConstructor, $constructor, $parameter); // @param is not inherited for constructor Javadoc, so it must be relayed
                 }
@@ -311,7 +312,7 @@ extends AssignmentPlugin {
             $constructor.body().directStatement("// below fields are assigned with their according parameter");
             for (final var property : fieldsWithParameter) {
                 final var $field = property.getValue();
-                final var $parameter = $constructor.param(FINAL, $field.type(), $field.name());
+                final var $parameter = $constructor.param(FINAL, parameterTypeOf($field), $field.name());
                 accordingAssignmentAndJavadoc(property, $constructor, $parameter);
             }
         }
@@ -538,7 +539,7 @@ extends AssignmentPlugin {
             final var $wither = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessWitherName(field));
             javadocSection($wither).append(BUILDER_WITHER_JAVADOC.format(javadocNameOf(field.parent().getImplClass()), javadocNameOf($field)));
             javadocSection($wither.javadoc().addReturn()).append(BUILDER_WITHER_RETURN.text());
-            final var $witherParam = $wither.param(FINAL, $field.type(), $field.name());
+            final var $witherParam = $wither.param(FINAL, parameterTypeOf($field), $field.name());
             // assignment without defaults, collections must be modifiable
             accordingAssignmentAndJavadoc(property, $wither, $witherParam, WITHOUT_DEFAULT_VALUE, cloneExpressionFor(property.getValue().type(), $witherParam, WITH_MODIFIABLE_COLLECTION).orElse($witherParam));
             $wither.body()._return($this);
@@ -578,10 +579,10 @@ extends AssignmentPlugin {
             // (C.1++) Override Builder's "wither"-method for each inherited property [XyzClass.Builder#withAbc(AbcType)]
             final var $wither = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessWitherName(field));
             $wither.annotate(Override.class);
-            final var $witherParam = $wither.param(FINAL, $field.type(), $field.name());
+            final var $witherParam = $wither.param(FINAL, parameterTypeOf($field), $field.name());
             $wither.body().invoke($super, $wither).arg($witherParam);
             $wither.body()._return($this);
-            relayThrows(getMethod($SuperBuilder, guessWitherName(field), $field).get(), $wither);
+            relayThrows(getMethod($SuperBuilder, guessWitherName(field), parameterTypeOf($field)).get(), $wither);
 }
             if (GENERATE_ADDITIONAL_WITHER.isActivated() && field.getPropertyInfo().isCollection()) {
 {
@@ -618,7 +619,7 @@ extends AssignmentPlugin {
             final var $builderBuild = getMethod($Builder, build).get();
 {
             // A.0/2: Preliminary
-            final var $builderWither = getMethod($Builder, guessWitherName(field), $field).get();
+            final var $builderWither = getMethod($Builder, guessWitherName(field), parameterTypeOf($field)).get();
             final var $builderWitherParam = $builderWither.params().get(0);
             // A.1/2: Create "wither" factory method
             final var $wither = $ImplClass.method(modifiers, $ImplClass, guessWitherName(field));

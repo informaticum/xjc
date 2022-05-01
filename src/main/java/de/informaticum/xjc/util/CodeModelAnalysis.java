@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import javax.xml.bind.JAXBElement;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDefinedClass;
@@ -360,6 +361,30 @@ public enum CodeModelAnalysis {
             return $model.ref(Object.class);
         } else {
             return $Narrowed.get(0);
+        }
+    }
+
+    /**
+     * Generates the according PECS-compliant producer type (covariance) for the given parameterised type. For example, {@code List<String>} becomes {@code List<? extends String>}.
+     * If the given type is not parameterised or is primitive, it will be returned immediately.
+     * 
+     * @param $type
+     *            the given parameterised type
+     * @return the according PECS-compliant producer type
+     */
+    public static final JType pecsProducerTypeOf(final JType $type) {
+        final var $model = $type.owner();
+        final var $JAXBElement = $model.ref(JAXBElement.class);
+        final var $Class = $type.boxify();
+        final var typeParameters = $Class.getTypeParameters();
+        if (typeParameters.isEmpty()) {
+            return $type;
+        } else if ($JAXBElement.isAssignableFrom($Class.erasure())) {
+            // TODO: Learn more about the nature of JAXBElement<X> parameters. When/Why do they appear?
+            return $type;
+        } else {
+            // TODO: Do not build wildcard type of already-wildcard type
+            return $Class.erasure().narrow(typeParameters.stream().map(JClass::wildcard).collect(toList()));
         }
     }
 

@@ -11,6 +11,7 @@ import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.INITIALI
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.INITIALISATION_END;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.NOTNULL_COLLECTIONS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.OPTIONAL_FIELD;
+import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.PECS_PARAMETERS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.PRIMITVE_FIELD;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.REQUIRED_FIELD;
 import static de.informaticum.xjc.plugins.i18n.AssignmentPluginMessages.UNMODIFIABLE_COLLECTIONS_DESCRIPTION;
@@ -19,6 +20,7 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.cloneExpressionFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.doesThrow;
 import static de.informaticum.xjc.util.CodeModelAnalysis.javadocNameOf;
+import static de.informaticum.xjc.util.CodeModelAnalysis.pecsProducerTypeOf;
 import static de.informaticum.xjc.util.CodeModelAnalysis.render;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocBreak;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocSection;
@@ -27,6 +29,7 @@ import static de.informaticum.xjc.util.OutlineAnalysis.isRequired;
 import static de.informaticum.xjc.util.OutlineAnalysis.javadocNameOf;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +39,7 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
+import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.api.BasePlugin;
@@ -79,6 +83,14 @@ extends BasePlugin {
     protected static final CommandLineArgument DEFENSIVE_COPIES = new CommandLineArgument("general-defensive-copies", DEFENSIVE_COPIES_DESCRIPTION.text());
 
     /**
+     * The intention of this XJC option is:
+     * <ul>
+     * <li>Provide more generic method signatures according to the PECS principle (i.e., covariance acceptance).</li>
+     * </ul>
+     */
+    protected static final CommandLineArgument PECS_PARAMETERS = new CommandLineArgument("general-pecs-parameters", PECS_PARAMETERS_DESCRIPTION.format(DEFENSIVE_COPIES));
+
+    /**
      * @implNote If you extend this {@link AssignmentPlugin} you probably override this method. If you do so, you must
      *           <ul>
      *           <li>include {@link #NOTNULL_COLLECTIONS} if you reuse {@link #defaultExpressionFor(FieldOutline)},
@@ -91,7 +103,28 @@ extends BasePlugin {
      */
     @Override
     public List<CommandLineArgument> getPluginArguments() {
-        return asList(NOTNULL_COLLECTIONS, DEFENSIVE_COPIES, UNMODIFIABLE_COLLECTIONS);
+        return asList(PECS_PARAMETERS, NOTNULL_COLLECTIONS, DEFENSIVE_COPIES, UNMODIFIABLE_COLLECTIONS);
+    }
+
+    @Override
+    protected boolean prepareRun() {
+        // Collection PECS wildcard parameters cannot be assigned directly to the non-wildcard fields:
+        //   > incompatible types: java.util.List<capture#1 of ? extends X> cannot be converted to java.util.List<X>
+        // Instead, they must be adopted by its copy statements. Thus, {@link #DEFENSIVE_COPIES} must be activated.
+        PECS_PARAMETERS.activates(DEFENSIVE_COPIES);
+        return true;
+    }
+
+    public static final JType parameterTypeOf(final JType $type) {
+        return PECS_PARAMETERS.isActivated() ? pecsProducerTypeOf($type) : $type;
+    }
+
+    public static final JType parameterTypeOf(final JVar $var) {
+        return parameterTypeOf($var.type());
+    }
+
+    public static final JType[] parameterTypesOf(final Collection<? extends JVar> $types) {
+        return $types.stream().map(AssignmentPlugin::parameterTypeOf).toArray(JType[]::new);
     }
 
     /**

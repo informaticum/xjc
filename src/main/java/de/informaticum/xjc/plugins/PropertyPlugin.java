@@ -2,6 +2,7 @@ package de.informaticum.xjc.plugins;
 
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.PUBLIC;
+import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.plugins.BoilerplatePlugin.BECAUSE_METHOD_ALREADY_EXISTS;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTER_IMPLNOTE;
@@ -29,6 +30,7 @@ import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REFACTORED
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REMOVED_SETTERS_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REMOVE_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_GETTERS_DESCRIPTION;
+import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.deoptionalisedTypeFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.isCollectionMethod;
@@ -122,6 +124,7 @@ extends AssignmentPlugin {
 
     @Override
     public final boolean prepareRun() {
+        final var result = super.prepareRun();
         // For all collection fields, the out-of-the-box-getters create modifiable empty collection instances if there
         // is no value assigned. That becomes impossible if fields are final and, thus, {@link #STRAIGHT_GETTERS} must
         // be enabled too. Similar, the out-of-the-box-getters' implementation is inconsistent with the idea of optional
@@ -130,7 +133,7 @@ extends AssignmentPlugin {
         OPTIONAL_GETTERS.activates(STRAIGHT_GETTERS);
         // Skip {@link #FINAL_SETTERS} and {@link #COLLECTION_SETTERS} if setter methods shall be removed.
         REMOVE_SETTERS.deactivates(FINAL_SETTERS, COLLECTION_SETTERS);
-        return true;
+        return result;
     }
 
     @Override
@@ -282,14 +285,15 @@ extends AssignmentPlugin {
         LOG.info(GENERATE_ORDEFAULT, fullNameOf(accessor.clazz), methodName, $type, accessor.$field.name());
         final var methodMods = accessor.$method.mods().getValue();
         final var $getOrDefault = accessor.$ImplClass.method(methodMods, $type, methodName);
-        final var $defaultValue = $getOrDefault.param(FINAL, $type, "defaultValue");
+        final var $defaultValue = $getOrDefault.param(FINAL, parameterTypeOf($type), "defaultValue");
         // 2/3: Document
         javadocSection($getOrDefault).append(ORDEFAULT_JAVADOC.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), $defaultValue.name()));
         javadocSection($getOrDefault).append(ORDEFAULT_IMPLNOTE.text());
         javadocSection($getOrDefault.javadoc().addParam($defaultValue)).append(ORDEFAULT_PARAM.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method)));
         javadocSection($getOrDefault.javadoc().addReturn()).append(ORDEFAULT_RETURN.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), $defaultValue.name()));
         // 3/3: Implement
-        $getOrDefault.body()._return($this.invoke(accessor.$method).invoke("orElse").arg($defaultValue));
+        final var other = $type.isPrimitive() ? $defaultValue : cond($defaultValue.eq($null), $null, effectiveExpressionForNonNull($type, $defaultValue));
+        $getOrDefault.body()._return($this.invoke(accessor.$method).invoke("orElse").arg(other));
         return $getOrDefault;
     }
 
@@ -340,7 +344,7 @@ extends AssignmentPlugin {
             LOG.info(GENERATE_SETTER, fullNameOf(clazz), setterName, $field.type(), $field.name());
             final var $ImplClass = clazz.getImplClass();
             final var $setter = $ImplClass.method(PUBLIC, this.codeModel().VOID, setterName);
-            final var $param = $setter.param(FINAL, $field.type(), $field.name());
+            final var $param = $setter.param(FINAL, parameterTypeOf($field), $field.name());
             // 2/3: Document
             javadocSection($setter).append(COLLECTION_SETTER_JAVADOC.format(javadocNameOf($field)));
             javadocSection($setter).append(COLLECTION_SETTER_IMPLNOTE.text());

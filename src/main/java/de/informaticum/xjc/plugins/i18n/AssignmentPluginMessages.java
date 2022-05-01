@@ -14,6 +14,7 @@ implements ResourceBundleEntry {
     /* A. Description of the XJC Plugin */
 
     /* B. Description of the XJC Plugin's Options */
+    PECS_PARAMETERS_DESCRIPTION,
     NOTNULL_COLLECTIONS_DESCRIPTION,
     UNMODIFIABLE_COLLECTIONS_DESCRIPTION,
     DEFENSIVE_COPIES_DESCRIPTION,
