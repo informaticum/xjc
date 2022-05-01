@@ -134,7 +134,7 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
 import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
 
-public class ConstructionPlugin
+public final class ConstructionPlugin
 extends AssignmentPlugin {
 
     private static final Logger LOG = getLogger(ConstructionPlugin.class);
