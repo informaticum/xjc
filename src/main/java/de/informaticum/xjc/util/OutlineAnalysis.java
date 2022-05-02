@@ -6,6 +6,7 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.emptyImmutableInstanceO
 import static de.informaticum.xjc.util.CodeModelAnalysis.emptyModifiableInstanceOf;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -28,7 +29,6 @@ import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@code com.sun.tools.xjc.outline.*} types.
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public enum OutlineAnalysis {
     ;
 
-    private static final Logger LOG = LoggerFactory.getLogger(OutlineAnalysis.class);
+    private static final Logger LOG = getLogger(OutlineAnalysis.class);
     private static final String MISSING_JAVA_DEFAULT_VALUE = "Lexical Java representation of the existing XSD default value for [{}#{}] is [{}]!";
 
     /**
