@@ -4,6 +4,8 @@ import static com.sun.codemodel.JExpr.lit;
 import static de.informaticum.xjc.util.CodeModelAnalysis.deoptionalisedTypeFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.emptyImmutableInstanceOf;
 import static de.informaticum.xjc.util.CodeModelAnalysis.emptyModifiableInstanceOf;
+import static de.informaticum.xjc.util.Lenience.LENIENT;
+import static de.informaticum.xjc.util.Lenience.LENIENT_BREAKPOINT_MESSAGE;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -173,6 +175,9 @@ public enum OutlineAnalysis {
                  * Default-Value. 
                  */
                 LOG.error(MISSING_JAVA_DEFAULT_VALUE, field.parent().getImplClass().fullName(), property.getName(false), $default);
+                if (!LENIENT) {
+                    assertThat($default).withFailMessage(LENIENT_BREAKPOINT_MESSAGE).isNotNull();
+                }
             }
         }
         final var $raw = field.getRawType();
@@ -646,7 +651,10 @@ public enum OutlineAnalysis {
                 ).isTrue();
                 getters.put(field, new SimpleImmutableEntry<>($field, $getter));
             } else {
-                LOG.error("There is no getter method [#{}()] for declared field {} of class [{}].", getterName, $field.name(), clazz.getImplClass().fullName());
+                LOG.error("Unexpectedly, there is no getter method [#{}()] for declared field {} of class [{}].", getterName, $field.name(), clazz.getImplClass().fullName());
+                if (!LENIENT) {
+                    assertThat($getterLookup).withFailMessage(LENIENT_BREAKPOINT_MESSAGE).isNotEmpty();
+                }
             }
         }
         return getters;
@@ -676,6 +684,9 @@ public enum OutlineAnalysis {
                 LOG.info("Expectedly, there is no setter method [{}#{}({})] for declared collection field [{}].", clazz.getImplClass().fullName(), setterName, $field.type(), $field.name());
             } else {
                 LOG.error("Unexpectedly, there is no setter method [{}#{}({})] for declared field [{}].", clazz.getImplClass().fullName(), setterName, $field.type(), $field.name());
+                if (!LENIENT) {
+                    assertThat($setterLookup).withFailMessage(LENIENT_BREAKPOINT_MESSAGE).isNotEmpty();
+                }
             }
         }
         return setters;
