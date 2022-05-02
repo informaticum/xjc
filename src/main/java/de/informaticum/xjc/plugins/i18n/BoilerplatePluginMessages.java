@@ -3,10 +3,9 @@ package de.informaticum.xjc.plugins.i18n;
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
-import de.informaticum.xjc.plugins.BoilerplatePlugin;
 
 /**
- * Enumeration of all i18n messages keys used by the {@link BoilerplatePlugin}.
+ * Enumeration of all i18n messages keys used by the {@link de.informaticum.xjc.plugins.BoilerplatePlugin}.
  */
 public enum BoilerplatePluginMessages
 implements ResourceBundleEntry {

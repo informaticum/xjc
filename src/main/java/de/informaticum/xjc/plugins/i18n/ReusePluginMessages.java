@@ -3,10 +3,9 @@ package de.informaticum.xjc.plugins.i18n;
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
-import de.informaticum.xjc.plugins.ReusePlugin;
 
 /**
- * Enumeration of all i18n messages keys used by the {@link ReusePlugin}.
+ * Enumeration of all i18n messages keys used by the {@link de.informaticum.xjc.plugins.ReusePlugin}.
  */
 public enum ReusePluginMessages
 implements ResourceBundleEntry {

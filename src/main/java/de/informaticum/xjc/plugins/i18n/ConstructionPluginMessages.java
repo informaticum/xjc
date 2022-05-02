@@ -3,10 +3,9 @@ package de.informaticum.xjc.plugins.i18n;
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
-import de.informaticum.xjc.plugins.ConstructionPlugin;
 
 /**
- * Enumeration of all i18n messages keys used by the {@link ConstructionPlugin}.
+ * Enumeration of all i18n messages keys used by the {@link de.informaticum.xjc.plugins.ConstructionPlugin}.
  */
 public enum ConstructionPluginMessages
 implements ResourceBundleEntry {
