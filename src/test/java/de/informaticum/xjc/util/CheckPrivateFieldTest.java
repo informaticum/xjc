@@ -4,11 +4,13 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.ATPARAMS_FIELD;
 import static de.informaticum.xjc.util.CodeModelAnalysis.ATTHROWS_FIELD;
 import static de.informaticum.xjc.util.CodeModelAnalysis.JDOC_FIELD;
 import static de.informaticum.xjc.util.CodeModelAnalysis.OUTER_FIELD;
+import static de.informaticum.xjc.util.CodeRetrofit.ANNOTATION_MEMBERS;
 import static de.informaticum.xjc.util.CodeRetrofit.BODY_FIELD;
 import static java.lang.reflect.Modifier.isPrivate;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
+import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JMethod;
 import org.junit.Test;
@@ -25,6 +27,7 @@ public class CheckPrivateFieldTest {
         return asList(new Object[][]{
             {JDocComment.class, ATTHROWS_FIELD},
             {JDocComment.class, ATPARAMS_FIELD},
+            {JAnnotationUse.class, ANNOTATION_MEMBERS},
             {JMethod.class, BODY_FIELD},
             {JMethod.class, JDOC_FIELD},
             {JMethod.class, OUTER_FIELD},

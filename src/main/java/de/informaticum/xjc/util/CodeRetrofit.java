@@ -5,6 +5,11 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.allJavadocThrows;
 import static de.informaticum.xjc.util.CodeModelAnalysis.allThrows;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import com.sun.codemodel.JAnnotatable;
+import com.sun.codemodel.JAnnotationUse;
+import com.sun.codemodel.JAnnotationValue;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDocComment;
@@ -18,6 +23,7 @@ import com.sun.codemodel.JVar;
 public enum CodeRetrofit {
     ;
 
+    /*pkg*/ static final String ANNOTATION_MEMBERS = "memberValues";
     /*pkg*/ static final String BODY_FIELD = "body";
 
     private static final String JAVADOC_HARD_BREAK = format("%n%n");
@@ -178,6 +184,34 @@ public enum CodeRetrofit {
         final var javadocParams = allJavadocParams($origin);
         assertThat(javadocParams).containsKey($param.name());
         $caller.javadoc().addParam($param).addAll($origin.javadoc().addParam($param));
+    }
+
+    /**
+     * Attaches a given annotation onto a given target, including all annotation's values.
+     * 
+     * @param $annotation
+     *            the given annotation to attach/copy
+     * @param $target
+     *            the target to annotate
+     * @return the attached/copied annotation
+     */
+    public static final JAnnotationUse copyAnnotation(final JAnnotationUse $annotation, final JAnnotatable $target) {
+        final var $copy = $target.annotate($annotation.getAnnotationClass());
+        $copy.getAnnotationMembers(); // initialises the internal field
+        try {
+            final var internalMembersField = JAnnotationUse.class.getDeclaredField(ANNOTATION_MEMBERS);
+            internalMembersField.setAccessible(true);
+            var $members = (Map<String, JAnnotationValue>) internalMembersField.get($copy);
+            if ($members == null) {
+                internalMembersField.set($copy, new LinkedHashMap<String, JAnnotationValue>());
+                $members = (Map<String, JAnnotationValue>) internalMembersField.get($copy);
+            }
+            assertThat($members).isNotNull();
+            $members.putAll($annotation.getAnnotationMembers());
+            return $copy;
+        } catch (final IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException seriousProblem) {
+            throw new RuntimeException(seriousProblem);
+        }
     }
 
 }
