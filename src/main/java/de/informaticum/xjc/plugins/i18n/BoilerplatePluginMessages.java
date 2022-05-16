@@ -20,8 +20,11 @@ implements ResourceBundleEntry {
 
     /* C. Main Javadoc Contents and Javadoc Supply (@param, @throws, etc.) */
     EQUALS_IMPLNOTE,
+    EQUALS_COMMENT,
     HASHCODE_IMPLNOTE,
+    HASHCODE_COMMENT,
     TOSTRING_IMPLNOTE,
+    TOSTRING_COMMENT,
 
     ;
 

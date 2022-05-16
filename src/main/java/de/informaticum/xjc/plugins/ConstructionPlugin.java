@@ -15,6 +15,7 @@ import static de.informaticum.xjc.plugins.BoilerplatePlugin.GENERATE_METHOD;
 import static de.informaticum.xjc.plugins.BoilerplatePlugin.SKIP_METHOD;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.ADDER_ABSTRACT_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.ADDER_ARGUMENT;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.ADDER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.ADDER_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.ADDER_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.ADDER_RETURN;
@@ -25,31 +26,41 @@ import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.ALTERN
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BASIC_CONSTRUCTOR_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_ABSTRACT_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_ADDER_ARGUMENT;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_ADDER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_ADDER_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_ADDER_RETURN;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BLUEPRINT_ARGUMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BLUEPRINT_CONSTRUCTOR;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BLUEPRINT_CONSTRUCTOR_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BUILD_ABSTRACT_IMPLNOTE;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BUILD_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BUILD_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BUILD_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BUILD_RELAY_THROWS;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_BUILD_RETURN;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_DEFAULT_CONSTRUCTOR;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_DEFAULT_CONSTRUCTOR_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_ILLEGAL_BLUEPRINT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_JAVADOC;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_METHOD_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_METHOD_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_METHOD_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_METHOD_RETURN;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_REMOVER_ARGUMENT;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_REMOVER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_REMOVER_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_REMOVER_RETURN;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_WITHER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_WITHER_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.BUILDER_WITHER_RETURN;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CLONE_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CLONE_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CLONE_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CONSTRUCTOR_BLUEPRINT_ARGUMENT;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CONSTRUCTOR_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CONSTRUCTOR_ILLEGAL_BLUEPRINT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CONSTRUCTOR_JAVADOC_BEGIN;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.CONSTRUCTOR_JAVADOC_END;
@@ -61,21 +72,25 @@ import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.HIDDEN
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.IMPLEMENTS_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.OPTION_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.PRIVATE_FACTORY_IMPLNOTE;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.PROTECTED_CONSTRUCTOR_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.PROTECTED_CONSTRUCTOR_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.PROTECTED_DEFAULT_CONSTRUCTOR_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.REMOVER_ABSTRACT_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.REMOVER_ARGUMENT;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.REMOVER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.REMOVER_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.REMOVER_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.REMOVER_RETURN;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.REMOVE_FACTORIES_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.TOBUILDER_ILLEGAL_INSTANCE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.TOBUILDER_METHOD_ABSTRACT_IMPLNOTE;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.TOBUILDER_METHOD_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.TOBUILDER_METHOD_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.TOBUILDER_METHOD_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.TOBUILDER_METHOD_RETURN;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.VALUES_CONSTRUCTOR_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.WITHER_ABSTRACT_IMPLNOTE;
+import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.WITHER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.WITHER_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.WITHER_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.ConstructionPluginMessages.WITHER_RETURN;
@@ -84,6 +99,7 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.$super;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$this;
 import static de.informaticum.xjc.util.CodeModelAnalysis.cloneExpressionFor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.copyFactoryFor;
+import static de.informaticum.xjc.util.CodeModelAnalysis.enclosingClass;
 import static de.informaticum.xjc.util.CodeModelAnalysis.getConstructor;
 import static de.informaticum.xjc.util.CodeModelAnalysis.getMethod;
 import static de.informaticum.xjc.util.CodeModelAnalysis.javadocNameOf;
@@ -281,17 +297,19 @@ extends AssignmentPlugin {
             LOG.info(SKIP_CONSTRUCTOR, label, fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return $lookup.get();
         }
-        // 1/3: Declare
+        // 1/4: Declare
         assertThat($lookup).isNotPresent();
         LOG.info(GENERATE_CONSTRUCTOR, label, fullNameOf(clazz));
         final var superClass = Optional.ofNullable(clazz.getSuperClass());
         final var $ImplClass = clazz.getImplClass();
         final var $constructor = $ImplClass.constructor(PUBLIC);
-        // 2/3: Document
+        // 2/4: Annotate
+        this.hijackGeneratedAnnotation($ImplClass, $constructor, ConstructionPlugin.class, CONSTRUCTOR_COMMENT.format(label));
+        // 3/4: Document
         javadocSection($constructor).append(CONSTRUCTOR_JAVADOC_BEGIN.text());
         superClass.ifPresent(sc -> $constructor.javadoc().append(CONSTRUCTOR_JAVADOC_SUPER_CLASS.format(label)));
         $constructor.javadoc().append(CONSTRUCTOR_JAVADOC_END.text());
-        // 3/3: Implement
+        // 4/4: Implement
         // (A) Firstly, call super constructor (and pass through according parameters):
         superClass.ifPresent(sc -> {
             final var fieldsViaSuperConstructor = filter(superAndGeneratedPropertiesOf(sc), passedAsParameter);
@@ -333,20 +351,22 @@ extends AssignmentPlugin {
             LOG.warn(SKIP_CONSTRUCTOR, copy, fullNameOf(clazz), BECAUSE_CONSTRUCTOR_ALREADY_EXISTS);
             return;
         }
-        // 1/3: Declare
+        // 1/4: Declare
         assertThat($lookup).isNotPresent();
         LOG.info(GENERATE_CONSTRUCTOR, copy, fullNameOf(clazz));
         final var superClass = Optional.ofNullable(clazz.getSuperClass());
         final var $ImplClass = clazz.getImplClass();
         final var $constructor = $ImplClass.constructor(PUBLIC);
         final var $blueprint = $constructor.param(FINAL, $ImplClass, "blueprint");
-        // 2/3: Document
+        // 2/4: Annotate
+        this.hijackGeneratedAnnotation($ImplClass, $constructor, ConstructionPlugin.class, CONSTRUCTOR_COMMENT.format(copy));
+        // 3/4: Document
         javadocSection($constructor).append(CONSTRUCTOR_JAVADOC_BEGIN.text());
         superClass.ifPresent(sc -> $constructor.javadoc().append(CONSTRUCTOR_JAVADOC_SUPER_CLASS.format(copy)));
         $constructor.javadoc().append(CONSTRUCTOR_JAVADOC_END.text());
         javadocSection($constructor.javadoc().addParam($blueprint)).append(CONSTRUCTOR_BLUEPRINT_ARGUMENT.text());
         javadocSection($constructor.javadoc().addThrows(IllegalArgumentException.class)).append(CONSTRUCTOR_ILLEGAL_BLUEPRINT.text());
-        // 3/3: Implement
+        // 4/4: Implement
         // (A) Firstly, call super constructor:
         $constructor._throws(IllegalArgumentException.class);
         if (superClass.isPresent()) {
@@ -378,6 +398,7 @@ extends AssignmentPlugin {
             LOG.info(ABORT_HIDING_OF, defoult, fullNameOf(clazz), BECAUSE_NO_ALTERNATIVE_EXISTS);
         } else {
             LOG.info(HIDE_CONSTRUCTOR, defoult, fullNameOf(clazz));
+            this.appendGeneratedAnnotation(enclosingClass($defCtor), $defCtor, PROTECTED_CONSTRUCTOR_COMMENT.format(ConstructionPlugin.class.getName()));
             if (anyOtherConstructorExists && $Builder.isPresent()) {
                 javadocSection($defCtor).append(PROTECTED_CONSTRUCTOR_IMPLNOTE.text()).append(ALTERNATIVE_INSTANTIATION.format(javadocNameOf($Builder.get())));
             } else if (anyOtherConstructorExists) {
@@ -406,6 +427,7 @@ extends AssignmentPlugin {
         final var $clone = $ImplClass.method(PUBLIC, $ImplClass, clone);
         // 2/4: Annotate
         $clone.annotate(Override.class);
+        this.hijackGeneratedAnnotation($ImplClass, $clone, ConstructionPlugin.class, CLONE_COMMENT.text());
         // 3/4: Document
         javadocSection($clone).append(CLONE_IMPLNOTE.text()); // No further method/@param Javadoc; will be inherited instead
         // 4/4: Implement
@@ -451,14 +473,17 @@ extends AssignmentPlugin {
         // (A.1) Generate embedded Builder [XyzClass.Builder] ...
         LOG.info(GENERATE_NESTED_BUILDER, fullNameOf(clazz));
         final var $Builder = this.outline().getClassFactory().createClass($ImplClass, modifiers, builderClassName, clazz.target.getLocator());
+        this.hijackGeneratedAnnotation($ImplClass, $Builder, ConstructionPlugin.class, BUILDER_COMMENT.text());
         javadocSection($Builder).append(BUILDER_JAVADOC.format(javadocNameOf(clazz)));
         // ... (A.2) including the default constructor [XyzClass.Builder#Builder()] ...
         LOG.debug(GENERATE_CONSTRUCTOR, defoult, $Builder.fullName());
         final var $builderDefaultConstructor = $Builder.constructor(PROTECTED /* keep protected, programmer should call Xyz#builder() instead */);
+        this.hijackGeneratedAnnotation($ImplClass, $builderDefaultConstructor, ConstructionPlugin.class, BUILDER_DEFAULT_CONSTRUCTOR_COMMENT.text());
         javadocSection($builderDefaultConstructor).append(BUILDER_DEFAULT_CONSTRUCTOR.text());
         // ... (A.3) including the blueprint constructor [XyzClass.Builder#Builder(XyzClass)] ...
         LOG.debug(GENERATE_CONSTRUCTOR, blueprint, $Builder.fullName());
         final var $builderBlueprintConstructor = $Builder.constructor(PROTECTED/* keep protected, programmer must call Xyz#toBuilder() instead */);
+        this.hijackGeneratedAnnotation($ImplClass, $builderBlueprintConstructor, ConstructionPlugin.class, BUILDER_BLUEPRINT_CONSTRUCTOR_COMMENT.text());
         javadocSection($builderBlueprintConstructor).append(BUILDER_BLUEPRINT_CONSTRUCTOR.text());
         final var $blueprintParam = $builderBlueprintConstructor.param(FINAL, $ImplClass, "blueprint");
         javadocSection($builderBlueprintConstructor.javadoc().addParam($blueprintParam)).append(BUILDER_BLUEPRINT_ARGUMENT.text());
@@ -487,6 +512,8 @@ extends AssignmentPlugin {
             // (B.2++) ImplClass's #toBuilder() method overrides super method [XyzClass#toBuilder()]
             $toBuilder.annotate(Override.class);
         }
+        this.hijackGeneratedAnnotation($ImplClass, $toBuilder, ConstructionPlugin.class, TOBUILDER_METHOD_COMMENT.text());
+        this.hijackGeneratedAnnotation($ImplClass, $build, ConstructionPlugin.class, BUILDER_BUILD_COMMENT.text());
         // 3/5: Either document or implement relevant builder methods
         if ($Builder.isAbstract()) {
             // (A.1++) Document embedded Builder [XyzClass.Builder]
@@ -506,6 +533,7 @@ extends AssignmentPlugin {
             // (B.1++) Generate/Implement static #builder() method [XyzClass#builder()]
             LOG.info(GENERATE_METHOD, fullNameOf(clazz), BUILDER_METHOD_SIGNATURE);
             final var $builder = $ImplClass.method(modifiers | STATIC, $Builder, builder);
+            this.hijackGeneratedAnnotation($ImplClass, $builder, ConstructionPlugin.class, BUILDER_METHOD_COMMENT.text());
             javadocSection($builder).append(BUILDER_METHOD_JAVADOC.format(javadocNameOf($Builder)));
             javadocSection($builder).append(BUILDER_METHOD_IMPLNOTE.format(javadocNameOf($Builder), javadocNameOf($builderDefaultConstructor)));
             javadocSection($builder.javadoc().addReturn()).append(BUILDER_METHOD_RETURN.format(javadocNameOf($Builder)));
@@ -538,6 +566,7 @@ extends AssignmentPlugin {
 {
             // (C.1) Generate Builder's "wither"-method for declared property [XyzClass.Builder#withAbc(AbcType)]
             final var $wither = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessWitherName(field));
+            this.hijackGeneratedAnnotation($ImplClass, $wither, ConstructionPlugin.class, BUILDER_WITHER_COMMENT.text());
             javadocSection($wither).append(BUILDER_WITHER_JAVADOC.format(javadocNameOf(field.parent().getImplClass()), javadocNameOf($field)));
             javadocSection($wither.javadoc().addReturn()).append(BUILDER_WITHER_RETURN.text());
             final var $witherParam = $wither.param(FINAL, parameterTypeOf($field), $field.name());
@@ -549,6 +578,7 @@ extends AssignmentPlugin {
 {
                 // (D.1) Generate Builder's "adder"-method for declared Collection<T> property [XyzClass.Builder#addAbc(T)]
                 final var $adder = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessAdderName(field));
+                this.hijackGeneratedAnnotation($ImplClass, $adder, ConstructionPlugin.class, BUILDER_ADDER_COMMENT.text());
                 javadocSection($adder).append(BUILDER_ADDER_JAVADOC.format(javadocNameOf(field.parent().getImplClass()), javadocNameOf($field)));
                 javadocSection($adder.javadoc().addReturn()).append(BUILDER_ADDER_RETURN.text());
                 // TODO: Any parameter check? Null-check? Maximum number of elements? Even throw IllegalArgumentException?
@@ -561,6 +591,7 @@ extends AssignmentPlugin {
 {
                 // (D.2) Generate Builder's "remover"-method for declared Collection<T> property [XyzClass.Builder#removeAbc(T)]
                 final var $remover = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessRemoverName(field));
+                this.hijackGeneratedAnnotation($ImplClass, $remover, ConstructionPlugin.class, BUILDER_REMOVER_COMMENT.text());
                 javadocSection($remover).append(BUILDER_REMOVER_JAVADOC.format(javadocNameOf(field.parent().getImplClass()), javadocNameOf($field)));
                 javadocSection($remover.javadoc().addReturn()).append(BUILDER_REMOVER_RETURN.text());
                 // TODO: Any collection check? Minimum number of elements? Even throw IllegalArgumentException?
@@ -580,6 +611,7 @@ extends AssignmentPlugin {
             // (C.1++) Override Builder's "wither"-method for each inherited property [XyzClass.Builder#withAbc(AbcType)]
             final var $wither = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessWitherName(field));
             $wither.annotate(Override.class);
+            this.hijackGeneratedAnnotation($ImplClass, $wither, ConstructionPlugin.class, BUILDER_WITHER_COMMENT.text());
             final var $witherParam = $wither.param(FINAL, parameterTypeOf($field), $field.name());
             $wither.body().invoke($super, $wither).arg($witherParam);
             $wither.body()._return($this);
@@ -590,6 +622,7 @@ extends AssignmentPlugin {
                 // (D.1++) Override Builder's "adder"-method for each inherited Collection<T> property [XyzClass.Builder#addAbc(T)]
                 final var $adder = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessAdderName(field));
                 $adder.annotate(Override.class);
+                this.hijackGeneratedAnnotation($ImplClass, $adder, ConstructionPlugin.class, BUILDER_ADDER_COMMENT.text());
                 final var $adderParam = $adder.param(FINAL, typeParameterOf($field.type().boxify()), $field.name());
                 $adder.body().invoke($super, $adder).arg($adderParam);
                 $adder.body()._return($this);
@@ -599,6 +632,7 @@ extends AssignmentPlugin {
                 // (E.2) Override Builder's "remover"-method for each inherited Collection<T> property [XyzClass.Builder#removeAbc(T)]
                 final var $remover = $Builder.method(modifiers & ~ABSTRACT, $Builder, guessRemoverName(field));
                 $remover.annotate(Override.class);
+                this.hijackGeneratedAnnotation($ImplClass, $remover, ConstructionPlugin.class, BUILDER_REMOVER_COMMENT.text());
                 final var $removerParam = $remover.param(FINAL, typeParameterOf($field.type().boxify()), $field.name());
                 $remover.body().invoke($super, $remover).arg($removerParam);
                 $remover.body()._return($this);
@@ -633,6 +667,7 @@ extends AssignmentPlugin {
                 javadocSection($wither.javadoc().addReturn()).append(WITHER_RETURN.text());
                 relayParamDoc($builderWither, $wither, $builderWitherParam);
             }
+            this.hijackGeneratedAnnotation($ImplClass, $wither, ConstructionPlugin.class, WITHER_COMMENT.text());
             // A.2/2: Implement "wither" factory method
             if ($wither.mods().isAbstract()) {
                 javadocSection($wither).append(WITHER_ABSTRACT_IMPLNOTE.text());
@@ -664,6 +699,7 @@ extends AssignmentPlugin {
                     javadocSection($adder.javadoc().addParam($adderParam)).append(ADDER_ARGUMENT.format(javadocNameOf(field.parent().getImplClass()), javadocNameOf($field)));
                     javadocSection($adder.javadoc().addReturn()).append(ADDER_RETURN.text());
                 }
+                this.hijackGeneratedAnnotation($ImplClass, $adder, ConstructionPlugin.class, ADDER_COMMENT.text());
                 // B.2/2: Implement "adder" factory method
                 if ($adder.mods().isAbstract()) {
                     javadocSection($adder).append(ADDER_ABSTRACT_IMPLNOTE.text());
@@ -688,6 +724,7 @@ extends AssignmentPlugin {
                     javadocSection($remover.javadoc().addParam($removerParam)).append(REMOVER_ARGUMENT.format(javadocNameOf(field.parent().getImplClass()), javadocNameOf($field)));
                     javadocSection($remover.javadoc().addReturn()).append(REMOVER_RETURN.text());
                 }
+                this.hijackGeneratedAnnotation($ImplClass, $remover, ConstructionPlugin.class, REMOVER_COMMENT.text());
                 // C.2/2: Implement "remover" factory method
                 if ($remover.mods().isAbstract()) {
                     javadocSection($remover).append(REMOVER_ABSTRACT_IMPLNOTE.text());

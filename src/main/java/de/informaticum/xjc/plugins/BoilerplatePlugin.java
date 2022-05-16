@@ -6,12 +6,15 @@ import static com.sun.codemodel.JExpr.lit;
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JOp.not;
+import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.EQUALS_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.EQUALS_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.GENERATE_EQUALS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.GENERATE_HASHCODE_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.GENERATE_TOSTRING_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.HASHCODE_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.HASHCODE_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.TOSTRING_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.BoilerplatePluginMessages.TOSTRING_IMPLNOTE;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$null;
 import static de.informaticum.xjc.util.CodeModelAnalysis.$super;
@@ -33,13 +36,12 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.outline.ClassOutline;
-import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
 import de.informaticum.xjc.api.XjcOption;
 import org.slf4j.Logger;
 
 public final class BoilerplatePlugin
-extends BasePlugin {
+extends AdoptAnnotationsPlugin {
 
     private static final Logger LOG = getLogger(BoilerplatePlugin.class);
     protected static final String GENERATE_METHOD = "Generate method [{}#{}].";
@@ -99,6 +101,7 @@ extends BasePlugin {
         final var $other = $equals.param(FINAL, $Object, "other");
         // 2/4: Annotate
         $equals.annotate(Override.class);
+        this.hijackGeneratedAnnotation($ImplClass, $equals, BoilerplatePlugin.class, EQUALS_COMMENT.format($other.name()));
         // 3/4: Document
         javadocSection($equals).append(EQUALS_IMPLNOTE.format($other.name())); // No further method/@param Javadoc; will be inherited instead
         // 4/4: Implement
@@ -148,6 +151,7 @@ extends BasePlugin {
         final var $hashCode = $ImplClass.method(PUBLIC, int.class, hashCode);
         // 2/4: Annotate
         $hashCode.annotate(Override.class);
+        this.hijackGeneratedAnnotation($ImplClass, $hashCode, BoilerplatePlugin.class, HASHCODE_COMMENT.text());
         // 3/4: Document
         javadocSection($hashCode).append(HASHCODE_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
         // 4/4: Implement
@@ -206,6 +210,7 @@ extends BasePlugin {
         final var $toString = $ImplClass.method(PUBLIC, String.class, toString);
         // 2/4: Annotate
         $toString.annotate(Override.class);
+        this.hijackGeneratedAnnotation($ImplClass, $toString, BoilerplatePlugin.class, TOSTRING_COMMENT.text());
         // 3/4: Document
         javadocSection($toString).append(TOSTRING_IMPLNOTE.text()); // No further method Javadoc; will be inherited instead
         // 4/4: Implement

@@ -5,24 +5,21 @@ import java.util.ResourceBundle;
 import de.informaticum.xjc.api.ResourceBundleEntry;
 
 /**
- * Enumeration of all i18n messages keys used by the {@link de.informaticum.xjc.plugins.ReusePlugin}.
+ * Enumeration of all i18n messages keys used by the {@link de.informaticum.xjc.plugins.AdoptAnnotationsPlugin}.
  */
-public enum ReusePluginMessages
+public enum AdoptAnnotationsPluginMessages
 implements ResourceBundleEntry {
 
     /* A. Description of the XJC Plugin */
-    OPTION_DESCRIPTION,
 
     /* B. Description of the XJC Plugin's Options */
-    REUSE_QNAMES_DESCRIPTION,
+    ADOPT_GENERATED_DESCRIPTION,
 
     /* C. Main Javadoc Contents and Javadoc Supply (@param, @throws, etc.) */
-    PUBLIC_QNAMES_IMPLNOTE,
-    PUBLIC_QNAMES_COMMENT,
 
     ;
 
-    private static final ResourceBundle RB = getBundle(ReusePluginMessages.class.getName().replace(".i18n.", ".l10n."));
+    private static final ResourceBundle RB = getBundle(AdoptAnnotationsPluginMessages.class.getName().replace(".i18n.", ".l10n."));
 
     @Override
     public final ResourceBundle bundle() {

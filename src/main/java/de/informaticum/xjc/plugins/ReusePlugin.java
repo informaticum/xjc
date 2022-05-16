@@ -1,6 +1,7 @@
 package de.informaticum.xjc.plugins;
 
 import static de.informaticum.xjc.plugins.i18n.ReusePluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.ReusePluginMessages.PUBLIC_QNAMES_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.ReusePluginMessages.PUBLIC_QNAMES_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.ReusePluginMessages.REUSE_QNAMES_DESCRIPTION;
 import static de.informaticum.xjc.util.CodeRetrofit.javadocSection;
@@ -11,13 +12,12 @@ import java.util.List;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 import com.sun.codemodel.JDefinedClass;
-import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
 import de.informaticum.xjc.api.XjcOption;
 import org.slf4j.Logger;
 
 public final class ReusePlugin
-extends BasePlugin {
+extends AdoptAnnotationsPlugin {
 
     private static final Logger LOG = getLogger(ReusePlugin.class);
     private static final String PUBLIC_QNAME = "Modify accessibility of QName [{}#{}] to [public].";
@@ -47,6 +47,7 @@ extends BasePlugin {
         final var $qNameFields = $fields.stream().filter($f -> $QName.isAssignableFrom($f.type().boxify()));
         $qNameFields.forEach($q -> {
             LOG.info(PUBLIC_QNAME, $Factory.fullName(), $q.name());
+            this.appendGeneratedAnnotation($Factory, $q, PUBLIC_QNAMES_COMMENT.format(ReusePlugin.class.getName()));
             javadocSection($q).append(PUBLIC_QNAMES_IMPLNOTE.text());
             $q.mods().setPublic();
         });

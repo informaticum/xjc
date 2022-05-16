@@ -42,7 +42,6 @@ import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.FieldOutline;
-import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
 import de.informaticum.xjc.api.XjcOption;
 import de.informaticum.xjc.util.OutlineAnalysis;
@@ -52,7 +51,7 @@ import de.informaticum.xjc.util.OutlineAnalysis;
  * {@link #UNMODIFIABLE_COLLECTIONS}, and {@link #DEFENSIVE_COPIES}. Depending on whether they are activated or not, the code will be generated accordingly.
  */
 public abstract class AssignmentPlugin
-extends BasePlugin {
+extends AdoptAnnotationsPlugin {
 
     /**
      * The intention of this XJC option is:

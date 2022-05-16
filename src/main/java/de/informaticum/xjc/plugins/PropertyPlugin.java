@@ -5,25 +5,33 @@ import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JOp.cond;
 import static de.informaticum.xjc.plugins.BoilerplatePlugin.BECAUSE_METHOD_ALREADY_EXISTS;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTERS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTER_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.COLLECTION_SETTER_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_FIELDS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_FIELD_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_FIELD_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_GETTERS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_GETTER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_GETTER_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_SETTERS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_SETTER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.FINAL_SETTER_IMPLNOTE;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.GETTER_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_GETTERS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTIONAL_ORDEFAULT_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.OPTION_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORBUILTIN_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORBUILTIN_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORBUILTIN_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORBUILTIN_RETURN;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORDEFAULT_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORDEFAULT_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORDEFAULT_JAVADOC;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORDEFAULT_PARAM;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.ORDEFAULT_RETURN;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.PRIVATE_FIELDS_DESCRIPTION;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.PRIVATE_FIELD_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.PRIVATE_FIELD_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REFACTORED_GETTER_IMPLNOTE_INTRO;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REFACTORED_GETTER_IMPLNOTE_OUTRO;
@@ -151,37 +159,45 @@ extends AssignmentPlugin {
     }
 
     private final void setFieldsPrivate(final ClassOutline clazz) {
+        final var $ImplClass = clazz.getImplClass();
         for (final var $field : generatedPropertiesOf(clazz).values()) {
             LOG.info(MODIFY_PROPERTY, "accessibility", fullNameOf(clazz), $field.name(), "private");
+            this.appendGeneratedAnnotation($ImplClass, $field, PRIVATE_FIELD_COMMENT.format(PropertyPlugin.class.getName()));
             javadocSection($field).append(PRIVATE_FIELD_IMPLNOTE.text());
             $field.mods().setPrivate();
         }
     }
 
     private final void setFieldsFinal(final ClassOutline clazz) {
+        final var $ImplClass = clazz.getImplClass();
         for (final var $field : generatedPropertiesOf(clazz).values()) {
             LOG.info(MODIFY_PROPERTY, "mutability", fullNameOf(clazz), $field.name(), "final");
+            this.appendGeneratedAnnotation($ImplClass, $field, FINAL_FIELD_COMMENT.format(PropertyPlugin.class.getName()));
             javadocSection($field).append(FINAL_FIELD_IMPLNOTE.text());
             $field.mods().setFinal(true);
-        };
+        }
     }
 
     private final void setGettersFinal(final ClassOutline clazz) {
+        final var $ImplClass = clazz.getImplClass();
         for (final var getter : generatedGettersOf(clazz).values()) {
             final var $getter = getter.getValue();
             LOG.info(MODIFY_METHOD, "mutability", fullNameOf(clazz), $getter, "final");
+            this.appendGeneratedAnnotation($ImplClass, $getter, FINAL_GETTER_COMMENT.format(PropertyPlugin.class.getName()));
             javadocSection($getter).append(FINAL_GETTER_IMPLNOTE.text());
             $getter.mods().setFinal(true);
-        };
+        }
     }
 
     private final void setSettersFinal(final ClassOutline clazz) {
+        final var $ImplClass = clazz.getImplClass();
         for (final var setter : generatedSettersOf(clazz).values()) {
             final var $setter = setter.getValue();
             LOG.info(MODIFY_METHOD, "mutability", fullNameOf(clazz), $setter, "final");
+            this.appendGeneratedAnnotation($ImplClass, $setter, FINAL_SETTER_COMMENT.format(PropertyPlugin.class.getName()));
             javadocSection($setter).append(FINAL_SETTER_IMPLNOTE.text());
             $setter.mods().setFinal(true);
-        };
+        }
     }
 
     private final void removeSetter(final ClassOutline clazz) {
@@ -193,16 +209,18 @@ extends AssignmentPlugin {
                 final var $setter = setter.getValue();
                 LOG.info(REMOVE_SETTER, fullNameOf(clazz), $setter.name());
                 $ImplClass.methods().remove($setter);
-            };
+            }
         }
     }
 
     private final void refactorGetter(final ClassOutline clazz) {
         for (final var getter : generatedGettersOf(clazz).entrySet()) {
             final var bricks = new GetterBricks(new PropertyAccessor(getter));
-            // 1/3: Dump current Javadoc
+            // 1/4: Dump current Javadoc
             final var originJavadoc = new ArrayList<>(bricks.$getter.javadoc());
-            // 2/3: Refactor getter method
+            // 2/4: Annotate:
+            this.hijackGeneratedAnnotation(bricks.$ImplClass, bricks.$getter, PropertyPlugin.class, GETTER_COMMENT.text());
+            // 3/4: Refactor getter method
             if (bricks.$field.type().isPrimitive()) {
                 assertThat(bricks.$getter).matches(not(CodeModelAnalysis::isCollectionMethod));
                 assertThat(isOptionalMethod(bricks.$getter)).isFalse();
@@ -255,7 +273,7 @@ extends AssignmentPlugin {
                     GetterRefactoring.STRAIGHT_PROPERTY.supersedeGetter(bricks);
                 }
             }
-            // 3/3: Update Javadoc
+            // 4/4: Update Javadoc
             javadocSection(bricks.$getter).append(REFACTORED_GETTER_IMPLNOTE_INTRO.text());
             bricks.$getter.javadoc().addAll(originJavadoc);
             bricks.$getter.javadoc().append(REFACTORED_GETTER_IMPLNOTE_OUTRO.text());
@@ -280,19 +298,21 @@ extends AssignmentPlugin {
         if ($lookup.isPresent()) {
             LOG.warn(SKIP_ORDEFAULT, fullNameOf(accessor.clazz), methodName, $type, accessor.$field.name(), BECAUSE_METHOD_ALREADY_EXISTS);
             return $lookup.get();
-        };
-        // 1/3: Declare
+        }
+        // 1/4: Declare
         assertThat($lookup).isNotPresent();
         LOG.info(GENERATE_ORDEFAULT, fullNameOf(accessor.clazz), methodName, $type, accessor.$field.name());
         final var methodMods = accessor.$method.mods().getValue();
         final var $getOrDefault = accessor.$ImplClass.method(methodMods, $type, methodName);
         final var $defaultValue = $getOrDefault.param(FINAL, parameterTypeOf($type), "defaultValue");
-        // 2/3: Document
+        // 2/4: Annotate:
+        this.hijackGeneratedAnnotation(accessor.$ImplClass, $getOrDefault, PropertyPlugin.class, ORDEFAULT_COMMENT.text());
+        // 3/4: Document
         javadocSection($getOrDefault).append(ORDEFAULT_JAVADOC.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), $defaultValue.name()));
         javadocSection($getOrDefault).append(ORDEFAULT_IMPLNOTE.text());
         javadocSection($getOrDefault.javadoc().addParam($defaultValue)).append(ORDEFAULT_PARAM.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method)));
         javadocSection($getOrDefault.javadoc().addReturn()).append(ORDEFAULT_RETURN.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), $defaultValue.name()));
-        // 3/3: Implement
+        // 4/4: Implement
         final var other = $type.isPrimitive() ? $defaultValue : cond($defaultValue.eq($null), $null, effectiveExpressionForNonNull($type, $defaultValue));
         $getOrDefault.body()._return($this.invoke(accessor.$method).invoke("orElse").arg(other));
         return $getOrDefault;
@@ -311,7 +331,7 @@ extends AssignmentPlugin {
             LOG.info(SKIP_ORDEFAULT, fullNameOf(accessor.clazz), methodName, "", accessor.$field.name(), BECAUSE_NO_DEFAULT_EXISTS);
             return Optional.empty();
         }
-        // 1/3: Declare
+        // 1/4: Declare
         assertThat($lookup).isNotPresent();
         assertThat($default).isPresent();
         LOG.info(GENERATE_ORDEFAULT, fullNameOf(accessor.clazz), methodName, "", accessor.$field.name());
@@ -319,11 +339,13 @@ extends AssignmentPlugin {
         final var $type = $getOrDefault.type();
         final var $getOrBuiltin = accessor.$ImplClass.method(methodMods, $type, methodName);
         final var $builtin = $default.get();
-        // 2/3: Document
+        // 2/4: Annotate:
+        this.hijackGeneratedAnnotation(accessor.$ImplClass, $getOrBuiltin, PropertyPlugin.class, ORBUILTIN_COMMENT.text());
+        // 3/4: Document
         javadocSection($getOrBuiltin).append(ORBUILTIN_JAVADOC.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), render($builtin)));
         javadocSection($getOrBuiltin).append(ORBUILTIN_IMPLNOTE.text());
         javadocSection($getOrBuiltin.javadoc().addReturn()).append(ORBUILTIN_RETURN.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), render($builtin)));
-        // 3/3: Implement
+        // 4/4: Implement
         $getOrBuiltin.body()._return($this.invoke($getOrDefault).arg($builtin));
         return Optional.of($getOrBuiltin);
     }
@@ -340,16 +362,18 @@ extends AssignmentPlugin {
                 LOG.warn(SKIP_SETTER, fullNameOf(clazz), setterName, $field.type(), $field.name(), BECAUSE_METHOD_ALREADY_EXISTS);
                 return;
             }
-            // 1/3: Declare
+            // 1/4: Declare
             assertThat($lookup).isNotPresent();
             LOG.info(GENERATE_SETTER, fullNameOf(clazz), setterName, $field.type(), $field.name());
             final var $ImplClass = clazz.getImplClass();
             final var $setter = $ImplClass.method(PUBLIC, this.codeModel().VOID, setterName);
             final var $param = $setter.param(FINAL, parameterTypeOf($field), $field.name());
-            // 2/3: Document
+            // 2/4: Annotate:
+            this.hijackGeneratedAnnotation($ImplClass, $setter, PropertyPlugin.class, COLLECTION_SETTER_COMMENT.text());
+            // 3/4: Document
             javadocSection($setter).append(COLLECTION_SETTER_JAVADOC.format(javadocNameOf($field)));
             javadocSection($setter).append(COLLECTION_SETTER_IMPLNOTE.text());
-            // 3/3: Implement
+            // 4/4: Implement
             accordingAssignmentAndJavadoc(property, $setter, $param);
         }
     }
