@@ -33,9 +33,18 @@ public abstract interface InitialisedOutline {
     }
 
     /**
+     * @param fullyQualifiedClassName
+     *            the fully qualified name of the Java class to refer to
+     * @return a {@linkplain JClass reference} to an existing class from its name
+     */
+    public default JClass reference(final String fullyQualifiedClassName) {
+        return this.codeModel().ref(fullyQualifiedClassName);
+    }
+
+    /**
      * @param clazz
      *            the Java class to refer to
-     * @return a {@linkplain JClass reference} to an existing class from its {@link Class} object.
+     * @return a {@linkplain JClass reference} to an existing class from its {@link Class} object
      */
     public default JClass reference(final Class<?> clazz) {
         assertThat(clazz.isPrimitive()).isFalse();
