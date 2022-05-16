@@ -6,6 +6,7 @@ import static de.informaticum.xjc.util.CodeModelAnalysis.unmodifiableViewFactory
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Optional;
 import com.sun.codemodel.JClass;
+import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
@@ -20,6 +21,8 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
 /*package*/ final class GetterBricks {
 
     /*package*/ final ClassOutline clazz;
+
+    /*package*/ final JDefinedClass $ImplClass;
 
     /*package*/ final FieldOutline field;
 
@@ -51,6 +54,7 @@ import de.informaticum.xjc.util.CodeModelAnalysis;
 
     /*package*/ GetterBricks(final PropertyAccessor accessor) {
         this.clazz = accessor.clazz;
+        this.$ImplClass = accessor.$ImplClass;
         this.field = accessor.field;
         this.info = this.field.getPropertyInfo();
         this.$field = accessor.$field;
