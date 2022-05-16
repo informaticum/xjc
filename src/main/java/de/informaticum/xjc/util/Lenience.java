@@ -1,6 +1,6 @@
 package de.informaticum.xjc.util;
 
-import static de.informaticum.xjc.plugins.i18n.LenienceMessages.SERIOUS_PROBLEM;
+import static de.informaticum.xjc.util.i18n.LenienceMessages.SERIOUS_PROBLEM;
 import static java.lang.Boolean.parseBoolean;
 
 public enum Lenience {

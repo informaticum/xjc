@@ -1,4 +1,4 @@
-package de.informaticum.xjc.plugins.i18n;
+package de.informaticum.xjc.util.i18n;
 
 import static java.util.ResourceBundle.getBundle;
 import java.util.ResourceBundle;
