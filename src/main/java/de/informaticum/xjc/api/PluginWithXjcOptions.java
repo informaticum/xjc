@@ -1,5 +1,6 @@
 package de.informaticum.xjc.api;
 
+import static de.informaticum.xjc.api.i18n.PluginWithXjcOptionsMessages.ADDITIONAL_ARGUMENTS_INTRODUCTION;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
@@ -85,7 +86,7 @@ extends Plugin {
             usage.append(format("  %1$-" + width + "s :  %2$s%n", arg.getArgument() + (argNames.isBlank() ? "" : " " + argNames), arg.getDescription()));
         });
         if (!this.getCadgerArguments().isEmpty()) {
-            usage.append("  NOTE, this plug-in additionaly respects the intention of these options: ");
+            usage.append(format("  %s ", ADDITIONAL_ARGUMENTS_INTRODUCTION.text()));
             usage.append(this.getCadgerArguments().stream().map(arg -> {
                 final var argNames = arg.getParameters().stream().map(s -> "<" + s + ">").collect(joining(" "));
                 return arg.getArgument() + (argNames.isBlank() ? "" : " " + argNames);
