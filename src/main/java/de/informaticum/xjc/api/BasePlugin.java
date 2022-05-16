@@ -22,7 +22,7 @@ import org.xml.sax.SAXParseException;
  * Base class for custom {@linkplain Plugin XJC plug-ins}.
  */
 public abstract class BasePlugin
-extends CommandLineArgumentedPlugin
+extends PluginWithXjcOptions
 implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
 
     private static final Logger LOG = getLogger(BasePlugin.class);

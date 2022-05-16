@@ -14,7 +14,7 @@ import com.sun.tools.xjc.Plugin;
 /**
  * Enhanced {@linkplain Plugin XJC plug-in}, providing convenient methods to handle the plug-in's arguments.
  */
-public abstract class CommandLineArgumentedPlugin
+public abstract class PluginWithXjcOptions
 extends Plugin {
 
     /**
