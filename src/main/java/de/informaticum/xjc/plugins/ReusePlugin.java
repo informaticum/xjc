@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.sun.codemodel.JDefinedClass;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
+import de.informaticum.xjc.api.XjcOption;
 import org.slf4j.Logger;
 
 public final class ReusePlugin
@@ -30,7 +31,7 @@ extends BasePlugin {
     }
 
     @Override
-    public final List<CommandLineArgument> getPluginArguments() {
+    public final List<XjcOption> getPluginArguments() {
         return asList(REUSE_QNAMES);
     }
 

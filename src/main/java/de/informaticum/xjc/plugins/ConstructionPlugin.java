@@ -130,6 +130,7 @@ import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.api.CommandLineArgument;
+import de.informaticum.xjc.api.XjcOption;
 import de.informaticum.xjc.util.CodeModelAnalysis;
 import de.informaticum.xjc.util.OutlineAnalysis;
 import org.slf4j.Logger;
@@ -203,7 +204,7 @@ extends AssignmentPlugin {
     }
 
     @Override
-    public final List<CommandLineArgument> getPluginArguments() {
+    public final List<XjcOption> getPluginArguments() {
         final var args = asList(GENERATE_DEFAULT_CONSTRUCTOR, PROTECTED_DEFAULT_CONSTRUCTOR,           // default constructor options
                                 GENERATE_VALUES_CONSTRUCTOR, GENERATE_BASIC_CONSTRUCTOR,               // value constructor options
                                 GENERATE_COPY_CONSTRUCTOR,                                             // copy constructor options

@@ -44,6 +44,7 @@ import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.FieldOutline;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
+import de.informaticum.xjc.api.XjcOption;
 import de.informaticum.xjc.util.OutlineAnalysis;
 
 /**
@@ -102,7 +103,7 @@ extends BasePlugin {
      *           </ul>
      */
     @Override
-    public List<CommandLineArgument> getPluginArguments() {
+    public List<XjcOption> getPluginArguments() {
         return asList(PECS_PARAMETERS, NOTNULL_COLLECTIONS, DEFENSIVE_COPIES, UNMODIFIABLE_COLLECTIONS);
     }
 

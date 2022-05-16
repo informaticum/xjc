@@ -2,7 +2,7 @@ package de.informaticum.xjc.api;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import java.io.IOException;
+import static java.util.stream.Collectors.joining;
 import java.util.List;
 import java.util.Map.Entry;
 import com.sun.tools.xjc.BadCommandLineException;
@@ -10,7 +10,7 @@ import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 
 /**
- * Enhanced {@linkplain Plugin XJC plugin}, providing convenient methods to handle the plugin's arguments.
+ * Enhanced {@linkplain Plugin XJC plug-in}, providing convenient methods to handle the plug-in's arguments.
  */
 public abstract class CommandLineArgumentedPlugin
 extends Plugin {
@@ -52,7 +52,7 @@ extends Plugin {
      *
      * @return all plug-in's command line arguments
      */
-    public List<CommandLineArgument> getPluginArguments() {
+    public List<XjcOption> getPluginArguments() {
         return emptyList();
     }
 
@@ -62,7 +62,10 @@ extends Plugin {
         final var width = pluginArgs.stream().mapToInt(arg -> arg.getArgument().length()).max().orElse(this.getOptionName().length());
         final var usage = new StringBuilder();
         usage.append(format("  %1$s :  %2$s%n", "-" + this.getOptionName(), this.getOptionDescription()));
-        pluginArgs.forEach(arg -> usage.append(format("  %1$-" + width + "s :  %2$s%n", arg.getArgument(), arg.getDescription())));
+        pluginArgs.forEach(arg -> {
+            final var argNames = arg.getParameters().stream().map(s -> "<" + s + ">").collect(joining(" "));
+            usage.append(format("  %1$-" + width + "s :  %2$s%n", arg.getArgument() + (argNames.isBlank() ? "" : " " + argNames), arg.getDescription()));
+        });
         return usage.toString();
     }
 
@@ -72,9 +75,14 @@ extends Plugin {
      */
     @Override
     public final int parseArgument(final Options options, final String[] arguments, final int index)
-    throws BadCommandLineException, IOException {
-        final var possiblyMatchedArgument = this.getPluginArguments().stream().filter(arg -> arg.getArgument().equals(arguments[index])).findFirst();
-        return possiblyMatchedArgument.map(arg -> arg.parseArgument(options, arguments, index)).orElse(0);
+    throws BadCommandLineException {
+        // Consume the current argument if it's either equal to this plug-in's option name or if it matches any of this plug-in's arguments
+        if (this.getOptionName().equals(arguments[index])) {
+            return 1;
+        } else {
+            final var possiblyMatchedArgument = this.getPluginArguments().stream().filter(arg -> arg.getArgument().equals(arguments[index])).findFirst();
+            return possiblyMatchedArgument.isPresent() ? possiblyMatchedArgument.get().parseArgument(options, arguments, index) : 0;
+        }
     }
 
 }

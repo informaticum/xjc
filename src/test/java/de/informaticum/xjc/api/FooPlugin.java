@@ -14,7 +14,7 @@ extends BasePlugin {
     }
 
     @Override
-    public final List<CommandLineArgument> getPluginArguments() {
+    public final List<XjcOption> getPluginArguments() {
         return asList(
             new CommandLineArgument("a", "Some a information. Default: a"),
             new CommandLineArgument("bb", "Some bb information. Default: bb")

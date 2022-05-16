@@ -1,7 +1,9 @@
 package de.informaticum.xjc.api;
 
 import static de.informaticum.xjc.util.OutlineAnalysis.fullNameOf;
+import static java.util.Collections.emptyList;
 import static org.slf4j.LoggerFactory.getLogger;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -9,6 +11,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import com.sun.codemodel.JType;
+import com.sun.tools.xjc.BadCommandLineException;
+import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.CustomizableOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
 
@@ -18,7 +22,9 @@ import com.sun.tools.xjc.outline.PackageOutline;
 public abstract interface XjcOption {
 
     /**
+     * @implSpec Any implementation must return the activation state as identified by {@link #parseArgument(Options, String[], int)}.
      * @return {@code true} iff this XJC option has been activated
+     * @see #getParameterValues()
      */
     public abstract boolean isActivated();
 
@@ -28,28 +34,46 @@ public abstract interface XjcOption {
     public abstract String getArgument();
 
     /**
-     * @param other
-     *            the other XJC option
-     * @return a logical OR'ed XJC option that is active if either {@code this} or the {@code other} XJC option is active
+     * @return the list of parameters required by this XJC option
      */
-    public default XjcOption or(final XjcOption other) {
-        return new XjcOption() {
-            @Override public final String  getArgument() { return "(" + XjcOption.this.getArgument() + "||" + other.getArgument() + ")"; }
-            @Override public final boolean isActivated() { return       XjcOption.this.isActivated()    ||    other.isActivated();       }
-        };
+    public default List<String> getParameters() {
+        return emptyList();
     }
 
     /**
-     * @param other
-     *            the other XJC option
-     * @return a logical AND'ed XJC option that is active if both {@code this} and the {@code other} XJC option is active
+     * @implSpec Any implementation must return the exact same amount of values as required by {@link #getParameters()}, and all these values have to be identified by
+     *           {@link #parseArgument(Options, String[], int)}.
+     * @return the list of parameter values iff this XJC option has been activated
+     * @see #isActivated()
      */
-    public default XjcOption and(final XjcOption other) {
-        return new XjcOption() {
-            @Override public final String  getArgument() { return "(" + XjcOption.this.getArgument() + "&&" + other.getArgument() + ")"; }
-            @Override public final boolean isActivated() { return       XjcOption.this.isActivated()    &&    other.isActivated();       }
-        };
+    public default List<String> getParameterValues() {
+        return emptyList();
     }
+
+    /**
+     * @return short explanation of this XJC option
+     */
+    public abstract String getDescription();
+
+    /**
+     * Parses an option {@code arguments[index]} (augments the {@code options} object appropriately if applicable), then returns the number of consumed tokens.
+     *
+     * @implSpec Any implementation must activate this XJC option iff the arguments at position {@code index} equals the {@link #getArgument() option's argument name}, and further
+     *           any implementation must parse the exact amount of additional parameters as required by {@link #getParameters()}. In result the number of consumed tokens must equal
+     *           {@code 1} plus the number of additional parameters.
+     * @param options
+     *            the options to augment
+     * @param arguments
+     *            the array of argument
+     * @param index
+     *            the index of the argument to parse
+     * @return the number of tokens consumed
+     * @see #getParameters()
+     * @see #isActivated()
+     * @see #getParameterValues()
+     */
+    public abstract int parseArgument(final Options options, final String[] arguments, int index)
+    throws BadCommandLineException;
 
     /**
      * @param execution

@@ -35,6 +35,7 @@ import com.sun.codemodel.JExpression;
 import com.sun.tools.xjc.outline.ClassOutline;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
+import de.informaticum.xjc.api.XjcOption;
 import org.slf4j.Logger;
 
 public final class BoilerplatePlugin
@@ -63,7 +64,7 @@ extends BasePlugin {
     }
 
     @Override
-    public final List<CommandLineArgument> getPluginArguments() {
+    public final List<XjcOption> getPluginArguments() {
         return asList(GENERATE_EQUALS, GENERATE_HASHCODE, GENERATE_TOSTRING);
     }
 
