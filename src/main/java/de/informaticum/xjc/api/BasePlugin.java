@@ -19,7 +19,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * Base class for custom {@linkplain Plugin XJC plugins}.
+ * Base class for custom {@linkplain Plugin XJC plug-ins}.
  */
 public abstract class BasePlugin
 extends CommandLineArgumentedPlugin
@@ -94,7 +94,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     private final void sayHi(final Consumer<? super String> sink) {
         sink.accept(       "########################################################################");
         sink.accept(       "### Hey JAXB/JAX-WS user,"                                               );
-        sink.accept(       "### you are using one of the informaticum's XJC plugins, i.e., the:"     );
+        sink.accept(       "### you are using one of the informaticum's XJC plug-ins, i.e., the:"    );
         sink.accept(format("###   - %s (%s),", this.getOptionName(), this.getOptionDescription())    );
         sink.accept(       "### If you appreciate it, let me know at:"                               );
         sink.accept(       "###   - mailto:xjc@informaticum.de"                                      );
