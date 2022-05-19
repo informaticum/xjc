@@ -35,6 +35,7 @@ import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.PRIVATE_FI
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.PRIVATE_FIELD_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REFACTORED_GETTER_IMPLNOTE_INTRO;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REFACTORED_GETTER_IMPLNOTE_OUTRO;
+import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REMOVED_SETTERS_COMMENT;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REMOVED_SETTERS_IMPLNOTE;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.REMOVE_SETTERS_DESCRIPTION;
 import static de.informaticum.xjc.plugins.i18n.PropertyPluginMessages.STRAIGHT_GETTERS_DESCRIPTION;
@@ -204,6 +205,7 @@ extends AssignmentPlugin {
         final var $ImplClass = clazz.getImplClass();
         final var setters = generatedSettersOf(clazz);
         if (!setters.isEmpty()) {
+            this.appendGeneratedAnnotation($ImplClass, $ImplClass, REMOVED_SETTERS_COMMENT.format(PropertyPlugin.class.getName()));
             javadocSection($ImplClass).append(REMOVED_SETTERS_IMPLNOTE.text());
             for (final var setter : setters.values()) {
                 final var $setter = setter.getValue();
