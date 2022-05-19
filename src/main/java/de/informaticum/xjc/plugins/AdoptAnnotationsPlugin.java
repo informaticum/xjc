@@ -11,7 +11,7 @@ import static java.util.Optional.ofNullable;
 import java.util.List;
 import javax.annotation.processing.Generated;
 import com.sun.codemodel.JAnnotatable;
-import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JAnnotationUse;
 import com.sun.tools.xjc.Plugin;
 import de.informaticum.xjc.api.BasePlugin;
 import de.informaticum.xjc.api.CommandLineArgument;
@@ -66,45 +66,31 @@ extends BasePlugin {
 
     /**
      * Appends a specific comment into the existing {@code Generated} annotation of a given target. If no such annotation exists, the annotation will be
-     * {@linkplain de.informaticum.xjc.util.CodeRetrofit#copyAnnotation(com.sun.codemodel.JAnnotationUse, JAnnotatable) copied} from the given outer class. If there is no such
-     * template annotation, an empty annotation will be attached.
+     * {@linkplain de.informaticum.xjc.util.CodeRetrofit#copyAnnotation(com.sun.codemodel.JAnnotationUse, JAnnotatable) copied} from the given template component. If there is no
+     * such template annotation, a new empty annotation will be attached.
      *
      * @implNote This method does not set/alter the {@code value} field of the {@code Generated} annotation. It neither sets/alters the {@code date} field.
-     * @param $outer
-     *            the outer class to copy the {@code Generated} annotation from (if necessary)
+     * @param $template
+     *            the template component to copy the {@code Generated} annotation from (if necessary and if present)
      * @param $target
      *            the target of the {@code Generated} annotation
      * @param comment
      *            the comment to put into the {@code Generated} annotation
      */
-    protected final void appendGeneratedAnnotation(final JDefinedClass $outer, final JAnnotatable $target, final String comment) {
-        if (ADOPT_GENERATED.isActivated()) {
-            final var $annotationClass = this.reference(ofNullable(ADOPT_GENERATED_CLASS.getParameterValues().get(0)).orElse(JAVAX_ANNOTATION_GENERATED));
-            final var $outerAnnotation = $outer.annotations().stream().filter(a -> a.getAnnotationClass().compareTo($annotationClass) == 0).findFirst();
-            final var $annotation = $target.annotations().stream()
-                                           .filter(a -> a.getAnnotationClass().compareTo($annotationClass) == 0).findFirst()
-                                           .orElseGet(() -> $outerAnnotation.map($a -> copyAnnotation($a, $target)).orElseGet(() -> $target.annotate($annotationClass)));
-            if (!ADOPT_GENERATED_NODATE.isActivated() && $annotation.getAnnotationMembers().get("date") == null) {
-                $annotation.param("date", TIMESTAMP);
-            }
-            final var $currentComments = $annotation.getAnnotationMembers().get("comments");
-            final var currentCommentsValue = ($currentComments == null) ? "" : render($currentComments);
-            if (currentCommentsValue.isBlank()) {
-                $annotation.param("comments", comment);
-            } else {
-                $annotation.param("comments", direct(currentCommentsValue).plus(lit(" " + comment)));
-            }
-        }
+    protected final void appendGeneratedAnnotation(final JAnnotatable $template, final JAnnotatable $target, final String comment) {
+        ADOPT_GENERATED.doOnActivation(() -> this.getOrCopyOrAttachAnnotation($template, $target, comment))
+                       .map($a -> setDateIfMissing($a))
+                       .map($a -> appendComment($a, comment));
     }
 
     /**
      * Hijacks an existing {@code Generated} annotation of a given target. If no such annotation exists, the annotation will be
-     * {@linkplain de.informaticum.xjc.util.CodeRetrofit#copyAnnotation(com.sun.codemodel.JAnnotationUse, JAnnotatable) copied} from the given outer class. If there is no such
-     * template annotation, an empty annotation will be attached.
+     * {@linkplain de.informaticum.xjc.util.CodeRetrofit#copyAnnotation(com.sun.codemodel.JAnnotationUse, JAnnotatable) copied} from the given template component. If there is no
+     * such template annotation, a new empty annotation will be attached.
      * 
      * @implNote This method sets the {@code date} field if there is no current date value and unless {@link #ADOPT_GENERATED_NODATE date is suppressed}.
-     * @param $outer
-     *            the outer class to copy the {@code Generated} annotation from (if necessary)
+     * @param $template
+     *            the template component to copy the {@code Generated} annotation from (if necessary and if present)
      * @param $target
      *            the target of the {@code Generated} annotation
      * @param driver
@@ -112,18 +98,45 @@ extends BasePlugin {
      * @param comment
      *            the comment to put into the {@code Generated} annotation
      */
-    protected final void hijackGeneratedAnnotation(final JDefinedClass $outer, final JAnnotatable $target, final Class<?> driver, final String comment) {
-        if (ADOPT_GENERATED.isActivated()) {
-            final var $annotationClass = this.reference(ofNullable(ADOPT_GENERATED_CLASS.getParameterValues().get(0)).orElse(JAVAX_ANNOTATION_GENERATED));
-            final var $outerAnnotation = $outer.annotations().stream().filter(a -> a.getAnnotationClass().compareTo($annotationClass) == 0).findFirst();
-            final var $annotation = $target.annotations().stream()
-                                           .filter(a -> a.getAnnotationClass().compareTo($annotationClass) == 0).findFirst()
-                                           .orElseGet(() -> $outerAnnotation.map($a -> copyAnnotation($a, $target)).orElseGet(() -> $target.annotate($annotationClass)));
-            $annotation.param("value", driver.getName());
-            if (!ADOPT_GENERATED_NODATE.isActivated() && $annotation.getAnnotationMembers().get("date") == null) {
-                $annotation.param("date", TIMESTAMP);
-            }
-            $annotation.param("comments", comment);
+    protected final void hijackGeneratedAnnotation(final JAnnotatable $template, final JAnnotatable $target, final Class<?> driver, final String comment) {
+        ADOPT_GENERATED.doOnActivation(() -> this.getOrCopyOrAttachAnnotation($template, $target, comment))
+                       .map($a -> setDriver($a, driver))
+                       .map($a -> setDateIfMissing($a))
+                       .map($a -> setComment($a, comment));
+    }
+
+    private final JAnnotationUse getOrCopyOrAttachAnnotation(final JAnnotatable $template, final JAnnotatable $target, final String comment) {
+        final var annotationClassName = ofNullable(ADOPT_GENERATED_CLASS.getParameterValues().get(0)).orElse(JAVAX_ANNOTATION_GENERATED);
+        final var $annotationClass = this.reference(annotationClassName);
+        return $target.annotations().stream()
+                                    // either (a) find an existing annotation
+                                    .filter($a -> $a.getAnnotationClass().compareTo($annotationClass) == 0).findFirst()
+                                    .orElseGet(() -> $template.annotations().stream()
+                                                              // or (b) copy an annotation if present
+                                                              .filter($a -> $a.getAnnotationClass().compareTo($annotationClass) == 0).findFirst().map($a -> copyAnnotation($a, $target))
+                                                              // or (c) create an annotation
+                                                              .orElseGet(() -> $target.annotate($annotationClass)));
+    }
+
+    private static final JAnnotationUse setDriver(final JAnnotationUse $annotation, final Class<?> driver) {
+        return $annotation.param("value", driver.getName());
+    }
+
+    private static final JAnnotationUse setDateIfMissing(final JAnnotationUse $annotation) {
+        return ((!ADOPT_GENERATED_NODATE.isActivated()) && ($annotation.getAnnotationMembers().get("date") == null)) ? $annotation.param("date", TIMESTAMP) : $annotation;
+    }
+
+    private static final JAnnotationUse setComment(final JAnnotationUse $annotation, final String comment) {
+        return $annotation.param("comments", comment);
+    }
+
+    private static final JAnnotationUse appendComment(final JAnnotationUse $annotation, final String comment) {
+        final var $currentComments = $annotation.getAnnotationMembers().get("comments");
+        final var currentCommentsValue = ($currentComments == null) ? "" : render($currentComments);
+        if (currentCommentsValue.isBlank()) {
+            return $annotation.param("comments", comment);
+        } else {
+            return $annotation.param("comments", direct(currentCommentsValue).plus(lit(" " + comment)));
         }
     }
 
