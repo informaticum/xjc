@@ -178,7 +178,6 @@
             <tag><name>serialData</name></tag>
             <tag><name>see</name></tag>
           </tags>
-          <!-- http://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html#overviewcomment -->
           <overview>${project.basedir}/src/main/javadoc/overview.html</overview>
           <encoding>${project.build.sourceEncoding}</encoding>
           <docencoding>${project.reporting.outputEncoding}</docencoding>
@@ -190,9 +189,6 @@
           <validateLinks>true</validateLinks>
           <detectLinks>false</detectLinks>
           <detectJavaApiLink>true</detectJavaApiLink>
-          <!-- javaApiLinks>
-            <property><name>api_1.8</name><value>https://docs.oracle.com/javase/8/docs/api/</value></property>
-          </javaApiLinks -->
         </configuration>
         <executions>
           <execution>
