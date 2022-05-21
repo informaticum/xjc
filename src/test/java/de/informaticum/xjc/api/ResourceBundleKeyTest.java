@@ -1,8 +1,7 @@
-package de.informaticum.xjc.plugins.i18n;
+package de.informaticum.xjc.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
-import de.informaticum.xjc.api.ResourceBundleEntry;
 import org.junit.Test;
 
 public abstract class ResourceBundleKeyTest<E extends Enum<E> & ResourceBundleEntry> {
