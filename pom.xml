@@ -117,7 +117,50 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>gpg-signing</id>
+      <activation>
+        <property>
+          <!--
+           ! If this property is given, it obviously is intended to be used by the GPG plug-in. Thus, the existence is
+           ! used to automatically activate that plug-in without the need of any further verbosity (e.g., specifying a
+           ! profile).
+           !-->
+          <name>gpg.keyname</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <!-- Manage this plug-in only; It will be activated conditionally (by according profile). --> 
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>3.0.1</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <!--:-:-:-:-:-:-:-:-:-:-:-:-:-:- [1/3] CLEAN LIFECYCLE -:-:-:-:-:-:-:-:-:-:-:-:-:-:-->
       <plugin>
@@ -324,6 +367,9 @@
             <goals>
               <goal>flatten</goal>
             </goals>
+            <configuration>
+              <flattenMode>ossrh</flattenMode>
+            </configuration>
           </execution>
         </executions>
       </plugin>
