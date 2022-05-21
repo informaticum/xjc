@@ -68,6 +68,8 @@ public abstract interface XjcOption {
      * @param index
      *            the index of the argument to parse
      * @return the number of tokens consumed
+     * @throws BadCommandLineException
+     *             if the option was recognized but there's an error
      * @see #getParameters()
      * @see #isActivated()
      * @see #getParameterValues()
