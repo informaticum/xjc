@@ -224,7 +224,13 @@
           <execution>
             <id>generate-sources-jar</id>
             <goals>
-              <goal>jar</goal>
+              <!--
+               ! To prevent multiple executions of several Maven phases, the non-forking version of this plugin needs
+               ! to be selected.
+               !   - http://maven.apache.org/plugins/maven-source-plugin/jar-mojo.html
+               !   - http://maven.apache.org/plugins/maven-source-plugin/jar-no-fork-mojo.html
+               !-->
+              <goal>jar-no-fork</goal>
             </goals>
           </execution>
         </executions>
