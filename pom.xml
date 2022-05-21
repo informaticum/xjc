@@ -29,7 +29,10 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <!-- Wird benötigt, um die Dependencys für JAX-B/JAX-WS in der exakt zum (vom CXF-Plugin erzeugten) Code-Generat passenden Version zu verwenden -->
+        <!--
+         ! The Apache CXF CodeGen Plug-In shall be used as a bill-of-materials (BOM) in order to depend on the exact
+         ! same versions of all 3rd-party libraries as used when running the CXF-based code generation.
+         !-->
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-codegen-plugin</artifactId>
         <version>${version.apache-codegen}</version>
@@ -41,21 +44,38 @@
 
   <dependencies>
     <dependency>
+      <!--
+       ! Because this project is used in the context of an XJC execution, the "jaxb-xjc" dependency can be scoped as
+       ! "provided". This prevents version clashes in case when using this project in the context of a more up-to-date
+       ! setup. (However, this dependency must be provided at runtime which is assumed to be the usual case.)  
+       !-->
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-xjc</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <!--
+       ! This project hardens the internal assumptions using the AssertJ expressions. So, this dependency must be
+       ! referred as "compile" scoped.
+       !-->
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <!--
+       ! This project is linked against the slf4j API. In result, the specific execution context must provide a specific
+       ! implementation dependency, e.g., "logback-classic". (Unless such implementation dependency is provided, no
+       ! logging messages will be seen.
+       !-->
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <!--
+       ! Yes, tests are written in JUnit 4. Oldie but goldie ;-)
+       !-->
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -116,6 +136,20 @@
         <version>3.0.0-M2</version>
         <configuration>
           <deployAtEnd>true</deployAtEnd>
+          <!--
+           ! In case of a release deployment you definitively should enable the "updateReleaseInfo" parameter in order
+           ! to cause the according metadata update (making the artifact a release version).
+           !  + http://maven.apache.org/plugins/maven-deploy-plugin/deploy-mojo.html#updateReleaseInfo
+           !  + https://support.sonatype.com/hc/en-us/articles/213464638-Why-are-the-latest-and-release-tags-in-maven-metadata-xml-not-being-updated-after-deploying-artifacts-
+           !
+           ! Activation can be done (a) by an additional user-defined profile, (b) by reusing the existing
+           ! "release-profile" of the super-POM, or (c) by setting the parameter via maven execution with
+           ! "-DupdateReleaseInfo=true".
+           !  + http://maven.apache.org/ref/3-LATEST/maven-model-builder/super-pom.html
+           ! Since the same parameter is used by maven-install-plugin too, version (c) should be preferred.
+           !  + http://maven.apache.org/plugins/maven-install-plugin/install-mojo.html#updateReleaseInfo
+           !  + http://maven.apache.org/plugins/maven-install-plugin/examples/update-release-info.html
+           !-->
         </configuration>
       </plugin>
       <plugin>
@@ -124,12 +158,13 @@
         <version>3.0.0</version>
         <executions>
           <execution>
-            <id>enforce-uptodate-maven</id>
+            <id>enforce-project-assumptions</id>
             <goals>
               <goal>enforce</goal>
             </goals>
             <configuration>
               <rules>
+                <dependencyConvergence />
                 <requireJavaVersion>
                   <message>Java version must be at least version ${version.java}!</message>
                   <version>${version.java}</version>
@@ -174,7 +209,7 @@
         <version>3.4.0</version>
         <configuration>
           <tags>
-            <tag><name>apiNote</name><placement>a</placement><head>API Note:</head></tag>
+            <!-- tag><name>apiNote</name><placement>a</placement><head>API Note:</head></tag -->
             <tag><name>implSpec</name><placement>a</placement><head>Implementation Requirements:</head></tag>
             <tag><name>implNote</name><placement>a</placement><head>Implementation Note:</head></tag>
             <tag><name>param</name></tag>
@@ -223,8 +258,8 @@
             <id>generate-sources-jar</id>
             <goals>
               <!--
-               ! To prevent multiple executions of several Maven phases, the non-forking version of this plugin needs
-               ! to be selected.
+               ! To prevent multiple executions of several Maven phases, the non-forking version of this plugin needs to
+               ! be selected.
                !   - http://maven.apache.org/plugins/maven-source-plugin/jar-mojo.html
                !   - http://maven.apache.org/plugins/maven-source-plugin/jar-no-fork-mojo.html
                !-->
