@@ -21,6 +21,18 @@
     </license>
   </licenses>
 
+  <developers>
+    <developer>
+      <id>SGA</id>
+      <name>Stefan Gasterstädt</name>
+      <email>stefan@gasterstädt.de</email>
+      <url>http://stefan.gasterstädt.de</url>
+      <organization>Informaticum</organization>
+      <organizationUrl>http://informaticum.de/</organizationUrl>
+      <timezone>Europe/Berlin</timezone>
+    </developer>
+  </developers>
+
   <properties>
       <!-- Project Properties -->
     <version.java>11</version.java>
