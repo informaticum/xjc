@@ -33,6 +33,13 @@
     </developer>
   </developers>
 
+  <scm>
+    <connection>scm:git:git@github.com:informaticum/xjc.git</connection>
+    <developerConnection>scm:git:informaticum@github.com:informaticum/xjc.git</developerConnection>
+    <url>https://github.com/informaticum/xjc/</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <properties>
       <!-- Project Properties -->
     <version.java>11</version.java>
