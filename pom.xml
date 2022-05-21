@@ -9,6 +9,11 @@
   <artifactId>xjc-plugins</artifactId>
   <version>0.0.12-SNAPSHOT</version>
 
+  <name>Informaticum's XJC Plug-Ins</name>
+  <description>This project offers some XJC plug-ins to be used in conjunction with JAXB/JAX-WS (XSD-/WSDL-based) code generation.</description>
+  <url>https://github.com/informaticum/xjc/</url>
+  <inceptionYear>2021</inceptionYear>
+
   <licenses>
     <license>
       <name>MIT License</name>
