@@ -9,6 +9,13 @@
   <artifactId>xjc-plugins</artifactId>
   <version>0.0.12-SNAPSHOT</version>
 
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <comments>See LICENSE.md for details.</comments>
+    </license>
+  </licenses>
+
   <properties>
       <!-- Project Properties -->
     <version.java>11</version.java>
