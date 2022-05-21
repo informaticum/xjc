@@ -31,6 +31,12 @@ extends BasePlugin {
 
     /**
      * The fully-qualified name of the default {@code Generated} annotation. It copies the origin default value of {@link com.sun.tools.xjc.addon.at_generated.PluginImpl}.
+     *
+     * @implNote This value represents the {@code @Generated} annotation class of Java 1.6. Many of the JavaEE code has been outsourced into the Jakarta project and, thus, the
+     *           successor class is {@code jakarta.annotation.Generated}. (Actually Java 9 moved this annotation into module {@code java.xml.ws.annotation} (see
+     *           <a href="http://openjdk.java.net/jeps/320#Java-EE-modules">JEP 320</a>) and within Java 11 this annotation has been removed in preference to the Jakarta project
+     *           where this class has been relocated into another package.) However, Java 9 comes along with a new {@code Generated} annotation, placed within the package
+     *           {@code javax.annotation.processing} and within the module {@code java.compiler}. As you can see, the choice is yours.
      */
     private static final String JAVAX_ANNOTATION_GENERATED = "javax.annotation.Generated";
 
