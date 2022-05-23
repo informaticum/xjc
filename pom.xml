@@ -7,7 +7,7 @@
 
   <groupId>de.informaticum.xjc</groupId>
   <artifactId>xjc-plugins</artifactId>
-  <version>0.0.12-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
 
   <name>Informaticum's XJC Plug-Ins</name>
   <description>This project offers some XJC plug-ins to be used in conjunction with JAXB/JAX-WS (XSD-/WSDL-based) code generation.</description>
