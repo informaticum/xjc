@@ -1,15 +1,20 @@
 package de.informaticum.xjc.api;
 
 import static de.informaticum.xjc.util.CustomizableOutlineComparator.sorted;
+import static de.informaticum.xjc.util.Lenience.LENIENT;
+import static de.informaticum.xjc.util.Lenience.LENIENT_BREAKPOINT_MESSAGE;
 import static de.informaticum.xjc.util.PackageOutlineComparator.sorted;
 import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.util.function.Consumer;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
+import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.ElementOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.outline.PackageOutline;
@@ -125,6 +130,8 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
      * @see #runObjectFactory(JDefinedClass) 2.b. run each object factory (in lexicological order of the according package name)
      * @see #runClass(ClassOutline) 3. run each class (in order of the class hierarchy)
      * @see #runEnum(EnumOutline) 4. run each enum class (in order of the class hierarchy, effectively in lexicological order of the class name)
+     * @see #runElement(ElementOutline) 5.a run element outline for each element information with its own class (in order of appearance)
+     * @see #runElementInfo(CElementInfo) 5.b run element information for each element information without its own class (in order of appearance)
      * @return {@code true} if the add-on executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
      * @throws SAXException
      *             indication of a fatal irrecoverable error, thrown by any of the sub-methods
@@ -144,11 +151,36 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         for (final var enumeration : sorted(this.currentOutline.getEnums())) {
             result &= this.runEnum(enumeration);
         }
+        for (final var elementInfo : this.currentOutline.getModel().getAllElements()) {
+            if (elementInfo.hasClass()) {
+                final var element = this.currentOutline.getElement(elementInfo);
+                if (element == null) {
+                    LOG.error("An element information with a class flag (i.e. {}) should have a corresponding element outline!", elementInfo.fullName());
+                    if (!LENIENT) {
+                        assertThat(element).withFailMessage(LENIENT_BREAKPOINT_MESSAGE).isNotNull();
+                    }
+                } else {
+                    result &= this.runElement(element);
+                }
+            }
+        }
+        for (final var elementInfo : this.currentOutline.getModel().getAllElements()) {
+            if (!elementInfo.hasClass()) {
+                final var element = this.currentOutline.getElement(elementInfo);
+                if (element != null) {
+                    LOG.error("An element information without a class flag (i.e. {}) should have no corresponding element outline!", elementInfo.fullName());
+                    if (!LENIENT) {
+                        assertThat(element).withFailMessage(LENIENT_BREAKPOINT_MESSAGE).isNull();
+                    }
+                }
+                result &= this.runElementInfo(elementInfo);
+            }
+        };
         return result;
     }
 
     /**
-     * This method is called by {@link #run()} (step 1 of 4). Can be overridden.
+     * This method is called by {@link #run()} (step 1 of 5). Can be overridden.
      *
      * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
      * @throws SAXException
@@ -162,7 +194,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     }
 
     /**
-     * This method is called by {@link #run()} (step 2.a of 4). Can be overridden.
+     * This method is called by {@link #run()} (step 2.a of 5). Can be overridden.
      *
      * @param pakkage
      *            the package-outline to consider
@@ -178,7 +210,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     }
 
     /**
-     * This method is called by {@link #run()} (step 2.b of 4). Can be overridden.
+     * This method is called by {@link #run()} (step 2.b of 5). Can be overridden.
      *
      * @param $Factory
      *            the object-factory to consider
@@ -194,7 +226,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     }
 
     /**
-     * This method is called by {@link #run()} (step 3 of 4). Can be overridden.
+     * This method is called by {@link #run()} (step 3 of 5). Can be overridden.
      *
      * @param clazz
      *            the class-outline to consider
@@ -210,7 +242,7 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
     }
 
     /**
-     * This method is called by {@link #run()} (step 4 of 4). Can be overridden.
+     * This method is called by {@link #run()} (step 4 of 5). Can be overridden.
      *
      * @param enumeration
      *            the enum-outline to consider
@@ -221,6 +253,38 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
      *             indication of a fatal irrecoverable error
      */
     protected boolean runEnum(final EnumOutline enumeration)
+    throws SAXException, Exception {
+        return true;
+    }
+
+    /**
+     * This method is called by {@link #run()} (step 5.a of 5). Can be overridden.
+     *
+     * @param element
+     *            the element-outline to consider
+     * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error
+     * @throws Exception
+     *             indication of a fatal irrecoverable error
+     */
+    protected boolean runElement(final ElementOutline element)
+    throws SAXException, Exception {
+        return true;
+    }
+
+    /**
+     * This method is called by {@link #run()} (step 5.b of 5). Can be overridden.
+     *
+     * @param elementInfo
+     *            the enum-info to consider
+     * @return {@code true} if this method executes successfully; {@code false} if it detects some errors but those are reported and recovered gracefully
+     * @throws SAXException
+     *             indication of a fatal irrecoverable error
+     * @throws Exception
+     *             indication of a fatal irrecoverable error
+     */
+    protected boolean runElementInfo(final CElementInfo elementInfo)
     throws SAXException, Exception {
         return true;
     }

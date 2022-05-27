@@ -6,7 +6,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.ElementOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.PackageOutline;
 import de.informaticum.xjc.api.BasePlugin;
@@ -46,6 +48,18 @@ extends BasePlugin {
     @Override
     protected final boolean runEnum(final EnumOutline enumeration) {
         LOG.trace(CURRENT_ENTITY, "Enum", fullNameOf(enumeration));
+        return true;
+    }
+
+    @Override
+    protected final boolean runElement(final ElementOutline element) {
+        LOG.trace(CURRENT_ENTITY, "Element (with its own class)", fullNameOf(element));
+        return true;
+    }
+
+    @Override
+    protected final boolean runElementInfo(final CElementInfo info) {
+        LOG.trace(CURRENT_ENTITY, "Element (without its own class)", info.fullName());
         return true;
     }
 
