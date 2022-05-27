@@ -9,6 +9,7 @@ import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.processing.Generated;
 import com.sun.codemodel.JAnnotatable;
 import com.sun.codemodel.JAnnotationUse;
@@ -82,11 +83,12 @@ extends BasePlugin {
      *            the target of the {@code Generated} annotation
      * @param comment
      *            the comment to put into the {@code Generated} annotation
+     * @return the annotation instance for further actions
      */
-    protected final void appendGeneratedAnnotation(final JAnnotatable $template, final JAnnotatable $target, final String comment) {
-        ADOPT_GENERATED.doOnActivation(() -> this.getOrCopyOrAttachAnnotation($template, $target, comment))
-                       .map($a -> setDateIfMissing($a))
-                       .map($a -> appendComment($a, comment));
+    protected final Optional<JAnnotationUse> appendGeneratedAnnotation(final JAnnotatable $template, final JAnnotatable $target, final String comment) {
+        return ADOPT_GENERATED.doOnActivation(() -> this.getOrCopyOrAttachAnnotation($template, $target, comment))
+                              .map($a -> setDateIfMissing($a))
+                              .map($a -> appendComment($a, comment));
     }
 
     /**
@@ -103,12 +105,13 @@ extends BasePlugin {
      *            the XJC code generator class to be named as the origin of the {@code Generated} annotation
      * @param comment
      *            the comment to put into the {@code Generated} annotation
+     * @return the annotation instance for further actions
      */
-    protected final void hijackGeneratedAnnotation(final JAnnotatable $template, final JAnnotatable $target, final Class<?> driver, final String comment) {
-        ADOPT_GENERATED.doOnActivation(() -> this.getOrCopyOrAttachAnnotation($template, $target, comment))
-                       .map($a -> setDriver($a, driver))
-                       .map($a -> setDateIfMissing($a))
-                       .map($a -> setComment($a, comment));
+    protected final Optional<JAnnotationUse> hijackGeneratedAnnotation(final JAnnotatable $template, final JAnnotatable $target, final Class<?> driver, final String comment) {
+        return ADOPT_GENERATED.doOnActivation(() -> this.getOrCopyOrAttachAnnotation($template, $target, comment))
+                              .map($a -> setDriver($a, driver))
+                              .map($a -> setDateIfMissing($a))
+                              .map($a -> setComment($a, comment));
     }
 
     private final JAnnotationUse getOrCopyOrAttachAnnotation(final JAnnotatable $template, final JAnnotatable $target, final String comment) {
