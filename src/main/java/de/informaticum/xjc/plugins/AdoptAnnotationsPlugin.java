@@ -136,13 +136,13 @@ extends BasePlugin {
         return $annotation.param("comments", comment);
     }
 
-    private static final JAnnotationUse appendComment(final JAnnotationUse $annotation, final String comment) {
+    private static final JAnnotationUse appendComment(final JAnnotationUse $annotation, final String addendum) {
         final var $currentComments = $annotation.getAnnotationMembers().get("comments");
         final var currentCommentsValue = ($currentComments == null) ? "" : render($currentComments);
         if (currentCommentsValue.isBlank()) {
-            return $annotation.param("comments", comment);
+            return $annotation.param("comments", addendum);
         } else {
-            return $annotation.param("comments", direct(currentCommentsValue).plus(lit(" " + comment)));
+            return $annotation.param("comments", direct(currentCommentsValue).plus(lit(" " + addendum)));
         }
     }
 
