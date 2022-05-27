@@ -84,14 +84,27 @@ implements InitialisedOutline, InitialisedOptions, InitialisedErrorHandler {
         }
     }
 
-    private final void sayHi() {
+    /**
+     * This method is called by {@link #run(Outline, Options, ErrorHandler)} and logs/prints a short information about the current XJC plug-in. Can be overridden.
+     * 
+     * @implNote Depending on the actual logging activation/level, the current implementation runs {@link #sayHi(Consumer)} for {@linkplain org.slf4j.Logger#isInfoEnabled() info},
+     *           {@linkplain org.slf4j.Logger#isWarnEnabled() warn}, or {@linkplain org.slf4j.Logger#isErrorEnabled() error} level. If none of these apply, {@link System#out} is
+     *           used instead.
+     */
+    protected void sayHi() {
         if      (LOG.isInfoEnabled())  { this.sayHi(LOG::info);  }
         else if (LOG.isWarnEnabled())  { this.sayHi(LOG::warn);  }
         else if (LOG.isErrorEnabled()) { this.sayHi(LOG::error); }
         this.sayHi(System.out::println);
     }
 
-    private final void sayHi(final Consumer<? super String> sink) {
+    /**
+     * This method is called by {@link #sayHi()} and commits to the given message consumer a short information about the current XJC plug-in. Can be overridden.
+     *
+     * @param sink
+     *            the consumer of all single message lines
+     */
+    protected void sayHi(final Consumer<? super String> sink) {
         sink.accept(       "########################################################################");
         sink.accept(       "### Hey JAXB/JAX-WS user,"                                               );
         sink.accept(       "### you are using one of the informaticum's XJC plug-ins, i.e., the:"    );
