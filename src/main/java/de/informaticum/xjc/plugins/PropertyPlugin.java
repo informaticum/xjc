@@ -220,7 +220,7 @@ extends AssignmentPlugin {
             final var bricks = new GetterBricks(new PropertyAccessor(getter));
             // 1/4: Dump current Javadoc
             final var originJavadoc = new ArrayList<>(bricks.$getter.javadoc());
-            // 2/4: Annotate:
+            // 2/4: Annotate
             this.hijackGeneratedAnnotation(bricks.$ImplClass, bricks.$getter, PropertyPlugin.class, GETTER_COMMENT.text());
             // 3/4: Refactor getter method
             if (bricks.$field.type().isPrimitive()) {
@@ -307,7 +307,7 @@ extends AssignmentPlugin {
         final var methodMods = accessor.$method.mods().getValue();
         final var $getOrDefault = accessor.$ImplClass.method(methodMods, $type, methodName);
         final var $defaultValue = $getOrDefault.param(FINAL, parameterTypeOf($type), "defaultValue");
-        // 2/4: Annotate:
+        // 2/4: Annotate
         this.hijackGeneratedAnnotation(accessor.$ImplClass, $getOrDefault, PropertyPlugin.class, ORDEFAULT_COMMENT.text());
         // 3/4: Document
         javadocSection($getOrDefault).append(ORDEFAULT_JAVADOC.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), $defaultValue.name()));
@@ -341,7 +341,7 @@ extends AssignmentPlugin {
         final var $type = $getOrDefault.type();
         final var $getOrBuiltin = accessor.$ImplClass.method(methodMods, $type, methodName);
         final var $builtin = $default.get();
-        // 2/4: Annotate:
+        // 2/4: Annotate
         this.hijackGeneratedAnnotation(accessor.$ImplClass, $getOrBuiltin, PropertyPlugin.class, ORBUILTIN_COMMENT.text());
         // 3/4: Document
         javadocSection($getOrBuiltin).append(ORBUILTIN_JAVADOC.format(javadocNameOf(accessor.clazz), javadocNameOf(accessor.$method), render($builtin)));
@@ -370,7 +370,7 @@ extends AssignmentPlugin {
             final var $ImplClass = clazz.getImplClass();
             final var $setter = $ImplClass.method(PUBLIC, this.codeModel().VOID, setterName);
             final var $param = $setter.param(FINAL, parameterTypeOf($field), $field.name());
-            // 2/4: Annotate:
+            // 2/4: Annotate
             this.hijackGeneratedAnnotation($ImplClass, $setter, PropertyPlugin.class, COLLECTION_SETTER_COMMENT.text());
             // 3/4: Document
             javadocSection($setter).append(COLLECTION_SETTER_JAVADOC.format(javadocNameOf($field)));
