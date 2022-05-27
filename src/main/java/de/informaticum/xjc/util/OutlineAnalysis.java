@@ -22,6 +22,7 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
+import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.model.CAttributePropertyInfo;
 import com.sun.tools.xjc.model.CElementPropertyInfo;
 import com.sun.tools.xjc.model.CReferencePropertyInfo;
@@ -510,7 +511,8 @@ public enum OutlineAnalysis {
      * @return the specific value constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final ClassOutline... argumentTypes) {
-        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), stream(argumentTypes).map(ClassOutline::getImplClass).toArray(JType[]::new));
+        final var $types = stream(argumentTypes).map(ClassOutline::getImplClass).toArray(JType[]::new);
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), $types);
     }
 
     /**
@@ -523,7 +525,8 @@ public enum OutlineAnalysis {
      * @return the specific value constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
-        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
+        final var $types = stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new);
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), $types);
     }
 
     /**
@@ -531,12 +534,26 @@ public enum OutlineAnalysis {
      *
      * @param clazz
      *            the class to analyse
-     * @param argumentTypes
+     * @param $argumentTypes
      *            the constructor's signature types
      * @return the specific value constructor if it exists
      */
-    public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final JType... argumentTypes) {
-        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), argumentTypes);
+    public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final JVar... $argumentTypes) {
+        final var $types = stream($argumentTypes).map(JVar::type).toArray(JType[]::new);
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), $types);
+    }
+
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param $argumentTypes
+     *            the constructor's signature types
+     * @return the specific value constructor if it exists
+     */
+    public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final JType... $argumentTypes) {
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), $argumentTypes);
     }
 
     /**
@@ -549,8 +566,8 @@ public enum OutlineAnalysis {
      * @return the specific value constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
-        final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
-        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), argumentTypes);
+        final var $types = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
+        return CodeModelAnalysis.getConstructor(clazz.getImplClass(), $types);
     }
 
     /**
@@ -560,7 +577,7 @@ public enum OutlineAnalysis {
      *            the class to analyse
      * @param filter
      *            the predicate to use when filtering the list of all constructors
-     * @return a list of all constructor matching the given predicate
+     * @return a list of all constructors matching the given predicate
      */
     public static final List<JMethod> getConstructors(final ClassOutline clazz, final Predicate<? super JMethod> filter) {
         return CodeModelAnalysis.getConstructors(clazz.getImplClass(), filter);
@@ -590,8 +607,9 @@ public enum OutlineAnalysis {
      *            the method's signature types
      * @return the specific method if it exists
      */
-    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
-        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new));
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final ClassOutline... argumentTypes) {
+        final var $types = stream(argumentTypes).map(ClassOutline::getImplClass).toArray(JType[]::new);
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, $types);
     }
 
     /**
@@ -605,8 +623,40 @@ public enum OutlineAnalysis {
      *            the method's signature types
      * @return the specific method if it exists
      */
-    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final JType... argumentTypes) {
-        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, argumentTypes);
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
+        final var $types = stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new);
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, $types);
+    }
+
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param $argumentTypes
+     *            the method's signature types
+     * @return the specific method if it exists
+     */
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final JVar... $argumentTypes) {
+        final var $types = stream($argumentTypes).map(JVar::type).toArray(JType[]::new);
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, $types);
+    }
+
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param $argumentTypes
+     *            the method's signature types
+     * @return the specific method if it exists
+     */
+    public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final JType... $argumentTypes) {
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, $argumentTypes);
     }
 
     /**
@@ -621,8 +671,21 @@ public enum OutlineAnalysis {
      * @return the specific method if it exists
      */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final LinkedHashMap<? extends FieldOutline, ? extends JFieldVar> properties) {
-        final var argumentTypes = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
-        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, argumentTypes);
+        final var $types = properties.values().stream().map(JFieldVar::type).toArray(JType[]::new);
+        return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, $types);
+    }
+
+    /**
+     * Looks for all methods that matches a specific predicate.
+     *
+     * @param clazz
+     *            the class to analyse
+     * @param filter
+     *            the predicate to use when filtering the list of all methods
+     * @return a list of all methods matching the given predicate
+     */
+    public static final List<JMethod> getMethods(final ClassOutline clazz, final Predicate<? super JMethod> filter) {
+        return CodeModelAnalysis.getMethods(clazz.getImplClass(), filter);
     }
 
     /**

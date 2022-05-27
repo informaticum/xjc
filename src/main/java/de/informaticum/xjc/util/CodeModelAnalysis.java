@@ -27,7 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -579,58 +578,73 @@ public enum CodeModelAnalysis {
     }
 
     /**
-     * Looks for a constructor that has an empty method signature and returns it.
+     * Inspects the default constructor of the given class.
      *
      * @param $Class
      *            the class to analyse
-     * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
+     * @return the default constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final JDefinedClass $Class) {
-        return getConstructor($Class, new JType[0]);
-    }
-
-    /**
-     * Looks for a constructor that has the specified method signature and returns it.
-     *
-     * @param $Class
-     *            the class to analyse
-     * @param $args
-     *            the arguments passed into the constructor
-     * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
-     */
-    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JVar... $args) {
-        final var $types = Arrays.stream($args).map(JVar::type).toArray(JType[]::new);
+        final var $types = new JType[0];
         return getConstructor($Class, $types);
     }
 
     /**
-     * Looks for a constructor that has the specified method signature and returns it.
+     * Inspects a specific value constructor of the given class.
      *
      * @param $Class
      *            the class to analyse
-     * @param $args
-     *            the arguments passed into the constructor
-     * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
-     */
-    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final Collection<? extends JVar> $args) {
-        final var $types = $args.stream().map(JVar::type).toArray(JType[]::new);
-        return getConstructor($Class, $types);
-    }
-
-    /**
-     * Looks for a constructor that has the specified method signature and returns it.
-     *
-     * @param $Class
-     *            the class to analyse
-     * @param $argTypes
+     * @param argumentTypes
      *            the constructor's signature types
-     * @return an {@link Optional} holding the constructor if found; an {@linkplain Optional#empty() empty Optional} if not found
+     * @return the specific value constructor if it exists
+     */
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final Class<?>... argumentTypes) {
+        final var $types = stream(argumentTypes).map($Class.owner()::ref).toArray(JType[]::new);
+        return getConstructor($Class, $types);
+    }
+
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param $argumentTypes
+     *            the constructor's signature types
+     * @return the specific value constructor if it exists
+     */
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JVar... $argumentTypes) {
+        final var $types = stream($argumentTypes).map(JVar::type).toArray(JType[]::new);
+        return getConstructor($Class, $types);
+    }
+
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param $argumentTypes
+     *            the constructor's signature types
+     * @return the specific value constructor if it exists
+     */
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final Collection<? extends JVar> $argumentTypes) {
+        final var $types = $argumentTypes.stream().map(JVar::type).toArray(JType[]::new);
+        return getConstructor($Class, $types);
+    }
+
+    /**
+     * Inspects a specific value constructor of the given class.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param $argumentTypes
+     *            the constructor's signature types
+     * @return the specific value constructor if it exists
      * @see JDefinedClass#getConstructor(JType[])
      */
-    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JType... $argTypes) {
-        var $constructor = $Class.getConstructor($argTypes);
+    public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final JType... $argumentTypes) {
+        var $constructor = $Class.getConstructor($argumentTypes);
         if ($constructor == null) {
-            $constructor = $Class.getConstructor(erasure($argTypes));
+            $constructor = $Class.getConstructor(erasure($argumentTypes));
         }
         return Optional.ofNullable($constructor);
     }
@@ -649,66 +663,83 @@ public enum CodeModelAnalysis {
     }
 
     /**
-     * Looks for a method that has an empty method signature and returns it.
+     * Inspects a specific method of the given class.
      *
      * @param $Class
      *            the class to analyse
      * @param name
-     *            the method name to look for
-     * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
+     *            the method name
+     * @return the specific method if it exists
      */
     public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name) {
-        return getMethod($Class, name, new JType[0]);
-    }
-
-    /**
-     * Looks for a method that has the specified method signature and returns it.
-     *
-     * @param $Class
-     *            the class to analyse
-     * @param name
-     *            the method name to look for
-     * @param $args
-     *            the arguments passed into the method
-     * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
-     */
-    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JVar... $args) {
-        final var $types = Arrays.stream($args).map(JVar::type).toArray(JType[]::new);
+        final var $types = new JType[0];
         return getMethod($Class, name, $types);
     }
 
     /**
-     * Looks for a method that has the specified method signature and returns it.
+     * Inspects a specific method of the given class.
      *
      * @param $Class
      *            the class to analyse
      * @param name
-     *            the method name to look for
-     * @param $args
-     *            the arguments passed into the method
-     * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
-     */
-    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final Collection<? extends JVar> $args) {
-        final var $types = $args.stream().map(JVar::type).toArray(JType[]::new);
-        return getMethod($Class, name, $types);
-    }
-
-    /**
-     * Looks for a method that has the specified name/method signature and returns it.
-     *
-     * @param $Class
-     *            the class to analyse
-     * @param name
-     *            the method name to look for
-     * @param $argTypes
+     *            the method name
+     * @param argumentTypes
      *            the method's signature types
-     * @return an {@link Optional} holding the method if found; an {@linkplain Optional#empty() empty Optional} if not found
+     * @return the specific method if it exists
+     */
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final Class<?>... argumentTypes) {
+        final var $types = stream(argumentTypes).map($Class.owner()::ref).toArray(JType[]::new);
+        return getMethod($Class, name, $types);
+    }
+
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param $argumentTypes
+     *            the method's signature types
+     * @return the specific method if it exists
+     */
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JVar... $argumentTypes) {
+        final var $types = stream($argumentTypes).map(JVar::type).toArray(JType[]::new);
+        return getMethod($Class, name, $types);
+    }
+
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param $argumentTypes
+     *            the method's signature types
+     * @return the specific method if it exists
+     */
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final Collection<? extends JVar> $argumentTypes) {
+        final var $types = $argumentTypes.stream().map(JVar::type).toArray(JType[]::new);
+        return getMethod($Class, name, $types);
+    }
+
+    /**
+     * Inspects a specific method of the given class.
+     *
+     * @param $Class
+     *            the class to analyse
+     * @param name
+     *            the method name
+     * @param $argumentTypes
+     *            the method's signature types
+     * @return the specific method if it exists
      * @see JDefinedClass#getMethod(String, JType[])
      */
-    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JType... $argTypes) {
-        var $method = $Class.getMethod(name, $argTypes);
+    public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final JType... $argumentTypes) {
+        var $method = $Class.getMethod(name, $argumentTypes);
         if ($method == null) {
-            $method = $Class.getMethod(name, erasure($argTypes));
+            $method = $Class.getMethod(name, erasure($argumentTypes));
         }
         return Optional.ofNullable($method);
     }
