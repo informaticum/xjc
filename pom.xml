@@ -5,7 +5,7 @@
 
   <groupId>de.informaticum.xjc</groupId>
   <artifactId>xjc-plugins</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.1</version>
 
   <name>Informaticum's XJC Plug-Ins</name>
   <description>This project offers some XJC plug-ins to be used in conjunction with JAXB/JAX-WS (XSD-/WSDL-based) code generation.</description>
@@ -35,7 +35,7 @@
     <connection>scm:git:git@github.com:informaticum/xjc.git</connection>
     <developerConnection>scm:git:informaticum@github.com:informaticum/xjc.git</developerConnection>
     <url>https://github.com/informaticum/xjc/</url>
-    <tag>HEAD</tag>
+    <tag>1.0.1</tag>
   </scm>
 
   <distributionManagement>
