@@ -525,7 +525,7 @@ public enum OutlineAnalysis {
      * @return the specific value constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final ClassOutline clazz, final Class<?>... argumentTypes) {
-        final var $types = stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new);
+        final var $types = stream(argumentTypes).map(clazz.parent().getCodeModel()::_ref).toArray(JType[]::new);
         return CodeModelAnalysis.getConstructor(clazz.getImplClass(), $types);
     }
 
@@ -624,7 +624,7 @@ public enum OutlineAnalysis {
      * @return the specific method if it exists
      */
     public static final Optional<JMethod> getMethod(final ClassOutline clazz, final String name, final Class<?>... argumentTypes) {
-        final var $types = stream(argumentTypes).map(clazz.parent().getCodeModel()::ref).toArray(JType[]::new);
+        final var $types = stream(argumentTypes).map(clazz.parent().getCodeModel()::_ref).toArray(JType[]::new);
         return CodeModelAnalysis.getMethod(clazz.getImplClass(), name, $types);
     }
 

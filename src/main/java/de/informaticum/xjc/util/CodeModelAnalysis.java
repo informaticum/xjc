@@ -599,7 +599,7 @@ public enum CodeModelAnalysis {
      * @return the specific value constructor if it exists
      */
     public static final Optional<JMethod> getConstructor(final JDefinedClass $Class, final Class<?>... argumentTypes) {
-        final var $types = stream(argumentTypes).map($Class.owner()::ref).toArray(JType[]::new);
+        final var $types = stream(argumentTypes).map($Class.owner()::_ref).toArray(JType[]::new);
         return getConstructor($Class, $types);
     }
 
@@ -688,7 +688,7 @@ public enum CodeModelAnalysis {
      * @return the specific method if it exists
      */
     public static final Optional<JMethod> getMethod(final JDefinedClass $Class, final String name, final Class<?>... argumentTypes) {
-        final var $types = stream(argumentTypes).map($Class.owner()::ref).toArray(JType[]::new);
+        final var $types = stream(argumentTypes).map($Class.owner()::_ref).toArray(JType[]::new);
         return getMethod($Class, name, $types);
     }
 
