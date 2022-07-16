@@ -5,6 +5,7 @@ import static com.sun.codemodel.JExpr._null;
 import static com.sun.codemodel.JExpr._super;
 import static com.sun.codemodel.JExpr._this;
 import static com.sun.codemodel.JExpr.cast;
+import static de.informaticum.xjc.util.IterationUtil.streamOf;
 import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -18,11 +19,7 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableNavigableSet;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Collections.unmodifiableSortedSet;
-import static java.util.Spliterator.DISTINCT;
-import static java.util.Spliterator.NONNULL;
-import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -659,7 +656,7 @@ public enum CodeModelAnalysis {
      * @return a list of all constructors matching the given predicate
      */
     public static final List<JMethod> getConstructors(final JDefinedClass $Class, final Predicate<? super JMethod> filter) {
-        return stream(spliteratorUnknownSize($Class.constructors(), DISTINCT | NONNULL), false).filter(filter).collect(toList());
+        return streamOf($Class.constructors()).filter(filter).collect(toList());
     }
 
     /**
@@ -767,7 +764,7 @@ public enum CodeModelAnalysis {
      * @return an {@link Optional} holding the embedded class if found; an {@linkplain Optional#empty() empty Optional} if not found
      */
     public static final Optional<JDefinedClass> getEmbeddedClass(final JDefinedClass $Class, final String name) {
-        final var embedded = stream(spliteratorUnknownSize($Class.classes(), DISTINCT | NONNULL), false).filter(c -> name.equals(c.name())).collect(toList());
+        final var embedded = streamOf($Class.classes()).filter(c -> name.equals(c.name())).collect(toList());
         assertThat(embedded).hasSizeBetween(0, 1);
         return (embedded.isEmpty()) ? Optional.empty() : Optional.of(embedded.get(0)); 
     }

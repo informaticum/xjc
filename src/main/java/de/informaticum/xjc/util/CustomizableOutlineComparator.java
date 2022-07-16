@@ -1,7 +1,6 @@
 package de.informaticum.xjc.util;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
+import static de.informaticum.xjc.util.IterationUtil.listOf;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,7 +63,7 @@ implements Comparator<CustomizableOutline> {
      * @see #compare(CustomizableOutline, CustomizableOutline)
      */
     public final static <T extends CustomizableOutline> List<T> sorted(final Iterable<T> unsorted) {
-        return sorted(stream(unsorted.spliterator(), false).collect(toList()));
+        return sorted(listOf(unsorted));
     }
 
 }
