@@ -116,7 +116,7 @@ extends BasePlugin {
 
     private final JAnnotationUse getOrCopyOrAttachAnnotation(final JAnnotatable $template, final JAnnotatable $target, final String comment) {
         final var annotationClassName = ofNullable(ADOPT_GENERATED_CLASS.getParameterValues().get(0)).orElse(JAVAX_ANNOTATION_GENERATED);
-        final var $annotationClass = this.reference(annotationClassName);
+        final var $annotationClass = this.reference(annotationClassName).boxify();
         return $target.annotations().stream()
                                     // either (a) find an existing annotation
                                     .filter($a -> $a.getAnnotationClass().compareTo($annotationClass) == 0).findFirst()
