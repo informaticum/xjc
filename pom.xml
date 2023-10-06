@@ -56,7 +56,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Dependency Versions -->
-    <version.apache-codegen>3.5.3</version.apache-codegen>
+    <version.apache-codegen>4.0.3</version.apache-codegen>
   </properties>
 
   <dependencyManagement>

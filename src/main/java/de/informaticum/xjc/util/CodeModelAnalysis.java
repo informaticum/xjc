@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Predicate;
-import javax.xml.bind.JAXBElement;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCommentPart;
 import com.sun.codemodel.JDefinedClass;
@@ -52,6 +51,7 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JMods;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * Util class (technically a non-instantiable enum container) to provide some helper functions according to {@code com.sun.codemodel.*} types.
