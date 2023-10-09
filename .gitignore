@@ -6,6 +6,7 @@ logs/
 target/
 .flattened-pom.xml
 pom.xml.versionsBackup
+oss-deploy-settings.xml
 
 ### Eclipse ###
 .settings/

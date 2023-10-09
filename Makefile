@@ -32,7 +32,8 @@ install: ## Runs maven install (into local .m2 folder) (no deploy)
 	@mvn clean install
 
 release: ## Runs maven OSSRH deploy incl. GPG signing
-	@mvn clean \
+	@mvn --settings oss-deploy-settings.xml \
+	     clean \
 	     build-helper:parse-version \
 	     release:prepare -Dresume=false \
 	                     -Dtag=$$\{parsedVersion.majorVersion\}.$$\{parsedVersion.minorVersion\}.$$\{parsedVersion.incrementalVersion\} \
